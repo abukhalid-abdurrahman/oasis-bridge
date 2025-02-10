@@ -1,0 +1,44 @@
+@WebAPI_HostAddress = http://localhost:5233
+
+### Получение обменного курса
+GET {{WebAPI_HostAddress}}/api/test/exchange-rate?From=XRD&To=SOL&Amount=100
+Accept: application/json
+
+### Получение списка Solana-аккаунтов
+GET {{WebAPI_HostAddress}}/api/test/solana-accounts
+Accept: application/json
+
+### Получение технического аккаунта Solana
+GET {{WebAPI_HostAddress}}/api/test/solana-tech-account
+Accept: application/json
+
+### Получение списка Radix-аккаунтов
+GET {{WebAPI_HostAddress}}/api/test/radix-accounts
+Accept: application/json
+
+### Получение технического аккаунта Radix
+GET {{WebAPI_HostAddress}}/api/test/radix-tech-account
+Accept: application/json
+
+### Получение списка доступных криптовалют
+GET {{WebAPI_HostAddress}}/api/test/get-crypto
+Accept: application/json
+
+### Проверка статуса транзакции
+GET {{WebAPI_HostAddress}}/api/test/transaction-status?transactionId=123456
+Accept: application/json
+
+### Обмен криптовалют (Swap)
+POST {{WebAPI_HostAddress}}/api/test/swap
+Content-Type: application/json
+
+{
+  "From": "XRD",
+  "To": "SOL",
+  "Amount": 100,
+  "Address": "EaRtN6BAoyfYe5aQ9MpxD3dJwFBsnP3MN9AEz2f7Mc4k"
+}
+
+### Получение баланса по адресу
+GET {{WebAPI_HostAddress}}/api/test/balance?address=account_tdx_2_12952p9zm5ech2x3fc65xujk04c8lewncjwvn4lj6ylsjnl3rmm55gm
+Accept: application/json
