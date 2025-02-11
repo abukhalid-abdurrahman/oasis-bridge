@@ -5,7 +5,8 @@ public class TestController(
     ISolanaBridge solanaBridge,
     IRadixBridge radixBridge,
     IConfiguration configuration,
-    HttpClient httpClient)
+    HttpClient httpClient,
+    RadixTechnicalAccountBridgeOptions options)
     : BaseController
 {
     [HttpGet("exchange-rate")]
@@ -186,7 +187,7 @@ public class TestController(
             .Build(networkId);
 
         manifest.StaticallyValidate();
-        ulong currentEpoch = (await httpClient.GetConstructionMetadata("stokenet"))?.CurrentEpoch ?? 0;
+        ulong currentEpoch = (await httpClient.GetConstructionMetadata(options))?.CurrentEpoch ?? 0;
 
         using NotarizedTransaction transaction =
             new TransactionBuilder()

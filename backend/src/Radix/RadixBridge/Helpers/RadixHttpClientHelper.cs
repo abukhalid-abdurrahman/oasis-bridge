@@ -58,12 +58,17 @@ public static class RadixHttpClientHelper
     /// This method uses the <see cref="PostAsync{TRequest,TResponse}"/> helper method.
     /// </summary>
     /// <param name="client">The HTTP client used to send the request.</param>
-    /// <param name="networkId">The ID of the network to query for construction metadata.</param>
+    /// <param name="options"></param>
     /// <returns>A task representing the operation. The task result contains the current epoch response, or null if the request fails.</returns>
-    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client, string networkId)
+    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,RadixTechnicalAccountBridgeOptions options)
     {
         // Prepare the data to be sent in the request, containing the network ID
-        var data = new { network = networkId };
+        var data = new
+        {
+            network = options.NetworkId==0x01
+                ?RadixBridgeHelper.MainNet
+                :RadixBridgeHelper.StokeNet
+        };
 
         // Use the PostAsync helper method to send the request and retrieve the response
         return await PostAsync<object, CurrentEpochResponse>(

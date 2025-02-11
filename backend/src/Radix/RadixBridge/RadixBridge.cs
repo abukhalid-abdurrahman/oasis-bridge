@@ -58,7 +58,7 @@ public sealed class RadixBridge : IRadixBridge
         AccountFungibleResourceBalanceDto? result =
             await RadixHttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
                 _httpClient,
-                "https://stokenet-core.radix.live/core/lts/state/account-fungible-resource-balance",
+                $"{_options.HostUri}/core/lts/state/account-fungible-resource-balance",
                 data,
                 token
             );
@@ -188,7 +188,7 @@ public sealed class RadixBridge : IRadixBridge
         manifest.StaticallyValidate(); // Validate the manifest before execution
 
         // Get the current epoch for the transaction header
-        ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_network))?.CurrentEpoch ?? 0;
+        ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
 
         using NotarizedTransaction transaction = new TransactionBuilder()
             .Header(new TransactionHeader(
@@ -215,7 +215,7 @@ public sealed class RadixBridge : IRadixBridge
         // Submit the transaction to the Radix network
         TransactionSubmitResponse? response = await RadixHttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
             _httpClient,
-            "https://stokenet-core.radix.live/core/lts/transaction/submit",
+            $"{_options.HostUri}/core/lts/transaction/submit",
             data
         );
 
@@ -246,7 +246,7 @@ public sealed class RadixBridge : IRadixBridge
         // Send a request to get the status of the transaction
         TransactionStatusResponse? response = await RadixHttpClientHelper.PostAsync<object, TransactionStatusResponse>(
             _httpClient,
-            "https://stokenet-core.radix.live/core/transaction/status",
+            $"{_options.HostUri}/core/transaction/status",
             data,
             token
         );
