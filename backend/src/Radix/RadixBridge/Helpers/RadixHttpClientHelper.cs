@@ -73,7 +73,7 @@ public static class RadixHttpClientHelper
         // Use the PostAsync helper method to send the request and retrieve the response
         return await PostAsync<object, CurrentEpochResponse>(
             client,
-            "https://stokenet-core.radix.live/core/lts/transaction/construction", // URL for the endpoint
+            $"{options.HostUri}/core/lts/transaction/construction", // URL for the endpoint
             data // The network ID data to send in the request body
         );
     }

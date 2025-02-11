@@ -32,19 +32,6 @@ public static class Program
     public static async Task Main()
     {
         Console.WriteLine("Starting Radix Bridge Tests...");
-
-        for (int i = 0; i < 15; i++)
-        {
-            var res1 = _bridge.CreateAccountAsync();
-            var res2 = _bridge.GetAddressAsync(res1.PublicKey,AddressType.Account,NetworkType.Test);
-            Console.WriteLine("--------------------------");
-            Console.WriteLine($"PublicKey: {Encoders.Hex.EncodeData(res1.PrivateKey.PublicKeyBytes())}");
-            Console.WriteLine($"PrivetKey: {res1.PrivateKey.RawHex()}");
-            Console.WriteLine($"SeedPhrase: {res1.SeedPhrase}");
-            Console.WriteLine($"AccountAddress: {res2}");
-            Console.WriteLine("--------------------------------------");
-            
-        }
         
         await RunTestsAsync();
 
