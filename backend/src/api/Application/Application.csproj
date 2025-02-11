@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\Domain\Domain.csproj"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\bridge-sdk\Radix\RadixBridge\RadixBridge.csproj"/>
+        <ProjectReference Include="..\..\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj"/>
+    </ItemGroup>
+
+</Project>
