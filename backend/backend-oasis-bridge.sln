@@ -3,6 +3,9 @@
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9A5BBA34-29F0-4625-9332-AD1442FCA63D}"
+	ProjectSection(SolutionItems) = preProject
+		src\Readme.md = src\Readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bridge-sdk", "bridge-sdk", "{81BFF445-1E07-41B4-8D50-1A39364F8951}"
 	ProjectSection(SolutionItems) = preProject
@@ -22,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadixBridgeTest", "src\brid
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solana", "Solana", "{C423374B-9998-49A4-88CC-DCB3058BAC7C}"
 	ProjectSection(SolutionItems) = preProject
-		src\bridge-sdk\Solana\Solana.md = src\bridge-sdk\Solana\Solana.md
+		src\bridge-sdk\Solana\Readme.md = src\bridge-sdk\Solana\Readme.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolanaBridge", "src\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj", "{8EE45BB3-186F-4D2C-B76B-1E17827B3D08}"
@@ -30,6 +33,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolanaBridgeTest", "src\bridge-sdk\Solana\SolanaBridgeTest\SolanaBridgeTest.csproj", "{C5F86A1F-7529-4152-9B86-59D950DFE84C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{323298E3-ED33-4DD1-B4C9-1EFA3F89A7BA}"
+	ProjectSection(SolutionItems) = preProject
+		src\api\Readme.md = src\api\Readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "src\api\WebAPI\WebAPI.csproj", "{A6D70CEF-D1D0-451E-929F-CB0D76A42A85}"
 EndProject
