@@ -5,16 +5,25 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9A5BBA34-29F0-4625-9332-AD1442FCA63D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bridge-sdk", "bridge-sdk", "{81BFF445-1E07-41B4-8D50-1A39364F8951}"
+	ProjectSection(SolutionItems) = preProject
+		src\bridge-sdk\Readme.md = src\bridge-sdk\Readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "src\bridge-sdk\Common\Common.csproj", "{35B02C56-8C52-4E04-B4EC-1C9628D00471}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Radix", "Radix", "{F76C2858-D7EE-4B00-A9A9-57C51BA667C8}"
+	ProjectSection(SolutionItems) = preProject
+		src\bridge-sdk\Radix\Readme.md = src\bridge-sdk\Radix\Readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadixBridge", "src\bridge-sdk\Radix\RadixBridge\RadixBridge.csproj", "{67B8DD9C-8591-4D74-BBDD-51C057F80A48}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadixBridgeTest", "src\bridge-sdk\Radix\RadixBridgeTest\RadixBridgeTest.csproj", "{EFB99676-E6F8-40A2-8DE2-0E6F9E4B4C8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solana", "Solana", "{C423374B-9998-49A4-88CC-DCB3058BAC7C}"
+	ProjectSection(SolutionItems) = preProject
+		src\bridge-sdk\Solana\Solana.md = src\bridge-sdk\Solana\Solana.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolanaBridge", "src\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj", "{8EE45BB3-186F-4D2C-B76B-1E17827B3D08}"
 EndProject
