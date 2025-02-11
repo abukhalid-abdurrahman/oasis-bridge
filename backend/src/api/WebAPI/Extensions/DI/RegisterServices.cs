@@ -26,16 +26,19 @@ public static class RegisterServices
             PrivateKey = builder.Configuration["RadixTechnicalAccountBridgeOptions:PrivateKey"] ?? "",
             PublicKey = builder.Configuration["RadixTechnicalAccountBridgeOptions:PublicKey"] ?? "",
             AccountAddress = builder.Configuration["RadixTechnicalAccountBridgeOptions:AccountAddress"] ?? "",
-            NetworkId =0x02,
+            NetworkId = (byte)(builder.Configuration["RadixTechnicalAccountBridgeOptions:NetworkId"] ==
+                               RadixBridgeHelper.MainNet
+                ? 0x01
+                : 0x02),
         });
-        
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll",
                 policy =>
                 {
-                    policy.AllowAnyOrigin()  
-                        .AllowAnyMethod()   
+                    policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
         });
