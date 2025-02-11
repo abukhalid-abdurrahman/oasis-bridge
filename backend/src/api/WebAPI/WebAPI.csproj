@@ -12,8 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Radix\RadixBridge\RadixBridge.csproj" />
-    <ProjectReference Include="..\Solana\SolanaBridge\SolanaBridge.csproj" />
+    <ProjectReference Include="..\..\bridge-sdk\Radix\RadixBridge\RadixBridge.csproj" />
+    <ProjectReference Include="..\..\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj" />
   </ItemGroup>
 
+  
 </Project>
