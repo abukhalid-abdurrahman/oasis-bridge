@@ -13,4 +13,8 @@
     <Folder Include="Enums\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\BuildingBlocks\BuildingBlocks.csproj" />
+  </ItemGroup>
+
 </Project>
