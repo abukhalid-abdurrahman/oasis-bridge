@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
-
-namespace WebAPI.Controllers;
+namespace API.Controllers;
 
 [ApiController]
 public class BaseController : ControllerBase

@@ -1,4 +1,6 @@
-namespace WebAPI.Extensions;
+using API.Controllers;
+
+namespace API.Extensions;
 
 public static class AccountData
 {

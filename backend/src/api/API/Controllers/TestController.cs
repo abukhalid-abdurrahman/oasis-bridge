@@ -1,4 +1,6 @@
-namespace WebAPI.Controllers;
+using API.Extensions;
+
+namespace API.Controllers;
 
 [Route("/api/test")]
 public class TestController(

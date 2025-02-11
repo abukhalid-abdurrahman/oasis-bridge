@@ -1,4 +1,4 @@
-namespace WebAPI.Controllers;
+namespace API.Controllers;
 
 [Route("/error")]
 [ApiExplorerSettings(IgnoreApi = true)]

@@ -37,7 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{323298E3-ED3
 		src\api\Readme.md = src\api\Readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "src\api\WebAPI\WebAPI.csproj", "{A6D70CEF-D1D0-451E-929F-CB0D76A42A85}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "src\api\API\API.csproj", "{A6D70CEF-D1D0-451E-929F-CB0D76A42A85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src\api\Domain\Domain.csproj", "{E43EC0D1-B6F6-46D4-B741-1289FCD77CF3}"
 EndProject

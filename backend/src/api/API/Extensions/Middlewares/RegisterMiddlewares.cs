@@ -1,4 +1,4 @@
-namespace WebAPI.Extensions.Middlewares;
+namespace API.Extensions.Middlewares;
 
 public static class RegisterMiddlewares
 {

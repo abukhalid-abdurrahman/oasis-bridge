@@ -1,4 +1,4 @@
-namespace WebAPI.Extensions.DI;
+namespace API.Extensions.DI;
 
 public static class RegisterServices
 {
