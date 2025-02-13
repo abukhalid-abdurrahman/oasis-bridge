@@ -2,7 +2,7 @@ namespace Application.Contracts;
 
 public interface IUserService
 {
-    Task<Result<PagedResponse<GetAllUserResponse>>>
+    Task<Result<PagedResponse<List<GetAllUserResponse>>>>
         GetUsersAsync(UserFilter filter, CancellationToken token = default);
 
     Task<Result<GetUserDetailPublicResponse>>

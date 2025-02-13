@@ -8,4 +8,4 @@ public sealed record UserRoleFilter(
     string? UserName,
     string? RoleName,
     string? RoleKeyword,
-    string? RoleDescription);
+    string? RoleDescription):BaseFilter;

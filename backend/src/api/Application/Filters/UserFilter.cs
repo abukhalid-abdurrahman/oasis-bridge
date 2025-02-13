@@ -5,4 +5,4 @@ public sealed record UserFilter(
     string? LastName,
     string? Email,
     string? PhoneNumber,
-    string? UserName);
+    string? UserName):BaseFilter;
