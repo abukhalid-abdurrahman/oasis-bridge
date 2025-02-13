@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Common\" />
-    <Folder Include="Constants\" />
-    <Folder Include="Entities\" />
-    <Folder Include="Enums\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\common\BuildingBlocks\BuildingBlocks.csproj" />
   </ItemGroup>
 
