@@ -14,5 +14,17 @@
         <ProjectReference Include="..\..\bridge-sdk\Radix\RadixBridge\RadixBridge.csproj"/>
         <ProjectReference Include="..\..\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj"/>
     </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Contracts\" />
+      <Folder Include="DTOs\Account\Responses\" />
+      <Folder Include="DTOs\RoleClaim\" />
+      <Folder Include="DTOs\Role\" />
+      <Folder Include="DTOs\UserClaim\" />
+      <Folder Include="DTOs\UserLogin\" />
+      <Folder Include="DTOs\UserRole\" />
+      <Folder Include="DTOs\UserToken\" />
+      <Folder Include="DTOs\User\" />
+    </ItemGroup>
 
 </Project>
