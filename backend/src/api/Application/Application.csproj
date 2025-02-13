@@ -28,7 +28,7 @@
       <Folder Include="DTOs\UserRole\Responses\" />
       <Folder Include="DTOs\UserToken\Requests\" />
       <Folder Include="DTOs\UserToken\Responses\" />
-      <Folder Include="DTOs\User\Responses\" />
+      <Folder Include="Extensions\Mappers\" />
     </ItemGroup>
 
 </Project>

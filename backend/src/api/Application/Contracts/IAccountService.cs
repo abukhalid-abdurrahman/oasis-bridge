@@ -30,4 +30,6 @@ public interface IAccountService
 
     Task<Result<ConfirmRestoreAccountResponse>> ConfirmRestoreAccountAsync(ConfirmRestoreAccountRequest request,
         CancellationToken token = default);
+
+    Task<BaseResult> DeleteAccountAsync(Guid id, CancellationToken token = default);
 }
