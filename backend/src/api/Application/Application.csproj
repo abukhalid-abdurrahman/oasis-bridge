@@ -16,15 +16,19 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="Contracts\" />
-      <Folder Include="DTOs\Account\Responses\" />
-      <Folder Include="DTOs\RoleClaim\" />
-      <Folder Include="DTOs\Role\" />
-      <Folder Include="DTOs\UserClaim\" />
-      <Folder Include="DTOs\UserLogin\" />
-      <Folder Include="DTOs\UserRole\" />
-      <Folder Include="DTOs\UserToken\" />
-      <Folder Include="DTOs\User\" />
+      <Folder Include="DTOs\RoleClaim\Requests\" />
+      <Folder Include="DTOs\RoleClaim\Responses\" />
+      <Folder Include="DTOs\Role\Requests\" />
+      <Folder Include="DTOs\Role\Responses\" />
+      <Folder Include="DTOs\UserClaim\Requests\" />
+      <Folder Include="DTOs\UserClaim\Responses\" />
+      <Folder Include="DTOs\UserLogin\Requests\" />
+      <Folder Include="DTOs\UserLogin\Responses\" />
+      <Folder Include="DTOs\UserRole\Requests\" />
+      <Folder Include="DTOs\UserRole\Responses\" />
+      <Folder Include="DTOs\UserToken\Requests\" />
+      <Folder Include="DTOs\UserToken\Responses\" />
+      <Folder Include="DTOs\User\Responses\" />
     </ItemGroup>
 
 </Project>

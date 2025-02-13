@@ -1,6 +1,6 @@
 namespace Domain.Enums;
 
-public enum ProviderType
+public enum LoginProviderType
 {
     Local,
     Google,
