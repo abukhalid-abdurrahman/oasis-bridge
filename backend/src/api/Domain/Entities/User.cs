@@ -23,6 +23,8 @@ public sealed class User : BaseEntity
 
     public string? TwoFactorSecret { get; set; }
     public bool TwoFactorEnabled { get; set; }
+
+    public Guid Code { get; set; } = Guid.NewGuid();
     
     public HashSet<UserRole> UserRoles { get; set; } = [];
     public ICollection<UserClaim> UserClaims { get; set; } = [];

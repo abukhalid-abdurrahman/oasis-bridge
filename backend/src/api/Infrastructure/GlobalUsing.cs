@@ -1,9 +1,15 @@
 global using Domain.Common;
 global using Domain.Entities;
+global using Domain.Constants;
 global using Application.Contracts;
 global using System.Linq.Expressions;
+global using Infrastructure.DataAccess;
+global using Microsoft.AspNetCore.Http;
 global using Infrastructure.Extensions;
 global using Microsoft.EntityFrameworkCore;
+global using Application.DTOs.Account.Requests;
+global using Application.Extensions.Algorithms;
+global using Application.DTOs.Account.Responses;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Microsoft.EntityFrameworkCore.Design;
 global using Microsoft.EntityFrameworkCore.Metadata;

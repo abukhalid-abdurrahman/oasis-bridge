@@ -4,5 +4,6 @@ public enum VerificationCodeType
 {
     PasswordReset,
     EmailConfirmation,
-    TwoFactorAuth
+    TwoFactorAuth,
+    None
 }

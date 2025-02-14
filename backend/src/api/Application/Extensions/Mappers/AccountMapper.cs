@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Application.Extensions.Mappers;
 
 public static class AccountMapper
 {
-    public static User ToEntity(this RegisterRequest request, Guid createdBy)
+    public static User ToEntity(this RegisterRequest request, IHttpContextAccessor accessor, Guid createdBy)
     {
         return new()
         {
@@ -10,7 +12,8 @@ public static class AccountMapper
             Email = request.EmailAddress,
             PhoneNumber = request.PhoneNumber,
             UserName = request.UserName,
-            PasswordHash = HashingUtility.ComputeSha256Hash(request.Password)
+            PasswordHash = HashingUtility.ComputeSha256Hash(request.Password),
+            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
         };
     }
 }
