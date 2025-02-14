@@ -4,4 +4,4 @@ public sealed record GetUserRolesResponse(
     Guid UserId,
     Guid RoleId,
     GetUserDetailPublicResponse User,
-    GetRolesResponse Role);
+    GetRoleDetailResponse Role);

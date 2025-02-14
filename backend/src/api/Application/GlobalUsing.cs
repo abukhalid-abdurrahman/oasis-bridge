@@ -1,11 +1,14 @@
+global using System.Text;
 global using Domain.Common;
 global using Domain.Entities;
 global using Application.Filters;
+global using System.Security.Cryptography;
 global using Application.DTOs.User.Requests;
 global using Application.DTOs.Role.Requests;
 global using Application.DTOs.User.Responses;
 global using Application.DTOs.Role.Responses;
 global using Application.DTOs.Account.Requests;
+global using Application.Extensions.Algorithms;
 global using Application.DTOs.Account.Responses;
 global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.UserRole.Responses;
