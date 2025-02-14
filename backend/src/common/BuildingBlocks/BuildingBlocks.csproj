@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\Smtp\" />
+    <PackageReference Include="MailKit" Version="4.10.0" />
   </ItemGroup>
 
 </Project>
