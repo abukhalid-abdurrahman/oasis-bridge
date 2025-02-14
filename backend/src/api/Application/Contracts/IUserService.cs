@@ -12,5 +12,5 @@ public interface IUserService
         GetByIdForSelf(Guid userId, CancellationToken token = default);
 
     Task<Result<UpdateUserResponse>>
-        UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken token = default);
+        UpdateProfileAsync(Guid userId, UpdateUserProfileRequest request, CancellationToken token = default);
 }

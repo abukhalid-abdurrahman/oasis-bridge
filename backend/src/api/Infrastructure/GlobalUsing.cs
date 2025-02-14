@@ -1,1 +1,12 @@
+global using Domain.Common;
+global using Domain.Entities;
+global using Application.Contracts;
+global using System.Linq.Expressions;
+global using Infrastructure.Extensions;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Query;
+global using Microsoft.EntityFrameworkCore.Design;
+global using Microsoft.EntityFrameworkCore.Metadata;
 global using BuildingBlocks.Extensions.ResultPattern;
+global using Microsoft.EntityFrameworkCore.Infrastructure;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;

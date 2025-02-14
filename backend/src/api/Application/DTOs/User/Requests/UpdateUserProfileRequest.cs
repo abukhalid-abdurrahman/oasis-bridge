@@ -1,6 +1,6 @@
 namespace Application.DTOs.User.Requests;
 
-public record UpdateProfileRequest(
+public record UpdateUserProfileRequest(
     string FirstName,
     string LastName,
     string Email,

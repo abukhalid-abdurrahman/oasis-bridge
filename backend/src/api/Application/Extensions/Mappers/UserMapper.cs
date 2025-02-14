@@ -40,7 +40,7 @@ public static class UserMapper
             user.Dob);
     }
 
-    public static User ToEntity(this User user, UpdateProfileRequest request, Guid updateById)
+    public static User ToEntity(this User user, UpdateUserProfileRequest request, Guid updateById)
     {
         user.Update(updateById);
         user.FirstName = request.FirstName;

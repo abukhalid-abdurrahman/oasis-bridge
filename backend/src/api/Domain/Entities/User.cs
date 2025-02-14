@@ -23,9 +23,10 @@ public sealed class User : BaseEntity
 
     public string? TwoFactorSecret { get; set; }
     public bool TwoFactorEnabled { get; set; }
-
+    
     public HashSet<UserRole> UserRoles { get; set; } = [];
     public ICollection<UserClaim> UserClaims { get; set; } = [];
     public ICollection<UserLogin> UserLogins { get; set; } = [];
     public ICollection<UserToken> UserTokens { get; set; } = [];
+    public ICollection<UserVerificationCode> UserVerificationCodes { get; set; } = [];
 }
