@@ -1,4 +1,4 @@
-namespace API.Extensions.Middlewares;
+namespace API.Infrastructure.Middlewares;
 
 public static class RegisterMiddlewares
 {

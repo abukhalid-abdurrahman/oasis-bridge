@@ -1,4 +1,9 @@
-namespace API.Extensions.DI;
+using Application.Contracts;
+using BuildingBlocks.Extensions.Smtp;
+using Infrastructure.DataAccess.Seed;
+using Infrastructure.ImplementationContract;
+
+namespace API.Infrastructure.DI;
 
 public static class RegisterServices
 {
@@ -11,7 +16,14 @@ public static class RegisterServices
         builder.Services.AddScoped<IRadixBridge, RadixBridge.RadixBridge>();
         builder.Services.AddScoped<IBridge, SolanaBridge.SolanaBridge>();
         builder.Services.AddScoped<ISolanaBridge, SolanaBridge.SolanaBridge>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IRoleService, IRoleService>();
+        builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+
         builder.Services.AddHttpClient();
+        builder.Services.AddHttpContextAccessor();
+
 
         builder.Services.AddSingleton(new SolanaTechnicalAccountBridgeOptions
         {
@@ -26,22 +38,11 @@ public static class RegisterServices
             PrivateKey = builder.Configuration["RadixTechnicalAccountBridgeOptions:PrivateKey"] ?? "",
             PublicKey = builder.Configuration["RadixTechnicalAccountBridgeOptions:PublicKey"] ?? "",
             AccountAddress = builder.Configuration["RadixTechnicalAccountBridgeOptions:AccountAddress"] ?? "",
-            NetworkId = (byte)(builder.Configuration["RadixTechnicalAccountBridgeOptions:NetworkId"] ==
-                               RadixBridgeHelper.MainNet
+            NetworkId = (byte)(builder.Configuration["RadixTechnicalAccountBridgeOptions:NetworkId"] == RadixBridgeHelper.MainNet
                 ? 0x01
                 : 0x02),
         });
 
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll",
-                policy =>
-                {
-                    policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                });
-        });
 
         return builder;
     }

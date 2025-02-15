@@ -16,8 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Infrastructure\ApiConvensions\" />
-    <Folder Include="Infrastructure\Extensions\" />
+    <Folder Include="Controllers\V1\" />
   </ItemGroup>
 
   

@@ -2,7 +2,7 @@ using API.Controllers;
 
 namespace API.Extensions;
 
-public static class AccountData
+public static class AccountTestData
 {
     public static List<SolanaAccount> GetSolanaAccounts()
     {

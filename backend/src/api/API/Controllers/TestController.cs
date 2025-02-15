@@ -31,10 +31,10 @@ public class TestController(
     public IActionResult GetVirtualAccount([FromQuery] VirtualAccountRequest request)
     {
         if (request is { From: Helper.Sol, To: Helper.Xrd })
-            return Ok(Helper.GetRandomString(AccountData.GetSolanaAccounts().GetSolanaAddresses()));
+            return Ok(Helper.GetRandomString(AccountTestData.GetSolanaAccounts().GetSolanaAddresses()));
 
         if (request is { From: Helper.Xrd, To: Helper.Sol })
-            return Ok(Helper.GetRandomString(AccountData.GetRadixAccounts().GetRadixAddresses()));
+            return Ok(Helper.GetRandomString(AccountTestData.GetRadixAccounts().GetRadixAddresses()));
 
         return BadRequest("Invalid creating virtual-account address");
     }
@@ -90,7 +90,7 @@ public class TestController(
         if (request is { From: Helper.Xrd, To: Helper.Sol })
         {
             RadixAccount? sender =
-                AccountData.GetRadixAccounts().FirstOrDefault(x =>
+                AccountTestData.GetRadixAccounts().FirstOrDefault(x =>
                     x.AccountAddress == request.SenderAccountAddress || x.PublicKey == request.SenderAccountAddress);
             if (sender is null) return NotFound($"Sender account: {request.SenderAccountAddress} not found! ");
 
@@ -114,7 +114,7 @@ public class TestController(
         else if (request is { From: Helper.Sol, To: Helper.Xrd })
         {
             SolanaAccount? sender =
-                AccountData.GetSolanaAccounts().FirstOrDefault(x =>
+                AccountTestData.GetSolanaAccounts().FirstOrDefault(x =>
                     x.PublicKey == request.SenderAccountAddress);
             if (sender is null) return NotFound($"Sender account: {request.SenderAccountAddress} not found! ");
 
@@ -177,7 +177,7 @@ public class TestController(
             return BadRequest("Address cannot be empty");
 
         PrivateKey privateKey =
-            new(Encoders.Hex.DecodeData(AccountData.GetRadixAccounts()
+            new(Encoders.Hex.DecodeData(AccountTestData.GetRadixAccounts()
                 .Where(x => x.AccountAddress == address)
                 .Select(x => x.PrivateKey)
                 .FirstOrDefault()), Curve.ED25519);
