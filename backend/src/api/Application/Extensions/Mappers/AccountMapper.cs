@@ -13,6 +13,7 @@ public static class AccountMapper
             PhoneNumber = request.PhoneNumber,
             UserName = request.UserName,
             PasswordHash = HashingUtility.ComputeSha256Hash(request.Password),
+            TokenVersion = Guid.NewGuid(),
             CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
         };
     }

@@ -8,7 +8,7 @@ public interface IAccountService
     Task<Result<LoginResponse>> LoginAsync(LoginRequest request,
         CancellationToken token = default);
 
-    Task<BaseResult> LogoutAsync();
+    Task<BaseResult> LogoutAsync(CancellationToken token = default);
 
     Task<BaseResult> ChangePasswordAsync(ChangePasswordRequest request,
         CancellationToken token = default);
@@ -28,8 +28,8 @@ public interface IAccountService
     Task<BaseResult> RestoreAccountAsync(RestoreAccountRequest request,
         CancellationToken token = default);
 
-    Task<Result<ConfirmRestoreAccountResponse>> ConfirmRestoreAccountAsync(ConfirmRestoreAccountRequest request,
+    Task<BaseResult> ConfirmRestoreAccountAsync(ConfirmRestoreAccountRequest request,
         CancellationToken token = default);
 
-    Task<BaseResult> DeleteAccountAsync(Guid id, CancellationToken token = default);
+    Task<BaseResult> DeleteAccountAsync(CancellationToken token = default);
 }

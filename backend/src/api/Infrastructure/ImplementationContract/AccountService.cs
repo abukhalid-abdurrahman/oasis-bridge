@@ -1,9 +1,3 @@
-using Application.Extensions.Mappers;
-using BuildingBlocks.Extensions.Smtp;
-using Domain.Enums;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
 namespace Infrastructure.ImplementationContract;
 
 public sealed class AccountService(
@@ -20,10 +14,11 @@ public sealed class AccountService(
     {
         token.ThrowIfCancellationRequested();
 
-        bool checkExisting = await dbContext.Users.AnyAsync(x =>
-            x.UserName == request.UserName ||
-            x.Email == request.EmailAddress ||
-            x.PhoneNumber == request.PhoneNumber, token);
+        bool checkExisting = await dbContext.Users.IgnoreQueryFilters()
+            .AnyAsync(x =>
+                x.UserName == request.UserName ||
+                x.Email == request.EmailAddress ||
+                x.PhoneNumber == request.PhoneNumber, token);
 
         if (checkExisting)
             return Result<RegisterResponse>.Failure(ResultPatternError.AlreadyExist());
@@ -101,6 +96,9 @@ public sealed class AccountService(
 
             string? remoteIpAddress = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
+            user.TotalLogins++;
+            user.LastLoginAt = DateTimeOffset.UtcNow;
+
             UserToken userToken = new()
             {
                 UserId = user.Id,
@@ -123,67 +121,406 @@ public sealed class AccountService(
             await dbContext.UserLogins.AddAsync(userLogin, token);
             await dbContext.UserTokens.AddAsync(userToken, token);
 
-            await dbContext.SaveChangesAsync(token);
+            int res = await dbContext.SaveChangesAsync(token);
 
-            BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
-                "Successful Login to OASIS Bridge",
-                "You have successfully logged into your OASIS Bridge account. If this was not you, please contact support immediately.");
+            if (res != 0)
+            {
+                BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+                    "Successful Login to OASIS Bridge",
+                    "You have successfully logged into your OASIS Bridge account. If this was not you, please contact support immediately.");
 
-            if (!emailResult.IsSuccess)
-                logger.LogError("Failed to send login notification email.");
+                if (!emailResult.IsSuccess)
+                    logger.LogError("Failed to send login notification email.");
+            }
+
+            logger.LogError($"Failed save information about login. Time: {DateTimeOffset.UtcNow} .");
         }, token);
 
         return Result<LoginResponse>.Success(result.Value);
     }
 
 
-    public async Task<BaseResult> LogoutAsync()
+    public async Task<BaseResult> LogoutAsync(CancellationToken token = default)
     {
-        Guid userId = new(accessor.HttpContext?.User.Claims.FirstOrDefault(x => x.Type == CustomClaimTypes.Id)
-            ?.ToString() ?? "");
-        if (userId.ToString().Length > 10) return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user id."));
-        
+        token.ThrowIfCancellationRequested();
+
+        string? userIdClaim = accessor.HttpContext?.User.Claims
+            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
+        if (user is null) return BaseResult.Failure(ResultPatternError.NotFound("User not found."));
+
+        user.TokenVersion = Guid.NewGuid();
+        user.UpdatedBy = userId;
+        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "");
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.Version++;
+
+        int res = await dbContext.SaveChangesAsync(token);
+
+        return res != 0
+            ? BaseResult.Success()
+            : BaseResult.Failure(ResultPatternError.InternalServerError("Could not logout!"));
     }
 
     public async Task<BaseResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        string? userIdClaim = accessor.HttpContext?.User.Claims
+            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User not found."));
+
+        string hashedOldPassword = HashingUtility.ComputeSha256Hash(request.OldPassword);
+        if (user.PasswordHash != hashedOldPassword)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Old password is incorrect."));
+
+        user.PasswordHash = HashingUtility.ComputeSha256Hash(request.NewPassword);
+        user.UpdatedBy = userId;
+        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "");
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.Version++;
+        user.LastPasswordChangeAt = DateTimeOffset.UtcNow;
+        user.TokenVersion = Guid.NewGuid();
+
+
+        int res = await dbContext.SaveChangesAsync(token);
+        if (res == 0)
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Could not change password."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+            "Password Changed Successfully",
+            "Your password has been changed successfully. If this was not you, please contact support immediately.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send password change notification email.");
+
+        return BaseResult.Success();
     }
+
 
     public async Task<BaseResult> SendEmailConfirmationCodeAsync(SendEmailConfirmationCodeRequest request,
         CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Email == request.Email, token);
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
+
+        long verificationCode = VerificationHelper.GenerateVerificationCode();
+
+        UserVerificationCode userVerificationCode = new()
+        {
+            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            Code = verificationCode,
+            StartTime = DateTimeOffset.UtcNow,
+            ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
+            UserId = user.Id,
+            Type = VerificationCodeType.EmailConfirmation,
+            CreatedBy = user.Id,
+        };
+
+        await dbContext.UserVerificationCodes.AddAsync(userVerificationCode, token);
+        int res = await dbContext.SaveChangesAsync(token);
+
+        if (res == 0)
+            return BaseResult.Failure(
+                ResultPatternError.InternalServerError("Could not generate email confirmation code."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(request.Email,
+            "Email Confirmation Code",
+            $"Your email confirmation code is: {verificationCode}");
+
+        if (!emailResult.IsSuccess)
+        {
+            logger.LogError("Failed to send email confirmation code to {Email}", request.Email);
+            return BaseResult.Failure(
+                ResultPatternError.InternalServerError("Failed to send email confirmation code."));
+        }
+
+        return BaseResult.Success();
     }
+
 
     public async Task<BaseResult> ConfirmEmailAsync(ConfirmEmailCodeRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email, token);
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
+
+        UserVerificationCode? verificationCode = await dbContext.UserVerificationCodes
+            .Where(x => x.UserId == user.Id && x.Type == VerificationCodeType.EmailConfirmation)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(token);
+
+        if (verificationCode is null ||
+            verificationCode.Code != long.Parse(request.Code) ||
+            (verificationCode.ExpiryTime - DateTimeOffset.UtcNow).TotalSeconds >= 60)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid or expired reset code."));
+
+        if (verificationCode.Code != long.Parse(request.Code))
+            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid verification code."));
+
+        user.EmailConfirmed = true;
+        user.UpdatedBy = user.Id;
+        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.Version++;
+
+        int res = await dbContext.SaveChangesAsync(token);
+        if (res == 0)
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Could not confirm email."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+            "Your Email Has Been Confirmed",
+            "Congratulations! Your email has been successfully confirmed. You can now use all features of OASIS Bridge.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send email confirmation notification.");
+
+        return BaseResult.Success();
     }
+
 
     public async Task<BaseResult> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == request.EmailAddress, token);
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
+
+        UserVerificationCode resetCode = new()
+        {
+            UserId = user.Id,
+            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            Code = VerificationHelper.GenerateVerificationCode(),
+            StartTime = DateTimeOffset.UtcNow,
+            ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
+            Type = VerificationCodeType.PasswordReset,
+            CreatedBy = user.Id
+        };
+
+        await dbContext.UserVerificationCodes.AddAsync(resetCode, token);
+        int res = await dbContext.SaveChangesAsync(token);
+
+        if (res == 0)
+            return BaseResult.Failure(
+                ResultPatternError.InternalServerError("Could not generate password reset code."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(request.EmailAddress,
+            "Password Reset Request",
+            $"You have requested to reset your password. Use this code to proceed: {resetCode.Code}. The code is valid for 1 minutes.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send password reset email.");
+
+        return BaseResult.Success();
     }
+
 
     public async Task<BaseResult> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == request.EmailAddress, token);
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
+
+        UserVerificationCode? resetCode = await dbContext.UserVerificationCodes
+            .Where(x => x.UserId == user.Id &&
+                        x.Type == VerificationCodeType.PasswordReset &&
+                        x.Code == long.Parse(request.ResetCode))
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(token);
+
+        if (resetCode is null)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid reset code."));
+
+        if (resetCode.ExpiryTime < DateTimeOffset.UtcNow ||
+            (resetCode.ExpiryTime - DateTimeOffset.UtcNow).TotalSeconds >= 60)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Reset code has expired."));
+
+
+        user.PasswordHash = HashingUtility.ComputeSha256Hash(request.NewPassword);
+        user.UpdatedBy = user.Id;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.Version++;
+        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.TokenVersion = Guid.NewGuid();
+
+        int res = await dbContext.SaveChangesAsync(token);
+        if (res == 0)
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Could not reset password."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(request.EmailAddress,
+            "Password Successfully Reset",
+            "Your password has been successfully reset. If you did not request this change, please contact support immediately.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError($"Failed to send password reset confirmation email to {request.EmailAddress}");
+
+        return BaseResult.Success();
     }
+
 
     public async Task<BaseResult> RestoreAccountAsync(RestoreAccountRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users
+            .IgnoreQueryFilters().AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Email == request.Email, token);
+
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
+
+        if (!user.IsDeleted)
+            return BaseResult.Failure(ResultPatternError.BadRequest("This account is already active."));
+
+        UserVerificationCode restoreCode = new()
+        {
+            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            Code = VerificationHelper.GenerateVerificationCode(),
+            StartTime = DateTimeOffset.UtcNow,
+            ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
+            UserId = user.Id,
+            Type = VerificationCodeType.AccountRestore,
+            CreatedBy = SystemId
+        };
+
+        await dbContext.UserVerificationCodes.AddAsync(restoreCode, token);
+        int res = await dbContext.SaveChangesAsync(token);
+
+        if (res != 0)
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Could not restore code"));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(request.Email,
+            "Restore Your OASIS Bridge Account",
+            $"Use this verification code to restore your account: {restoreCode.Code}");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send restore account email.");
+
+        return BaseResult.Success("Verification code has been sent to your email.");
     }
 
-    public async Task<Result<ConfirmRestoreAccountResponse>> ConfirmRestoreAccountAsync(
+
+    public async Task<BaseResult> ConfirmRestoreAccountAsync(
         ConfirmRestoreAccountRequest request, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        User? user = await dbContext.Users.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.Email == request.Email, token);
+
+        if (user is null)
+            return BaseResult.Failure(
+                ResultPatternError.NotFound("User with this email was not found."));
+
+        if (!user.IsDeleted)
+            return BaseResult.Failure(ResultPatternError.BadRequest("This account is already active."));
+
+        UserVerificationCode? restoreCode = await dbContext.UserVerificationCodes
+            .Where(x =>
+                x.UserId == user.Id &&
+                x.Code == long.Parse(request.Code) &&
+                x.Type == VerificationCodeType.AccountRestore)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(token);
+
+        if (restoreCode is null)
+            return BaseResult.Failure(
+                ResultPatternError.BadRequest("Invalid restore code."));
+
+        double difference = (DateTimeOffset.UtcNow - user.DeletedAt!.Value).TotalDays;
+        if (difference > 30)
+            return BaseResult.Failure(ResultPatternError.BadRequest(
+                "The restore code has expired. Please contact technical support to restore your account."));
+
+        if (restoreCode.ExpiryTime < DateTimeOffset.UtcNow ||
+            (restoreCode.ExpiryTime - DateTimeOffset.UtcNow).TotalSeconds >= 60)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Reset code has expired."));
+
+
+        user.DeletedAt = null;
+        user.DeletedBy = null;
+        user.DeletedByIp = null;
+        user.IsDeleted = false;
+        user.UpdatedBy = user.Id;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.Version++;
+        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.TokenVersion = Guid.NewGuid();
+
+        int res = await dbContext.SaveChangesAsync(token);
+
+        if (res == 0)
+            return BaseResult.Failure(
+                ResultPatternError.InternalServerError("Could not restore account."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(request.Email,
+            "Account Restored",
+            "Your account has been successfully restored. If you did not request this, please contact support immediately.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send account restored email.");
+
+        return BaseResult.Success("Account successfully restored.");
     }
 
-    public async Task<BaseResult> DeleteAccountAsync(Guid id, CancellationToken token = default)
+
+    public async Task<BaseResult> DeleteAccountAsync(CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        Guid userId = new(accessor.HttpContext?.User.Claims.FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value ??
+                          SystemId.ToString());
+        string remoteIpAddress = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
+
+        User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
+
+        if (user is null)
+            return BaseResult.Failure(ResultPatternError.NotFound("User not found."));
+
+        if (user.IsDeleted)
+            return BaseResult.Failure(ResultPatternError.BadRequest("Account is already deleted."));
+
+        user.DeletedAt = DateTimeOffset.UtcNow;
+        user.DeletedByIp = remoteIpAddress;
+        user.DeletedBy = userId;
+        user.IsDeleted = true;
+        user.UpdatedBy = userId;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.UpdatedByIp!.Add(remoteIpAddress);
+        user.Version++;
+        user.TokenVersion = Guid.NewGuid();
+
+
+        int res = await dbContext.SaveChangesAsync(token);
+        if (res == 0)
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Could not delete account."));
+
+        BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+            "Account Deleted",
+            "Your account has been successfully deleted. If you did not request this, please contact support immediately. " +
+            "You can restore your account within the next 30 days by using the restore feature in your account settings.");
+
+        if (!emailResult.IsSuccess)
+            logger.LogError("Failed to send account deletion email.");
+
+        return BaseResult.Success("Account successfully deleted.");
     }
 }

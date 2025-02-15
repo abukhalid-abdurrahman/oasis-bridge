@@ -21,8 +21,8 @@ public sealed record ResultPatternError
     }
 
 
-    public static ResultPatternError None()
-        => new(null, null, ErrorType.None);
+    public static ResultPatternError None(string message="Ok")
+        => new(200, message, ErrorType.None);
 
     public static ResultPatternError NotFound(string? message = "Data not found!")
         => new(404, message, ErrorType.NotFound);

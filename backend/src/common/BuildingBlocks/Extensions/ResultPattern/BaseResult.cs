@@ -11,7 +11,7 @@ public class BaseResult
         IsSuccess = isSuccess;
     }
 
-    public static BaseResult Success() => new(true, ResultPatternError.None());
+    public static BaseResult Success(string message="Ok") => new(true, ResultPatternError.None(message));
 
     public static BaseResult Failure(ResultPatternError error) => new(false, error);
 }

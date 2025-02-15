@@ -3,15 +3,16 @@ namespace Domain.Common;
 public abstract class BaseEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? UpdatedAt { get; private set; }
-    public DateTimeOffset? DeletedAt { get; private set; }
-    public long Version { get; private set; } = 1;
-    public bool IsDeleted => DeletedAt.HasValue;
-    public EntityStatus Status { get; private set; } = EntityStatus.Active;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
+    public long Version { get; set; } = 1;
+
+    public bool IsDeleted { get; set; }
+    public EntityStatus Status { get; set; } = EntityStatus.Active;
     public Guid? CreatedBy { get; set; }
-    public Guid? UpdatedBy { get; private set; }
-    public Guid? DeletedBy { get; private set; }
+    public Guid? UpdatedBy { get; set; }
+    public Guid? DeletedBy { get; set; }
     public string? CreatedByIp { get; set; }
     public List<string>? UpdatedByIp { get; set; } = [];
     public string? DeletedByIp { get; set; }
@@ -29,7 +30,6 @@ public abstract class BaseEntity
         {
             DeletedAt = DateTimeOffset.UtcNow;
             DeletedBy = userId;
-            Status = EntityStatus.Deleted;
         }
     }
 }
