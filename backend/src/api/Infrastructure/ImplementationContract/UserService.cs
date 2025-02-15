@@ -85,7 +85,6 @@ public sealed class UserService(
             if (emailExists)
                 return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict("Email already exists"));
 
-            user.Email = request.Email;
         }
 
         if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
@@ -96,7 +95,6 @@ public sealed class UserService(
                 return Result<UpdateUserResponse>.Failure(
                     ResultPatternError.Conflict("PhoneNumber already exist"));
 
-            user.PhoneNumber = request.PhoneNumber;
         }
 
         if (!string.IsNullOrEmpty(request.UserName) && request.UserName != user.UserName)
@@ -107,14 +105,11 @@ public sealed class UserService(
                 return Result<UpdateUserResponse>.Failure(
                     ResultPatternError.Conflict("UserName already exists"));
 
-            user.UserName = request.UserName;
         }
 
-        user.FirstName = request.FirstName;
-        user.LastName = request.LastName;
-        user.Dob = request.Dob;
+       
 
-        dbContext.Users.Update(user);
+        dbContext.Users.Update(user.ToEntity(request,accessor));
         await dbContext.SaveChangesAsync(token);
 
 

@@ -51,7 +51,7 @@ public static class UserMapper
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
         user.Dob = request.Dob;
-        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() ?? "0.0.0.0");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() );
         return user;
     }
 }

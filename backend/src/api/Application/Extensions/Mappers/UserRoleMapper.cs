@@ -41,7 +41,7 @@ public static class UserRoleMapper
         userRole.Update(accessor.GetId());
         userRole.UserId = request.UserId;
         userRole.RoleId = request.RoleId;
-        userRole.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() ?? "0.0.0.0");
+        userRole.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         return userRole;
     }
 }

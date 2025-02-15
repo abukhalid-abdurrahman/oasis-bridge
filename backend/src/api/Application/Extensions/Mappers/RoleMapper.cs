@@ -25,7 +25,7 @@ public static class RoleMapper
         role.RoleKey = request.RoleKey;
         role.Description = request.Description;
         role.Name = request.RoleName;
-        role.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() ?? "0.0.0.0");
+        role.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() );
         return role;
     }
 

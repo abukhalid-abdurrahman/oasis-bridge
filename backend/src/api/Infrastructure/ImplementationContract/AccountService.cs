@@ -34,7 +34,7 @@ public sealed class AccountService(
             UserId = user.Id,
             RoleId = existingRole.Id,
             CreatedBy = HttpAccessor.SystemId,
-            CreatedByIp = user.CreatedByIp,
+            CreatedByIp = accessor.GetRemoteIpAddress(),
         };
 
         UserVerificationCode userVerificationCode = new()
@@ -90,9 +90,9 @@ public sealed class AccountService(
 
         await Task.Run(async () =>
         {
-            string? userAgent = accessor.HttpContext?.Request.Headers.UserAgent;
+            string? userAgent = accessor.GetUserAgent();
 
-            string? remoteIpAddress = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            string? remoteIpAddress = accessor.GetRemoteIpAddress();
 
             user.TotalLogins++;
             user.LastLoginAt = DateTimeOffset.UtcNow;
@@ -142,10 +142,9 @@ public sealed class AccountService(
     {
         token.ThrowIfCancellationRequested();
 
-        string? userIdClaim = accessor.HttpContext?.User.Claims
-            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
+        Guid? userId = accessor.GetId();
 
-        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        if (userId is null)
             return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
 
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
@@ -153,7 +152,7 @@ public sealed class AccountService(
 
         user.TokenVersion = Guid.NewGuid();
         user.UpdatedBy = userId;
-        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.Version++;
 
@@ -168,10 +167,9 @@ public sealed class AccountService(
     {
         token.ThrowIfCancellationRequested();
 
-        string? userIdClaim = accessor.HttpContext?.User.Claims
-            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
+        Guid? userId = accessor.GetId();
 
-        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        if (userId is null)
             return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
 
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
@@ -184,7 +182,7 @@ public sealed class AccountService(
 
         user.PasswordHash = HashingUtility.ComputeSha256Hash(request.NewPassword);
         user.UpdatedBy = userId;
-        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.Version++;
         user.LastPasswordChangeAt = DateTimeOffset.UtcNow;
@@ -219,7 +217,7 @@ public sealed class AccountService(
 
         UserVerificationCode userVerificationCode = new()
         {
-            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            CreatedByIp = accessor.GetRemoteIpAddress(),
             Code = verificationCode,
             StartTime = DateTimeOffset.UtcNow,
             ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
@@ -273,7 +271,7 @@ public sealed class AccountService(
 
         user.EmailConfirmed = true;
         user.UpdatedBy = user.Id;
-        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.Version++;
 
@@ -303,7 +301,7 @@ public sealed class AccountService(
         UserVerificationCode resetCode = new()
         {
             UserId = user.Id,
-            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            CreatedByIp = accessor.GetRemoteIpAddress(),
             Code = VerificationHelper.GenerateVerificationCode(),
             StartTime = DateTimeOffset.UtcNow,
             ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
@@ -356,7 +354,7 @@ public sealed class AccountService(
         user.UpdatedBy = user.Id;
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.Version++;
-        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         user.TokenVersion = Guid.NewGuid();
 
         int res = await dbContext.SaveChangesAsync(token);
@@ -390,7 +388,7 @@ public sealed class AccountService(
 
         UserVerificationCode restoreCode = new()
         {
-            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            CreatedByIp = accessor.GetRemoteIpAddress(),
             Code = VerificationHelper.GenerateVerificationCode(),
             StartTime = DateTimeOffset.UtcNow,
             ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
@@ -460,7 +458,7 @@ public sealed class AccountService(
         user.UpdatedBy = user.Id;
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.Version++;
-        user.UpdatedByIp!.Add(accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0");
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         user.TokenVersion = Guid.NewGuid();
 
         int res = await dbContext.SaveChangesAsync(token);
@@ -484,9 +482,8 @@ public sealed class AccountService(
     {
         token.ThrowIfCancellationRequested();
 
-        Guid userId = new(accessor.HttpContext?.User.Claims.FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value ??
-                          HttpAccessor.SystemId.ToString());
-        string remoteIpAddress = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
+        Guid userId = accessor.GetId() ?? HttpAccessor.SystemId;
+        string remoteIpAddress = accessor.GetRemoteIpAddress();
 
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
 

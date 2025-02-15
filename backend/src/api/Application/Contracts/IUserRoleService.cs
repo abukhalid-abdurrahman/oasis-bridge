@@ -1,8 +1,10 @@
+using System.Collections;
+
 namespace Application.Contracts;
 
 public interface IUserRoleService
 {
-    Task<Result<PagedResponse<List<GetUserRolesResponse>>>>
+    Task<Result<PagedResponse<IEnumerable>>>
         GetUserRolesAsync(UserRoleFilter filter, CancellationToken token = default);
 
     Task<Result<GetUserRoleDetailResponse>>

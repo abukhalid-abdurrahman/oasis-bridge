@@ -2,7 +2,6 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class RoleService(
     DataContext dbContext,
-    ILogger<RoleService> logger,
     IHttpContextAccessor accessor) : IRoleService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetRolesResponse>>>> GetRolesAsync(RoleFilter filter,
@@ -59,19 +58,63 @@ public sealed class RoleService(
 
         Role newRole = request.ToEntity(accessor);
         await dbContext.Roles.AddAsync(newRole, token);
-        await dbContext.SaveChangesAsync(token);
+        int res = await dbContext.SaveChangesAsync(token);
 
-        return Result<CreateRoleResponse>.Success(new CreateRoleResponse(newRole.Id));
+        return res != 0
+            ? Result<CreateRoleResponse>.Success(new CreateRoleResponse(newRole.Id))
+            : Result<CreateRoleResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
     }
 
     public async Task<Result<UpdateRoleResponse>> UpdateRoleAsync(Guid roleId, UpdateRoleRequest request,
         CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        Role? role = await dbContext.Roles.FirstOrDefaultAsync(x => x.Id == roleId, token);
+        if (role is null)
+            return Result<UpdateRoleResponse>.Failure(ResultPatternError.NotFound("Role not found"));
+
+        if (!string.IsNullOrEmpty(request.RoleName) && request.RoleName != role.Name)
+        {
+            bool roleNameExists = await dbContext.Roles
+                .AnyAsync(x => x.Name == request.RoleName && x.Id != roleId, token);
+            if (roleNameExists)
+                return Result<UpdateRoleResponse>.Failure(ResultPatternError.Conflict("Role name already exists"));
+        }
+
+        if (!string.IsNullOrEmpty(request.RoleKey) && request.RoleKey != role.RoleKey)
+        {
+            bool roleKeyExists = await dbContext.Roles
+                .AnyAsync(x => x.RoleKey == request.RoleKey && x.Id != roleId, token);
+            if (roleKeyExists)
+                return Result<UpdateRoleResponse>.Failure(ResultPatternError.Conflict("Role key already exists"));
+        }
+
+        if (request.Description is not null)
+            role.Description = request.Description;
+
+        dbContext.Roles.Update(role.ToEntity(accessor, request));
+        int res = await dbContext.SaveChangesAsync(token);
+
+        return res != 0
+            ? Result<UpdateRoleResponse>.Success(new(roleId))
+            : Result<UpdateRoleResponse>.Failure(ResultPatternError.InternalServerError("Couldn't update role'"));
     }
+
 
     public async Task<BaseResult> DeleteRoleAsync(Guid roleId, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        token.ThrowIfCancellationRequested();
+
+        Role? role = await dbContext.Roles.FirstOrDefaultAsync(x => x.Id == roleId, token);
+
+        if (role is null) return BaseResult.Failure(ResultPatternError.NotFound("Role not found"));
+
+        role.ToEntity(accessor);
+        int res = await dbContext.SaveChangesAsync(token);
+
+        return res != 0
+            ? Result<UpdateRoleResponse>.Success(new(roleId))
+            : Result<UpdateRoleResponse>.Failure(ResultPatternError.InternalServerError("Couldn't delete role'"));
     }
 }

@@ -25,6 +25,8 @@ global using Application.Extensions.Algorithms;
 global using Application.DTOs.Account.Requests;
 global using Microsoft.Extensions.Configuration;
 global using Application.DTOs.Account.Responses;
+global using Application.DTOs.UserRole.Requests;
+global using Application.DTOs.UserRole.Responses;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Microsoft.EntityFrameworkCore.Metadata;
 global using BuildingBlocks.Extensions.ResultPattern;
