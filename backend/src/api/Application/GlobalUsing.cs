@@ -1,6 +1,7 @@
 global using System.Text;
 global using Domain.Common;
 global using Domain.Entities;
+global using System.Collections;
 global using Application.Filters;
 global using System.Security.Cryptography;
 global using Application.DTOs.User.Requests;
