@@ -2,8 +2,7 @@ namespace Application.DTOs.Account.Requests;
 
 public sealed record ResetPasswordRequest
 {
-    [Required, EmailAddress] 
-    public string EmailAddress { get; init; } = string.Empty;
+    [Required, EmailAddress] public string EmailAddress { get; init; } = string.Empty;
 
     [Required, RegularExpression(@"^\d{6}$",
          ErrorMessage = "The reset code must be a 6-digit number.")]

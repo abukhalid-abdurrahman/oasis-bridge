@@ -11,7 +11,7 @@ public interface IUserRoleService
     Task<Result<CreateUserRoleResponse>>
         CreateUserRoleAsync(CreateUserRoleRequest request, CancellationToken token = default);
 
-    Task<Result<UpdateUserRoleResponse>> UpdateUserRoleAsync(Guid id,UpdateUserRoleRequest request,
+    Task<Result<UpdateUserRoleResponse>> UpdateUserRoleAsync(Guid id, UpdateUserRoleRequest request,
         CancellationToken token = default);
 
     Task<BaseResult> DeleteUserRoleAsync(Guid id, CancellationToken token = default);

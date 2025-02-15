@@ -1,6 +1,3 @@
-using BuildingBlocks.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-
 namespace Application.Extensions.Mappers;
 
 public static class RoleMapper
@@ -25,7 +22,7 @@ public static class RoleMapper
         role.RoleKey = request.RoleKey;
         role.Description = request.Description;
         role.Name = request.RoleName;
-        role.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() );
+        role.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         return role;
     }
 

@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace Infrastructure.Extensions;
 
 public static class EfCore

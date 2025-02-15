@@ -1,6 +1,3 @@
-using BuildingBlocks.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-
 namespace Application.Extensions.Mappers;
 
 public static class AccountMapper

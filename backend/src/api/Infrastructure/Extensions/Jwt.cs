@@ -1,4 +1,3 @@
-
 namespace Infrastructure.Extensions;
 
 public static class Jwt
@@ -22,7 +21,7 @@ public static class Jwt
             new(CustomClaimTypes.Phone, user.PhoneNumber),
             new(CustomClaimTypes.FirstName, user.FirstName ?? ""),
             new(CustomClaimTypes.LastName, user.LastName ?? ""),
-            new(CustomClaimTypes.TokenVersion , user.TokenVersion .ToString()),
+            new(CustomClaimTypes.TokenVersion, user.TokenVersion.ToString()),
         ];
 
         claims.AddRange(await (from u in dbContext.Users

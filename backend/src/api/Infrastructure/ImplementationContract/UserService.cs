@@ -84,7 +84,6 @@ public sealed class UserService(
                 .AnyAsync(x => x.Email == request.Email && x.Id != userId, token);
             if (emailExists)
                 return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict("Email already exists"));
-
         }
 
         if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
@@ -94,7 +93,6 @@ public sealed class UserService(
             if (phoneExists)
                 return Result<UpdateUserResponse>.Failure(
                     ResultPatternError.Conflict("PhoneNumber already exist"));
-
         }
 
         if (!string.IsNullOrEmpty(request.UserName) && request.UserName != user.UserName)
@@ -104,12 +102,10 @@ public sealed class UserService(
             if (userNameExists)
                 return Result<UpdateUserResponse>.Failure(
                     ResultPatternError.Conflict("UserName already exists"));
-
         }
 
-       
 
-        dbContext.Users.Update(user.ToEntity(request,accessor));
+        dbContext.Users.Update(user.ToEntity(request, accessor));
         await dbContext.SaveChangesAsync(token);
 
 

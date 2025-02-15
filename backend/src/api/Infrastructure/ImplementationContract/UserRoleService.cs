@@ -2,7 +2,6 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class UserRoleService(
     DataContext dbContext,
-    ILogger<UserRoleService> logger,
     IHttpContextAccessor accessor) : IUserRoleService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetUserRolesResponse>>>> GetUserRolesAsync(UserRoleFilter filter,

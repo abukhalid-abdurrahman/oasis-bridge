@@ -1,10 +1,11 @@
 global using System.Text;
 global using Domain.Common;
 global using Domain.Entities;
-global using System.Collections;
 global using Application.Filters;
+global using Microsoft.AspNetCore.Http;
 global using System.Security.Cryptography;
 global using Application.DTOs.User.Requests;
+global using BuildingBlocks.Extensions.Http;
 global using Application.DTOs.Role.Requests;
 global using Application.DTOs.User.Responses;
 global using Application.DTOs.Role.Responses;

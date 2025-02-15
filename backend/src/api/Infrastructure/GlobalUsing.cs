@@ -3,6 +3,7 @@ global using Domain.Enums;
 global using Domain.Common;
 global using Domain.Entities;
 global using Domain.Constants;
+global using System.Reflection;
 global using Application.Filters;
 global using Application.Contracts;
 global using System.Security.Claims;

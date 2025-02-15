@@ -9,7 +9,7 @@ public sealed class User : BaseEntity
     public string UserName { get; set; } = string.Empty;
 
     public DateTimeOffset? Dob { get; set; }
-    
+
     public bool EmailConfirmed { get; set; }
     public bool PhoneNumberConfirmed { get; set; }
 
@@ -24,8 +24,8 @@ public sealed class User : BaseEntity
     public string? TwoFactorSecret { get; set; }
     public bool TwoFactorEnabled { get; set; }
 
-    public Guid TokenVersion  { get; set; } = Guid.NewGuid();
-    
+    public Guid TokenVersion { get; set; } = Guid.NewGuid();
+
     public HashSet<UserRole> UserRoles { get; set; } = [];
     public ICollection<UserClaim> UserClaims { get; set; } = [];
     public ICollection<UserLogin> UserLogins { get; set; } = [];

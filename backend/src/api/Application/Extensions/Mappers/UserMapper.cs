@@ -1,6 +1,3 @@
-using BuildingBlocks.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-
 namespace Application.Extensions.Mappers;
 
 public static class UserMapper
@@ -51,7 +48,7 @@ public static class UserMapper
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
         user.Dob = request.Dob;
-        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() );
+        user.UpdatedByIp!.Add(accessor.GetRemoteIpAddress());
         return user;
     }
 }

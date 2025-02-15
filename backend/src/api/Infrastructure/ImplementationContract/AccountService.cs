@@ -92,7 +92,7 @@ public sealed class AccountService(
         {
             string? userAgent = accessor.GetUserAgent();
 
-            string? remoteIpAddress = accessor.GetRemoteIpAddress();
+            string remoteIpAddress = accessor.GetRemoteIpAddress();
 
             user.TotalLogins++;
             user.LastLoginAt = DateTimeOffset.UtcNow;
