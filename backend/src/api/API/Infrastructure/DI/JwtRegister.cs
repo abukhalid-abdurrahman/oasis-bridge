@@ -1,6 +1,6 @@
 namespace API.Infrastructure.DI;
 
-public class JwtRegister
+public static class JwtRegister
 {
     
 }

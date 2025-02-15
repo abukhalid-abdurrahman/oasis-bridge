@@ -1,6 +1,9 @@
 namespace API.Infrastructure.DI;
 
-public class SwaggerRegister
+public static class SwaggerRegister
 {
-    
+    public static WebApplicationBuilder AddSwaggerService(this WebApplicationBuilder builder)
+    {
+        return builder;
+    }
 }
