@@ -1,4 +1,4 @@
-namespace Domain.Constants;
+namespace BuildingBlocks.Extensions.Http;
 
 public static class CustomClaimTypes
 {

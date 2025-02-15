@@ -17,14 +17,14 @@ public abstract class BaseEntity
     public List<string>? UpdatedByIp { get; set; } = [];
     public string? DeletedByIp { get; set; }
 
-    public void Update(Guid userId)
+    public void Update(Guid? userId)
     {
         UpdatedAt = DateTimeOffset.UtcNow;
         UpdatedBy = userId;
         Version++;
     }
 
-    public void Delete(Guid userId)
+    public void Delete(Guid? userId)
     {
         if (!IsDeleted)
         {

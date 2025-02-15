@@ -7,8 +7,6 @@ public sealed class AccountService(
     ILogger<AccountService> logger,
     IConfiguration configuration) : IAccountService
 {
-    private static readonly Guid SystemId = new("11111111-1111-1111-1111-111111111111");
-
     public async Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest request,
         CancellationToken token = default)
     {
@@ -29,13 +27,13 @@ public sealed class AccountService(
         if (existingRole is null)
             return Result<RegisterResponse>.Failure(ResultPatternError.NotFound("Role 'User' not found!"));
 
-        User user = request.ToEntity(accessor, SystemId);
+        User user = request.ToEntity(accessor);
 
         UserRole userRole = new()
         {
             UserId = user.Id,
             RoleId = existingRole.Id,
-            CreatedBy = SystemId,
+            CreatedBy = HttpAccessor.SystemId,
             CreatedByIp = user.CreatedByIp,
         };
 
@@ -47,7 +45,7 @@ public sealed class AccountService(
             ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
             UserId = user.Id,
             Type = VerificationCodeType.None,
-            CreatedBy = SystemId
+            CreatedBy = HttpAccessor.SystemId
         };
 
         await dbContext.Users.AddAsync(user, token);
@@ -115,7 +113,7 @@ public sealed class AccountService(
                 UserAgent = userAgent,
                 Successful = true,
                 CreatedByIp = remoteIpAddress,
-                CreatedBy = SystemId,
+                CreatedBy = HttpAccessor.SystemId,
                 IpAddress = remoteIpAddress
             };
             await dbContext.UserLogins.AddAsync(userLogin, token);
@@ -398,7 +396,7 @@ public sealed class AccountService(
             ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(1),
             UserId = user.Id,
             Type = VerificationCodeType.AccountRestore,
-            CreatedBy = SystemId
+            CreatedBy = HttpAccessor.SystemId
         };
 
         await dbContext.UserVerificationCodes.AddAsync(restoreCode, token);
@@ -487,7 +485,7 @@ public sealed class AccountService(
         token.ThrowIfCancellationRequested();
 
         Guid userId = new(accessor.HttpContext?.User.Claims.FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value ??
-                          SystemId.ToString());
+                          HttpAccessor.SystemId.ToString());
         string remoteIpAddress = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
 
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);

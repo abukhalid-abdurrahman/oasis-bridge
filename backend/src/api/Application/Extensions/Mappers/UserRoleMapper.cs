@@ -1,3 +1,6 @@
+using BuildingBlocks.Extensions.Http;
+using Microsoft.AspNetCore.Http;
+
 namespace Application.Extensions.Mappers;
 
 public static class UserRoleMapper
@@ -16,25 +19,29 @@ public static class UserRoleMapper
             userRole.User.ToReadPublicDetail(),
             userRole.Role.ToReadDetail());
 
-    public static UserRole ToEntity(this CreateUserRoleRequest request, Guid createdById)
+    public static UserRole ToEntity(this CreateUserRoleRequest request, IHttpContextAccessor accessor)
         => new()
         {
             UserId = request.UserId,
             RoleId = request.RoleId,
-            CreatedBy = createdById
+            CreatedBy = accessor.GetId(),
+            CreatedByIp = accessor.GetRemoteIpAddress()
         };
 
-    public static UserRole ToEntity(this UserRole userRole, Guid deletedById)
+    public static UserRole ToEntity(this UserRole userRole, IHttpContextAccessor accessor)
     {
-        userRole.Delete(deletedById);
+        userRole.Delete(accessor.GetId());
+        userRole.DeletedByIp = accessor.GetRemoteIpAddress();
         return userRole;
     }
 
-    public static UserRole ToEntity(this UserRole userRole, Guid updatedById, UpdateUserRoleRequest request)
+    public static UserRole ToEntity(this UserRole userRole, IHttpContextAccessor accessor,
+        UpdateUserRoleRequest request)
     {
-        userRole.Update(updatedById);
+        userRole.Update(accessor.GetId());
         userRole.UserId = request.UserId;
         userRole.RoleId = request.RoleId;
+        userRole.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() ?? "0.0.0.0");
         return userRole;
     }
 }

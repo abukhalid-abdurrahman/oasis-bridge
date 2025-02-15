@@ -1,3 +1,6 @@
+using BuildingBlocks.Extensions.Http;
+using Microsoft.AspNetCore.Http;
+
 namespace Application.Extensions.Mappers;
 
 public static class RoleMapper
@@ -16,27 +19,30 @@ public static class RoleMapper
             role.RoleKey,
             role.Description);
 
-    public static Role ToEntity(this Role role, Guid updateById, UpdateRoleRequest request)
+    public static Role ToEntity(this Role role, IHttpContextAccessor accessor, UpdateRoleRequest request)
     {
-        role.Update(updateById);
+        role.Update(accessor.GetId());
         role.RoleKey = request.RoleKey;
         role.Description = request.Description;
         role.Name = request.RoleName;
+        role.UpdatedByIp!.Add(accessor.GetRemoteIpAddress() ?? "0.0.0.0");
         return role;
     }
 
-    public static Role ToEntity(this CreateRoleRequest request, Guid createdById)
+    public static Role ToEntity(this CreateRoleRequest request, IHttpContextAccessor accessor)
         => new()
         {
             Name = request.RoleName,
             RoleKey = request.RoleKey,
             Description = request.Description,
-            CreatedBy = createdById
+            CreatedBy = accessor.GetId(),
+            CreatedByIp = accessor.GetRemoteIpAddress()
         };
 
-    public static Role ToEntity(this Role role, Guid deletedById)
+    public static Role ToEntity(this Role role, IHttpContextAccessor accessor)
     {
-        role.Delete(deletedById);
+        role.Delete(accessor.GetId());
+        role.DeletedByIp = accessor.GetRemoteIpAddress();
         return role;
     }
 }

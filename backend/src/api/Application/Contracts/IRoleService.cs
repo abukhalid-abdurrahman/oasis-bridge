@@ -2,7 +2,7 @@ namespace Application.Contracts;
 
 public interface IRoleService
 {
-    Task<Result<PagedResponse<List<GetRolesResponse>>>>
+    Task<Result<PagedResponse<IEnumerable<GetRolesResponse>>>>
         GetRolesAsync(RoleFilter filter, CancellationToken token = default);
 
     Task<Result<GetRoleDetailResponse>>

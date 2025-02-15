@@ -1,20 +1,21 @@
+using BuildingBlocks.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.Extensions.Mappers;
 
 public static class AccountMapper
 {
-    public static User ToEntity(this RegisterRequest request, IHttpContextAccessor accessor, Guid createdBy)
+    public static User ToEntity(this RegisterRequest request, IHttpContextAccessor accessor)
     {
         return new()
         {
-            CreatedBy = createdBy,
+            CreatedBy = accessor.GetId(),
             Email = request.EmailAddress,
             PhoneNumber = request.PhoneNumber,
             UserName = request.UserName,
             PasswordHash = HashingUtility.ComputeSha256Hash(request.Password),
             TokenVersion = Guid.NewGuid(),
-            CreatedByIp = accessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
+            CreatedByIp = accessor.GetRemoteIpAddress()
         };
     }
 }

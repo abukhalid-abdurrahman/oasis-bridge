@@ -2,7 +2,6 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class UserService(
     DataContext dbContext,
-    ILogger<UserService> logger,
     IHttpContextAccessor accessor) : IUserService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetAllUserResponse>>>> GetUsersAsync(UserFilter filter,
