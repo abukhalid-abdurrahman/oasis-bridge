@@ -4,6 +4,7 @@ public static class UserRoleMapper
 {
     public static GetUserRolesResponse ToRead(this UserRole userRole)
         => new(
+            userRole.Id,
             userRole.UserId,
             userRole.RoleId,
             userRole.User.ToReadPublicDetail(),

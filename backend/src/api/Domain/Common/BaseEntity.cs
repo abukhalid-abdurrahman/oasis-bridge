@@ -30,6 +30,7 @@ public abstract class BaseEntity
         {
             DeletedAt = DateTimeOffset.UtcNow;
             DeletedBy = userId;
+            IsDeleted = true;
         }
     }
 }

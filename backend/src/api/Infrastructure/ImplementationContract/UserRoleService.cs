@@ -39,7 +39,9 @@ public sealed class UserRoleService(
     {
         token.ThrowIfCancellationRequested();
 
-        GetUserRoleDetailResponse? userRole = await dbContext.UserRoles.AsNoTracking()
+        GetUserRoleDetailResponse? userRole = await dbContext.UserRoles
+            .Include(x => x.User)
+            .Include(x => x.Role).AsNoTracking()
             .Where(x => x.UserId == id)
             .Select(x => x.ToReadDetail())
             .FirstOrDefaultAsync(token);

@@ -6,7 +6,7 @@ public static class AccountMapper
     {
         return new()
         {
-            CreatedBy = accessor.GetId(),
+            CreatedBy = HttpAccessor.SystemId,
             Email = request.EmailAddress,
             PhoneNumber = request.PhoneNumber,
             UserName = request.UserName,

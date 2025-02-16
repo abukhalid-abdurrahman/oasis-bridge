@@ -406,7 +406,7 @@ public sealed class AccountService(
         await dbContext.UserVerificationCodes.AddAsync(restoreCode, token);
         int res = await dbContext.SaveChangesAsync(token);
 
-        if (res != 0)
+        if (res ==0)
             return BaseResult.Failure(ResultPatternError.InternalServerError("Could not restore code"));
 
         BaseResult emailResult = await emailService.SendEmailAsync(request.Email,

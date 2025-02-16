@@ -81,28 +81,28 @@ file static class SeedData
         new()
         {
             Id = SystemId,
-            Email = "system@gmial.com",
+            Email = "system@gmail.com",
             PhoneNumber = "+99200000000",
             UserName = "System",
-            PasswordHash = HashingUtility.ComputeSha256Hash("1111")
+            PasswordHash = HashingUtility.ComputeSha256Hash("11111111")
         },
         new()
         {
             Id = AdminId,
-            Email = "admin@gmial.com",
+            Email = "admin@gmail.com",
             PhoneNumber = "+992001001001",
             UserName = "Admin",
             CreatedBy = SystemId,
-            PasswordHash = HashingUtility.ComputeSha256Hash("1234")
+            PasswordHash = HashingUtility.ComputeSha256Hash("12345678")
         },
         new()
         {
             Id = UserId,
-            Email = "user@gmial.com",
+            Email = "user@gmail.com",
             PhoneNumber = "+992002002002",
             UserName = "User",
             CreatedBy = SystemId,
-            PasswordHash = HashingUtility.ComputeSha256Hash("4321")
+            PasswordHash = HashingUtility.ComputeSha256Hash("43211234")
         },
     ];
 
