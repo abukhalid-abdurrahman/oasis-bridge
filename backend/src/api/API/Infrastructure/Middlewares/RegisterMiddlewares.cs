@@ -28,15 +28,16 @@ public static class RegisterMiddlewares
 
         app.UseCors("AllowAll");
 
+        app.UseSwagger();
+        
+        app.UseSwaggerUI();
+        
         app.UseAuthentication();
 
         app.UseMiddleware<TokenValidationMiddleware>();
 
         app.UseAuthorization();
-
-
-        app.UseRouting();
-
+        
         app.MapControllers();
 
         await app.RunAsync();

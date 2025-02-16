@@ -1,6 +1,6 @@
 namespace API.Controllers.V1;
 
-[Route("accounts")]
+[Route($"{ApiAddress.Base}/accounts")]
 public sealed class AccountController(IAccountService accountService) : V1BaseController
 {
     [HttpPost("register")]

@@ -2,7 +2,7 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class AccountService(
     DataContext dbContext,
-    HttpContextAccessor accessor,
+    IHttpContextAccessor accessor,
     IEmailService emailService,
     ILogger<AccountService> logger,
     IConfiguration configuration) : IAccountService
@@ -80,6 +80,9 @@ public sealed class AccountService(
         if (user is null)
             return Result<LoginResponse>.Failure(ResultPatternError.BadRequest("Incorrect login or password"));
 
+        user.TokenVersion = Guid.NewGuid();
+        await dbContext.SaveChangesAsync(token);
+
         Result<LoginResponse> result = await dbContext.GenerateTokenAsync(user, configuration);
 
         if (!result.IsSuccess)
@@ -130,8 +133,8 @@ public sealed class AccountService(
                 if (!emailResult.IsSuccess)
                     logger.LogError("Failed to send login notification email.");
             }
-
-            logger.LogError($"Failed save information about login. Time: {DateTimeOffset.UtcNow} .");
+            else
+                logger.LogError($"Failed save information about login. Time: {DateTimeOffset.UtcNow} .");
         }, token);
 
         return Result<LoginResponse>.Success(result.Value);

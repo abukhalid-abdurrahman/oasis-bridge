@@ -1,6 +1,6 @@
 namespace API.Controllers.V1;
 
-[Route("user-roles")]
+[Route($"{ApiAddress.Base}user-roles")]
 [Authorize]
 public sealed class UserRoleController(IUserRoleService userRoleService) : V1BaseController
 {

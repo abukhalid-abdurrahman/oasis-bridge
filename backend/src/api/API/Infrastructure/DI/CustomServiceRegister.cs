@@ -6,9 +6,9 @@ public static class CustomServiceRegister
     {
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IUserService, UserService>();
-        builder.Services.AddScoped<IRoleService, IRoleService>();
+        builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
-        builder.Services.AddSingleton<Seeder>();
+        builder.Services.AddScoped<Seeder>();
         return builder;
     }
 }

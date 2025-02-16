@@ -1,3 +1,5 @@
+using MailKit.Net.Smtp;
+
 namespace API.Infrastructure.DI;
 
 public static class EmailRegister
@@ -8,6 +10,7 @@ public static class EmailRegister
             .GetSection("EmailConfiguration")
             .Get<EmailConfig>();
         builder.Services.AddSingleton(emailConfig!);
+        builder.Services.AddTransient<SmtpClient>();
         builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddScoped<ISmtpClientWrapper, SmtpClientWrapper>();
 
