@@ -1,6 +1,4 @@
-using API.Controllers;
-
-namespace API.Extensions;
+namespace API.Infrastructure;
 
 public static class AccountTestData
 {

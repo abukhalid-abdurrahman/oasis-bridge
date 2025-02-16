@@ -1,6 +1,6 @@
-using API.Extensions;
+using API.Infrastructure;
 
-namespace API.Controllers;
+namespace API.Controllers.Base;
 
 [Route("/api/test")]
 public class TestController(

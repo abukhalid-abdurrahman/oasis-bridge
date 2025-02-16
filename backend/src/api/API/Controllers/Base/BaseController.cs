@@ -1,4 +1,4 @@
-namespace API.Controllers;
+namespace API.Controllers.Base;
 
 [ApiController]
 public class BaseController : ControllerBase
