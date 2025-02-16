@@ -216,6 +216,9 @@ public sealed class AccountService(
         if (user is null)
             return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
 
+        if(user.EmailConfirmed) 
+            return BaseResult.Failure(ResultPatternError.BadRequest("Your email address already confirmed"));
+
         long verificationCode = VerificationHelper.GenerateVerificationCode();
 
         UserVerificationCode userVerificationCode = new()

@@ -4,21 +4,30 @@ public static class JwtRegister
 {
     public static WebApplicationBuilder AddJwtService(this WebApplicationBuilder builder)
     {
-        builder.Services.AddAuthorization();
+        string? jwtKey = builder.Configuration["Jwt:key"];
+        string? issuer = builder.Configuration["Jwt:issuer"];
+        string? audience = builder.Configuration["Jwt:audience"];
+
+        if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+            throw new InvalidOperationException("JWT key, issuer, or audience is missing in configuration.");
+
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["Jwt:issuer"],
+                    ValidIssuer = issuer,
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["Jwt:audience"],
+                    ValidAudience = audience,
                     ValidateLifetime = true,
-                    IssuerSigningKey = Jwt.GetSymmetricSecurityKey(builder.Configuration["Jwt:key"]!),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero
                 };
             });
+
+        builder.Services.AddAuthorization();
 
         return builder;
     }

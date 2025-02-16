@@ -7,11 +7,16 @@ public static class Jwt
         User user,
         IConfiguration config)
     {
-        string key = config["Jwt:key"]!;
+        string? key = config["Jwt:key"];
+        string? issuer = config["Jwt:issuer"];
+        string? audience = config["Jwt:audience"];
 
-        SigningCredentials credentials =
-            new SigningCredentials(GetSymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256);
+        if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+            throw new InvalidOperationException("JWT key, issuer, or audience is missing in configuration.");
+
+        SigningCredentials credentials = new(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+            SecurityAlgorithms.HmacSha256);
 
         List<Claim> claims =
         [
@@ -24,29 +29,24 @@ public static class Jwt
             new(CustomClaimTypes.TokenVersion, user.TokenVersion.ToString()),
         ];
 
-        claims.AddRange(await (from u in dbContext.Users
-            join ur in dbContext.UserRoles on u.Id equals ur.UserId
-            join r in dbContext.Roles on ur.RoleId equals r.Id
-            where u.Id == user.Id
-            select new Claim(CustomClaimTypes.Role, r.Name)).ToListAsync());
-
+        claims.AddRange(await dbContext.UserRoles
+            .Where(ur => ur.UserId == user.Id)
+            .Select(ur => new Claim(CustomClaimTypes.Role, ur.Role.Name))
+            .AsNoTracking() 
+            .ToListAsync());
 
         DateTime current = DateTime.UtcNow;
 
-        JwtSecurityToken jwt = new JwtSecurityToken(
-            issuer: config["Jwt:issuer"],
-            audience: config["Jwt:audience"],
+        JwtSecurityToken jwt = new(
+            issuer: issuer,
+            audience: audience,
             claims: claims,
             expires: current.AddMinutes(30),
-            signingCredentials: credentials
-        );
+            signingCredentials: credentials);
 
         return Result<LoginResponse>.Success(new(
             new JwtSecurityTokenHandler().WriteToken(jwt),
             current,
             current.AddMinutes(30)));
     }
-
-    public static SymmetricSecurityKey GetSymmetricSecurityKey(string key) =>
-        new(Encoding.UTF8.GetBytes(key));
 }

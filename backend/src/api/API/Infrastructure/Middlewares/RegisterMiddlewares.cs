@@ -11,35 +11,26 @@ public static class RegisterMiddlewares
         }
 
         app.UseMiddleware<RequestTimingMiddleware>();
-
         app.UseMiddleware<LoggingMiddleware>();
 
         app.UseHttpLogging();
-
         app.UseHttpsRedirection();
-
         app.UseExceptionHandler("/error");
-
         app.UseResponseCompression();
-
         app.UseRateLimiter();
-
         app.UseMiddleware<RequestCancellationMiddleware>();
 
         app.UseCors("AllowAll");
 
-        app.UseSwagger();
-        
-        app.UseSwaggerUI();
-        
+        app.UseRouting();         
         app.UseAuthentication();
-
         app.UseMiddleware<TokenValidationMiddleware>();
-
         app.UseAuthorization();
-        
-        app.MapControllers();
 
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        app.MapControllers();
         await app.RunAsync();
 
         return app;
