@@ -2,7 +2,7 @@ namespace Infrastructure.DataAccess.Seed;
 
 public class Seeder(DataContext dbContext)
 {
-    public async Task Initial()
+    public async Task InitialAsync()
     {
         await InitUserAsync();
         await InitRoleAsync();

@@ -13,27 +13,25 @@ public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactor
 
         if (context.User.Identity is { IsAuthenticated: true })
         {
-            await using (var scope = serviceScopeFactory.CreateAsyncScope())
+            await using var scope = serviceScopeFactory.CreateAsyncScope();
+            DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
+            string? tokenVersionClaim = context.User.FindFirst(x => x.Type == CustomClaimTypes.TokenVersion)?.Value;
+
+            if (userId is null || tokenVersionClaim is null)
             {
-                DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+                await WriteErrorResponse(context, "Invalid token data");
+                return;
+            }
 
-                string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
-                string? tokenVersionClaim = context.User.FindFirst(x => x.Type == CustomClaimTypes.TokenVersion)?.Value;
+            User? user = await dbContext.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
 
-                if (userId is null || tokenVersionClaim is null)
-                {
-                    await WriteErrorResponse(context, "Invalid token data");
-                    return;
-                }
-
-                User? user = await dbContext.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
-
-                if (user is null || user.TokenVersion.ToString() != tokenVersionClaim)
-                {
-                    await WriteErrorResponse(context, "Invalid token version");
-                    return;
-                }
+            if (user is null || user.TokenVersion.ToString() != tokenVersionClaim)
+            {
+                await WriteErrorResponse(context, "Invalid token version");
+                return;
             }
         }
 

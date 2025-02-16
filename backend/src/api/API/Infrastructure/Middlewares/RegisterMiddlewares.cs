@@ -2,8 +2,14 @@ namespace API.Infrastructure.Middlewares;
 
 public static class RegisterMiddlewares
 {
-    public static WebApplication MapMiddlewares(this WebApplication app)
+    public static async Task<WebApplication> MapMiddlewares(this WebApplication app)
     {
+        {
+            using IServiceScope scope = app.Services.CreateScope();
+            Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
+            await seeder.InitialAsync();
+        }
+
         app.UseMiddleware<RequestTimingMiddleware>();
 
         app.UseMiddleware<LoggingMiddleware>();
@@ -33,7 +39,7 @@ public static class RegisterMiddlewares
 
         app.MapControllers();
 
-        app.Run();
+        await app.RunAsync();
 
         return app;
     }

@@ -1,6 +1,7 @@
 namespace API.Controllers.Base;
 
 [ApiController]
+[ApiConventionType(typeof(CustomApiConventions))]
 public class BaseController : ControllerBase
 {
     protected string? GetErrorMessage
