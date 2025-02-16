@@ -8,6 +8,7 @@ public static class CustomServiceRegister
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRoleService, IRoleService>();
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+        builder.Services.AddSingleton<Seeder>();
         return builder;
     }
 }

@@ -1,6 +1,6 @@
 namespace Domain.Entities;
 
-public class UserToken
+public sealed class UserToken:BaseEntity
 {
     public Guid UserId { get; set; }
     public User User { get; set; } = default!;
