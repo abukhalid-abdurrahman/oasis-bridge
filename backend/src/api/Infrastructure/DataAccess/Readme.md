@@ -33,5 +33,12 @@ To apply all pending migrations and update the database schema, use the followin
 
 ```sh
 dotnet ef database update -p ./Infrastructure/ -s ./API/
+```
+## Command for delete Database
+
+Use the following command:
+
+```sh
+dotnet ef database drop -p ./Infrastructure/ -s ./API/
 
 
