@@ -9,7 +9,8 @@ public sealed class NetworkTokenService(
     {
         token.ThrowIfCancellationRequested();
 
-        IQueryable<GetNetworkTokenResponse> query = dbContext.NetworkTokens.AsNoTracking()
+        IQueryable<GetNetworkTokenResponse> query = dbContext.NetworkTokens
+            .Include(x=>x.Network).AsNoTracking()
             .ApplyFilter(filter.Symbol, x => x.Symbol)
             .ApplyFilter(filter.Description, x => x.Description)
             .Select(x => x.ToRead());
@@ -30,7 +31,8 @@ public sealed class NetworkTokenService(
     {
         token.ThrowIfCancellationRequested();
 
-        GetNetworkTokenDetailResponse? networkToken = await dbContext.NetworkTokens.AsNoTracking()
+        GetNetworkTokenDetailResponse? networkToken = await dbContext.NetworkTokens
+            .Include(x=>x.Network).AsNoTracking()
             .Where(x => x.Id == networkTokenId)
             .Select(x => x.ToReadDetail())
             .FirstOrDefaultAsync(token);
