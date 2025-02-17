@@ -10,6 +10,13 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     public DbSet<UserVerificationCode> UserVerificationCodes { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<RoleClaim> RoleClaims { get; set; }
+    
+    public DbSet<Network> Network { get; set; }
+    public DbSet<NetworkToken> NetworkTokens { get; set; }
+    public DbSet<AccountBalance> AccountBalances { get; set; }
+    public DbSet<VirtualAccount> VirtualAccounts { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<ExchangeRate> ExchangeRates { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
