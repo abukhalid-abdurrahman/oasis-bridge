@@ -7,7 +7,7 @@ public class Seeder(DataContext dbContext)
         await InitUserAsync();
         await InitRoleAsync();
         await InitUserRoleAsync();
-        
+
         await InitNetworkAsync();
         await InitNetworkTokenAsync();
     }
@@ -69,7 +69,7 @@ public class Seeder(DataContext dbContext)
 
 file static class SeedData
 {
-    private static readonly Guid SystemId = new("11111111-1111-1111-1111-111111111111");
+    public static readonly Guid SystemId = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid AdminId = new("22222222-2222-2222-2222-222222222222");
     private static readonly Guid UserId = new("33333333-3333-3333-3333-333333333333");
 
@@ -186,14 +186,16 @@ file static class BridgeSeedData
             Id = SolanaNetworkId,
             Name = "Solana",
             Description = "Solana network",
-            NetworkType = NetworkType.Solana
+            NetworkType = NetworkType.Solana,
+            CreatedBy = SeedData.SystemId
         },
         new()
         {
             Id = RadixNetworkId,
             Name = "Radix",
             Description = "Radix network",
-            NetworkType = NetworkType.Radix
+            NetworkType = NetworkType.Radix,
+            CreatedBy = SeedData.SystemId
         }
     ];
 
@@ -205,14 +207,16 @@ file static class BridgeSeedData
             Id = SolanaTokenId,
             Symbol = "SOL",
             Description = "Solana token",
-            NetworkId = SolanaNetworkId
+            NetworkId = SolanaNetworkId,
+            CreatedBy = SeedData.SystemId
         },
         new()
         {
             Id = RadixTokenId,
             Symbol = "XRD",
             Description = "Radix token",
-            NetworkId = RadixNetworkId
+            NetworkId = RadixNetworkId,
+            CreatedBy = SeedData.SystemId
         }
     ];
 }

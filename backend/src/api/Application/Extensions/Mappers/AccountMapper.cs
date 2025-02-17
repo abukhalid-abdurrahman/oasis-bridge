@@ -8,7 +8,6 @@ public static class AccountMapper
         {
             CreatedBy = HttpAccessor.SystemId,
             Email = request.EmailAddress,
-            PhoneNumber = request.PhoneNumber,
             UserName = request.UserName,
             PasswordHash = HashingUtility.ComputeSha256Hash(request.Password),
             TokenVersion = Guid.NewGuid(),

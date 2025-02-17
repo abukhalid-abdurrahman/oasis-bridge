@@ -15,8 +15,7 @@ public sealed class AccountService(
         bool checkExisting = await dbContext.Users.IgnoreQueryFilters()
             .AnyAsync(x =>
                 x.UserName == request.UserName ||
-                x.Email == request.EmailAddress ||
-                x.PhoneNumber == request.PhoneNumber, token);
+                x.Email == request.EmailAddress, token);
 
         if (checkExisting)
             return Result<RegisterResponse>.Failure(ResultPatternError.AlreadyExist());
@@ -72,9 +71,7 @@ public sealed class AccountService(
         token.ThrowIfCancellationRequested();
 
         User? user = await dbContext.Users.FirstOrDefaultAsync(x
-            => (x.UserName == request.Login ||
-                x.PhoneNumber == request.Login ||
-                x.Email == request.Login) &&
+            => x.Email == request.Email &&
                x.PasswordHash == HashingUtility.ComputeSha256Hash(request.Password), token);
 
         if (user is null)
@@ -216,7 +213,7 @@ public sealed class AccountService(
         if (user is null)
             return BaseResult.Failure(ResultPatternError.NotFound("User with this email was not found."));
 
-        if(user.EmailConfirmed) 
+        if (user.EmailConfirmed)
             return BaseResult.Failure(ResultPatternError.BadRequest("Your email address already confirmed"));
 
         long verificationCode = VerificationHelper.GenerateVerificationCode();
@@ -406,7 +403,7 @@ public sealed class AccountService(
         await dbContext.UserVerificationCodes.AddAsync(restoreCode, token);
         int res = await dbContext.SaveChangesAsync(token);
 
-        if (res ==0)
+        if (res == 0)
             return BaseResult.Failure(ResultPatternError.InternalServerError("Could not restore code"));
 
         BaseResult emailResult = await emailService.SendEmailAsync(request.Email,
