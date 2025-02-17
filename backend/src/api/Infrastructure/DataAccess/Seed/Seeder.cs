@@ -7,6 +7,9 @@ public class Seeder(DataContext dbContext)
         await InitUserAsync();
         await InitRoleAsync();
         await InitUserRoleAsync();
+        
+        await InitNetworkAsync();
+        await InitNetworkTokenAsync();
     }
 
     private async Task InitRoleAsync()
@@ -19,6 +22,7 @@ public class Seeder(DataContext dbContext)
             await dbContext.SaveChangesAsync();
         }
     }
+
 
     private async Task InitUserAsync()
     {
@@ -41,6 +45,26 @@ public class Seeder(DataContext dbContext)
             await dbContext.SaveChangesAsync();
         }
     }
+
+    private async Task InitNetworkAsync()
+    {
+        foreach (Network network in BridgeSeedData.Networks)
+        {
+            if (!await dbContext.Network.AnyAsync(x => x.Id == network.Id))
+                await dbContext.Network.AddAsync(network);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private async Task InitNetworkTokenAsync()
+    {
+        foreach (NetworkToken networkToken in BridgeSeedData.NetworkTokens)
+        {
+            if (!await dbContext.NetworkTokens.AnyAsync(x => x.Id == networkToken.Id))
+                await dbContext.NetworkTokens.AddAsync(networkToken);
+            await dbContext.SaveChangesAsync();
+        }
+    }
 }
 
 file static class SeedData
@@ -57,6 +81,7 @@ file static class SeedData
     private static readonly Guid UserRoleId3 = new("33333333-3333-3333-3333-333333333333");
     private static readonly Guid UserRoleId4 = new("44444444-4444-4444-4444-444444444444");
     private static readonly Guid UserRoleId5 = new("55555555-5555-5555-5555-555555555555");
+
 
     public static readonly List<Role> ListRoles =
     [
@@ -143,5 +168,51 @@ file static class SeedData
             RoleId = UserRoleId,
             CreatedBy = SystemId
         },
+    ];
+}
+
+file static class BridgeSeedData
+{
+    private static readonly Guid SolanaNetworkId = new("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid RadixNetworkId = new("22222222-2222-2222-2222-222222222222");
+
+    private static readonly Guid SolanaTokenId = new("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid RadixTokenId = new("22222222-2222-2222-2222-222222222222");
+
+    public static readonly List<Network> Networks =
+    [
+        new()
+        {
+            Id = SolanaNetworkId,
+            Name = "Solana",
+            Description = "Solana network",
+            NetworkType = NetworkType.Solana
+        },
+        new()
+        {
+            Id = RadixNetworkId,
+            Name = "Radix",
+            Description = "Radix network",
+            NetworkType = NetworkType.Radix
+        }
+    ];
+
+
+    public static readonly List<NetworkToken> NetworkTokens =
+    [
+        new()
+        {
+            Id = SolanaTokenId,
+            Symbol = "SOL",
+            Description = "Solana token",
+            NetworkId = SolanaNetworkId
+        },
+        new()
+        {
+            Id = RadixTokenId,
+            Symbol = "XRD",
+            Description = "Radix token",
+            NetworkId = RadixNetworkId
+        }
     ];
 }
