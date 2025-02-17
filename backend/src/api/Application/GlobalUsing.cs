@@ -1,4 +1,5 @@
 global using System.Text;
+global using Domain.Enums;
 global using Domain.Common;
 global using Domain.Entities;
 global using Application.Filters;
@@ -12,6 +13,7 @@ global using Application.DTOs.Role.Responses;
 global using Application.DTOs.Account.Requests;
 global using Application.Extensions.Algorithms;
 global using Application.DTOs.Account.Responses;
+global using Application.DTOs.Network.Responses;
 global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.UserRole.Responses;
 global using System.ComponentModel.DataAnnotations;
