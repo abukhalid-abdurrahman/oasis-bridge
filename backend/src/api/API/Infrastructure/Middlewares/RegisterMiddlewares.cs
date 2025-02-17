@@ -17,7 +17,7 @@ public static class RegisterMiddlewares
         app.UseHttpsRedirection();
         app.UseExceptionHandler("/error");
         app.UseResponseCompression();
-        app.UseRateLimiter();
+        //app.UseRateLimiter();
         app.UseMiddleware<RequestCancellationMiddleware>();
 
         app.UseCors("AllowAll");
