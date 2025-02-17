@@ -2,19 +2,6 @@ namespace Application.Extensions.Mappers;
 
 public static class NetworkMapper
 {
-    public static GetNetworkResponse ToRead(this Network network)
-        => new(
-            network.Id,
-            network.Name,
-            network.Description,
-            network.NetworkType.ToString());
-
-    public static GetNetworkDetailResponse ToReadDetail(this Network network)
-        => new(
-            network.Id,
-            network.Name,
-            network.Description,
-            network.NetworkType.ToString());
 
     public static Network ToEntity(this Network network, IHttpContextAccessor accessor, UpdateNetworkRequest request)
     {

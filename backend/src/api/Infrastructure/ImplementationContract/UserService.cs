@@ -1,3 +1,5 @@
+using Application.DTOs.VirtualAccount.Responses;
+
 namespace Infrastructure.ImplementationContract;
 
 public sealed class UserService(
@@ -40,6 +42,36 @@ public sealed class UserService(
         return response is not null
             ? Result<GetUserDetailPublicResponse>.Success(response)
             : Result<GetUserDetailPublicResponse>.Failure(ResultPatternError.NotFound());
+    }
+
+    public async Task<Result<IEnumerable<GetVirtualAccountDetailResponse>>> GetVirtualAccountsAsync(
+        CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+        Guid? userId = accessor.GetId();
+        if (userId is null)
+            return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
+                ResultPatternError.BadRequest("UserId is required."));
+
+        bool exists = await dbContext.Users.AnyAsync(x => x.Id == userId, token);
+        if (!exists)
+            return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
+                ResultPatternError.NotFound("User not found."));
+
+        IEnumerable<GetVirtualAccountDetailResponse> result = await (from u in dbContext.Users
+                join va in dbContext.VirtualAccounts on u.Id equals va.UserId
+                join n in dbContext.Networks on va.NetworkId equals n.Id
+                join ab in dbContext.AccountBalances on va.Id equals ab.VirtualAccountId
+                join nt in dbContext.NetworkTokens on ab.NetworkTokenId equals nt.Id
+                where u.Id == userId
+                select new GetVirtualAccountDetailResponse(
+                    va.Address,
+                    n.Name,
+                    nt.Symbol,
+                    ab.Balance)
+            ).ToListAsync(token);
+        
+        return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Success(result);
     }
 
     public async Task<Result<GetUserDetailPrivateResponse>> GetByIdForSelf(CancellationToken token = default)

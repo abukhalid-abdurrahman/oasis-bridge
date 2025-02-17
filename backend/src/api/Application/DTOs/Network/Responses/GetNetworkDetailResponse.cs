@@ -4,5 +4,5 @@ public record GetNetworkDetailResponse(
     Guid Id,
     string Name,
     string? Description,
-    string NetworkType
-);
+    string NetworkType,
+    List<string> Tokens);

@@ -54,4 +54,31 @@ public sealed class ExchangeRateService(
             ? Result<GetExchangeRateDetailResponse>.Success(exchangeRate)
             : Result<GetExchangeRateDetailResponse>.Failure(ResultPatternError.NotFound("Exchange rate not found"));
     }
+
+    public async Task<Result<GetCurrentExchangeRateDetailResponse>> GetCurrentExchangeRateDetailAsync(
+        ExchangeRateRequest request, CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+
+        GetCurrentExchangeRateDetailResponse? exchangeRate = await dbContext.ExchangeRates.AsNoTracking()
+            .Include(x => x.FromToken)
+            .Include(x => x.ToToken)
+            .Where(x => x.FromToken.Symbol == request.FromToken
+                        && x.ToToken.Symbol == request.ToToken)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new GetCurrentExchangeRateDetailResponse(
+                x.Id,
+                x.FromToken.Symbol,
+                x.ToToken.Symbol,
+                x.Rate,
+                x.CreatedAt,
+                "Exchange rate retrieved successfully"
+            ))
+            .FirstOrDefaultAsync(token);
+
+        return exchangeRate is not null
+            ? Result<GetCurrentExchangeRateDetailResponse>.Success(exchangeRate)
+            : Result<GetCurrentExchangeRateDetailResponse>.Failure(
+                ResultPatternError.NotFound("Exchange rate not found"));
+    }
 }

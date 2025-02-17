@@ -19,7 +19,10 @@ global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.UserRole.Responses;
 global using System.ComponentModel.DataAnnotations;
 global using Application.DTOs.NetworkToken.Requests;
+global using Application.DTOs.ExchangeRate.Requests;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
+global using Application.DTOs.VirtualAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
+

@@ -6,5 +6,8 @@ public interface IExchangeRateService
         GetExchangeRatesAsync(ExchangeRateFilter filter, CancellationToken token = default);
 
     Task<Result<GetExchangeRateDetailResponse>>
-        GetExchangeRateDetailAsync(Guid exchangeRateId, CancellationToken token);
+        GetExchangeRateDetailAsync(Guid exchangeRateId, CancellationToken token = default);
+
+    Task<Result<GetCurrentExchangeRateDetailResponse>> GetCurrentExchangeRateDetailAsync(ExchangeRateRequest request,
+        CancellationToken token = default);
 }

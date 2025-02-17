@@ -32,9 +32,11 @@ global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.UserRole.Responses;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Application.DTOs.NetworkToken.Requests;
+global using Application.DTOs.ExchangeRate.Requests;
 global using Microsoft.EntityFrameworkCore.Metadata;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+

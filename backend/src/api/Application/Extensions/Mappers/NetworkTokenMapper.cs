@@ -7,16 +7,14 @@ public static class NetworkTokenMapper
             token.Id,
             token.Symbol,
             token.Description,
-            token.NetworkId,
-            token.Network.ToReadDetail());
+            token.NetworkId);
 
     public static GetNetworkTokenDetailResponse ToReadDetail(this NetworkToken token)
         => new(
             token.Id,
             token.Symbol,
             token.Description,
-            token.NetworkId,
-            token.Network.ToReadDetail());
+            token.NetworkId);
 
     public static NetworkToken ToEntity(this NetworkToken token, IHttpContextAccessor accessor,
         UpdateNetworkTokenRequest request)
