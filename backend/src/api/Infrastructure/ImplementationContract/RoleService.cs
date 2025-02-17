@@ -90,10 +90,7 @@ public sealed class RoleService(
                 return Result<UpdateRoleResponse>.Failure(ResultPatternError.Conflict("Role key already exists"));
         }
 
-        if (request.Description is not null)
-            role.Description = request.Description;
-
-        dbContext.Roles.Update(role.ToEntity(accessor, request));
+        role.ToEntity(accessor, request);
         int res = await dbContext.SaveChangesAsync(token);
 
         return res != 0

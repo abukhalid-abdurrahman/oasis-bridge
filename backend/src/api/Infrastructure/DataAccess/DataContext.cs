@@ -11,7 +11,7 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     public DbSet<Role> Roles { get; set; }
     public DbSet<RoleClaim> RoleClaims { get; set; }
     
-    public DbSet<Network> Network { get; set; }
+    public DbSet<Network> Networks { get; set; }
     public DbSet<NetworkToken> NetworkTokens { get; set; }
     public DbSet<AccountBalance> AccountBalances { get; set; }
     public DbSet<VirtualAccount> VirtualAccounts { get; set; }

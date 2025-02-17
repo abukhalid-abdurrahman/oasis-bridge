@@ -2,10 +2,10 @@ namespace Application.DTOs.ExchangeRate.Responses;
 
 public record GetExchangeRateResponse(
     Guid Id,
-    Guid FromNetworkId,
-    GetNetworkDetailResponse FromNetworkToken,
-    Guid ToNetworkId,
-    GetNetworkDetailResponse ToNetworkToken,
+    Guid FromTokenId,
+    GetNetworkTokenDetailResponse FromNetworkToken,
+    Guid ToTokenId,
+    GetNetworkTokenDetailResponse ToNetworkToken,
     decimal Rate,
     DateTimeOffset CreatedAt
 );

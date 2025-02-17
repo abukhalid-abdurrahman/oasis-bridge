@@ -50,8 +50,8 @@ public class Seeder(DataContext dbContext)
     {
         foreach (Network network in BridgeSeedData.Networks)
         {
-            if (!await dbContext.Network.AnyAsync(x => x.Id == network.Id))
-                await dbContext.Network.AddAsync(network);
+            if (!await dbContext.Networks.AnyAsync(x => x.Id == network.Id))
+                await dbContext.Networks.AddAsync(network);
             await dbContext.SaveChangesAsync();
         }
     }

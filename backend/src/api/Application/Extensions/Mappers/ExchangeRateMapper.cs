@@ -6,9 +6,9 @@ public static class ExchangeRateMapper
         => new(
             rate.Id,
             rate.FromToken.NetworkId,
-            rate.FromToken.Network.ToReadDetail(),
+            rate.FromToken.ToReadDetail(),
             rate.ToToken.NetworkId,
-            rate.ToToken.Network.ToReadDetail(),
+            rate.ToToken.ToReadDetail(),
             rate.Rate,
             rate.CreatedAt);
 
@@ -16,9 +16,9 @@ public static class ExchangeRateMapper
         => new(
             rate.Id,
             rate.FromToken.NetworkId,
-            rate.FromToken.Network.ToReadDetail(),
+            rate.FromToken.ToReadDetail(),
             rate.ToToken.NetworkId,
-            rate.ToToken.Network.ToReadDetail(),
+            rate.ToToken.ToReadDetail(),
             rate.Rate,
             rate.CreatedAt);
 }
