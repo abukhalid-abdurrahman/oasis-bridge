@@ -31,4 +31,6 @@ public sealed class User : BaseEntity
     public ICollection<UserLogin> UserLogins { get; set; } = [];
     public ICollection<UserToken> UserTokens { get; set; } = [];
     public ICollection<UserVerificationCode> UserVerificationCodes { get; set; } = [];
+    public ICollection<VirtualAccount> VirtualAccounts { get; set; } = [];
+    public ICollection<Order> Orders { get; set; } = [];
 }
