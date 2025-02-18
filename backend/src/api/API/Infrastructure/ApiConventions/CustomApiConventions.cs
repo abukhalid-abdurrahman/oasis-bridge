@@ -9,7 +9,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Get([FromRoute] Guid id)
+    public static void Get([FromRoute] Guid id, CancellationToken token = default)
     {
     }
 
@@ -19,7 +19,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Get()
+    public static void Get(CancellationToken token = default)
     {
     }
 
@@ -29,18 +29,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Get([FromQuery] BaseFilter filter)
-    {
-    }
-
-
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Create([FromBody] object entity)
+    public static void Get([FromQuery] BaseFilter filter, CancellationToken token = default)
     {
     }
 
@@ -51,7 +40,18 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Update([FromRoute] Guid id, [FromBody] object entity)
+    public static void Create([FromBody] object entity, CancellationToken token = default)
+    {
+    }
+
+
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public static void Update([FromRoute] Guid id, [FromBody] object entity, CancellationToken token = default)
     {
     }
 
@@ -61,7 +61,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Update([FromBody] object entity)
+    public static void Update([FromBody] object entity, CancellationToken token = default)
     {
     }
 
@@ -73,7 +73,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Delete([FromRoute] Guid id)
+    public static void Delete([FromRoute] Guid id, CancellationToken token = default)
     {
     }
 
@@ -84,7 +84,7 @@ public static class CustomApiConventions
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public static void Delete()
+    public static void Delete(CancellationToken token = default)
     {
     }
 }

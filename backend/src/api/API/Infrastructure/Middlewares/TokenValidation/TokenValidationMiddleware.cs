@@ -1,11 +1,9 @@
-using System.Security.Claims;
-
 namespace API.Infrastructure.Middlewares.TokenValidation;
 
 public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
 {
     public async Task InvokeAsync(HttpContext context)
-        {
+    {
         string requestPath = context.Request.Path.ToString().ToLower().TrimEnd('/');
         if (IgnoreUrl.IgnoreUrls.Contains(requestPath))
         {

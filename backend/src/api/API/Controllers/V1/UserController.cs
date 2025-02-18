@@ -14,7 +14,7 @@ public sealed class UserController(IUserService userService) : V1BaseController
 
     [HttpGet("list")]
     public async Task<IActionResult> GetVirtualAccountsAsync(CancellationToken cancellationToken)
-        =>(await userService.GetVirtualAccountsAsync(cancellationToken)).ToActionResult();
+        => (await userService.GetVirtualAccountsAsync(cancellationToken)).ToActionResult();
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMyProfileAsync(CancellationToken cancellationToken)

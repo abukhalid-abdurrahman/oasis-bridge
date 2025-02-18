@@ -19,7 +19,8 @@ public sealed class EmailService(ISmtpClientWrapper smtpClientWrapper, EmailConf
         }
         catch (Exception ex)
         {
-            return Result<BaseResult>.Failure(ResultPatternError.InternalServerError($"Unexpected error: {ex.Message}"));
+            return Result<BaseResult>.Failure(
+                ResultPatternError.InternalServerError($"Unexpected error: {ex.Message}"));
         }
     }
 

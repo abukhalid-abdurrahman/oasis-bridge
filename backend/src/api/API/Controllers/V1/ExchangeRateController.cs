@@ -1,6 +1,6 @@
 namespace API.Controllers.V1;
 
-[Route($"{ApiAddress.Base}/exchange-rate")]
+[Route($"{ApiAddress.Base}")]
 [Authorize]
 public sealed class ExchangeRateController(IExchangeRateService exchangeRateService) : V1BaseController
 {
@@ -14,7 +14,7 @@ public sealed class ExchangeRateController(IExchangeRateService exchangeRateServ
         CancellationToken cancellationToken)
         => (await exchangeRateService.GetExchangeRateDetailAsync(exchangeRateId, cancellationToken)).ToActionResult();
 
-    [HttpGet]
+    [HttpGet("exchange-rate")]
     public async Task<IActionResult> ExchangeRateAsync([FromQuery] ExchangeRateRequest request, CancellationToken token)
         => (await exchangeRateService.GetCurrentExchangeRateDetailAsync(request, token)).ToActionResult();
 }

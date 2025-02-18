@@ -1,5 +1,3 @@
-using MailKit.Net.Smtp;
-
 namespace API.Infrastructure.DI;
 
 public static class EmailRegister

@@ -27,4 +27,3 @@ global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
 global using Application.DTOs.VirtualAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
-

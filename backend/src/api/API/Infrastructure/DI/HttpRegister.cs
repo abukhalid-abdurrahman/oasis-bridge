@@ -6,10 +6,7 @@ public static class HttpRegister
     {
         builder.Services.AddHttpClient();
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddHttpLogging(options =>
-        {
-            options.LoggingFields = HttpLoggingFields.All;
-        });
+        builder.Services.AddHttpLogging(options => { options.LoggingFields = HttpLoggingFields.All; });
 
         return builder;
     }

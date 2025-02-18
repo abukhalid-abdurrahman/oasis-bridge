@@ -22,7 +22,7 @@ public static class RegisterMiddlewares
 
         app.UseCors("AllowAll");
 
-        app.UseRouting();         
+        app.UseRouting();
         app.UseAuthentication();
         app.UseMiddleware<TokenValidationMiddleware>();
         app.UseAuthorization();

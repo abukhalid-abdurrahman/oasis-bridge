@@ -15,5 +15,5 @@ public static class HttpAccessor
         => accessor.HttpContext?.Request.Headers["User-Agent"].ToString();
 
     public static string GetRemoteIpAddress(this IHttpContextAccessor accessor)
-        => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString()??"0.0.0.0";
+        => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
 }
