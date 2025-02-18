@@ -1,11 +1,12 @@
 namespace API.Infrastructure.Workers.ExchangeRate;
 
-public class ExchangeRateWorker(ExchangeRateUpdaterService service, ILogger<ExchangeRateWorker> logger)
-    : BackgroundService
+public class ExchangeRateWorker(
+    ILogger<ExchangeRateWorker> logger,
+    IServiceScopeFactory serviceScopeFactory) : BackgroundService
 {
     private readonly TimeSpan _updateInterval = TimeSpan.FromMinutes(5);
 
-    static readonly int count = 1;
+    private const int Count = 1;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -16,9 +17,13 @@ public class ExchangeRateWorker(ExchangeRateUpdaterService service, ILogger<Exch
         {
             try
             {
-                await service.UpdateExchangeRatesAsync(stoppingToken);
-                logger.LogInformation($"Completed UpdateExchangeRatesAsync-{count} ");
-                logger.LogInformation("-----------------------------------------------------------------------------------");
+                using IServiceScope scope = serviceScopeFactory.CreateScope();
+                ExchangeRateUpdaterService exchangeRateUpdater =
+                    scope.ServiceProvider.GetRequiredService<ExchangeRateUpdaterService>();
+                await exchangeRateUpdater.UpdateExchangeRatesAsync(stoppingToken);
+                logger.LogInformation($"Completed UpdateExchangeRatesAsync-{Count} ");
+                logger.LogInformation(
+                    "-----------------------------------------------------------------------------------");
                 logger.LogInformation(
                     "-----------------------------------------------------------------------------------");
             }
