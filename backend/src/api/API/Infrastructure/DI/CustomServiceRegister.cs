@@ -12,7 +12,7 @@ public static class CustomServiceRegister
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
         builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
         builder.Services.AddScoped<INetworkTokenService, NetworkTokenService>();
-        
+        builder.Services.AddScoped<IOrderService, OrderService>();
         
         return builder;
     }

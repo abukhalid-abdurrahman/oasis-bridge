@@ -61,22 +61,23 @@ public sealed class UserService(
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
                 ResultPatternError.NotFound("User not found."));
 
-        var accounts = await (from n in dbContext.Networks
-            join nt in dbContext.NetworkTokens on n.Id equals nt.NetworkId
-            join ac in dbContext.AccountBalances on nt.Id equals ac.NetworkTokenId
-            join va in dbContext.VirtualAccounts on ac.VirtualAccountId equals va.Id
-            where va.UserId == userId
+        var accounts = await (from nt in dbContext.NetworkTokens
+            join n in dbContext.Networks on nt.NetworkId equals n.Id
+            join va in dbContext.VirtualAccounts on n.Id equals va.NetworkId
+            join u in dbContext.Users on va.UserId equals u.Id
+            where u.Id == userId
             select new
             {
                 va.Address,
                 Network = n.Name,
-                Token = nt.Symbol
+                Token = nt.Symbol,
             }).ToListAsync(token);
 
-        List<GetVirtualAccountDetailResponse> result = new List<GetVirtualAccountDetailResponse>();
+        List<GetVirtualAccountDetailResponse> result = new();
+
         foreach (var account in accounts)
         {
-            decimal balance = account.Token == "SOL"
+            decimal accountBalance = account.Token == "SOL"
                 ? await solanaBridge.GetAccountBalanceAsync(account.Address, token)
                 : await radixBridge.GetAccountBalanceAsync(account.Address, token);
 
@@ -84,7 +85,7 @@ public sealed class UserService(
                 account.Address,
                 account.Network,
                 account.Token,
-                balance
+                accountBalance
             ));
         }
 

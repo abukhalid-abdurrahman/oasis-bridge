@@ -45,20 +45,20 @@ public static class Program
     {
         try
         {
-            //ok//await TestService.CreateAccountTestAsync();
+           await TestService.CreateAccountTestAsync();
 
-            //ok// PrivateKey privateKey = new(Encoders.Hex.DecodeData(TechAccountData.PrivateKey), Curve.ED25519);
-            //ok//await TestService.GetAddressTestAsync(privateKey.PublicKey(), AddressType.Account, NetworkType.Test);
+            PrivateKey privateKey = new(Encoders.Hex.DecodeData(TechAccountData.PrivateKey), Curve.ED25519);
+           await TestService.GetAddressTestAsync(privateKey.PublicKey(), AddressType.Account, NetworkType.Test);
 
-            //ok// await TestService.RestoreAccountTestAsync(TechAccountData.SeedPhrase);
+            await TestService.RestoreAccountTestAsync(TechAccountData.SeedPhrase);
 
-            //ok//await TestService.WithdrawTestAsync(1000, TestData.AccountAddress, TestData.PrivateKey);
+           await TestService.WithdrawTestAsync(1000, TestData.AccountAddress, TestData.PrivateKey);
 
-            //ok//await TestService.DepositTestAsync(1000, TestData.AccountAddress1);
+           await TestService.DepositTestAsync(1000, TestData.AccountAddress1);
 
-            //ok//await TestService.GetAccountBalanceTestAsync(TestData.AccountAddress1);
+           await TestService.GetAccountBalanceTestAsync(TestData.AccountAddress1);
 
-            //ok//await TestService.GetTransactionStatusTestAsync(TestData.TransactionAddress);
+           await TestService.GetTransactionStatusTestAsync(TestData.TransactionAddress);
 
             await Task.CompletedTask;
         }

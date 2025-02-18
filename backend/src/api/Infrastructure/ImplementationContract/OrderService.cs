@@ -89,31 +89,7 @@ public sealed class OrderService(
             IBridge depositBridge = request.FromToken == Xrd ? solanaBridge : radixBridge;
 
             decimal balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
-            if (balance - 5 <= request.Amount)
-                return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.BadRequest("Insufficient balance"));
-
-            TransactionResponse withdrawTrRs =
-                await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address, virtualAccount.PrivateKey);
-            if (!withdrawTrRs.Success)
-                throw new Exception("Error sending transaction");
-
-            TransactionResponse depositTrRs =
-                await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
-            if (!depositTrRs.Success)
-            {
-                TransactionResponse abortTrRs =
-                    await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
-                if (!abortTrRs.Success) throw new Exception("Error sending transaction");
-                return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
-            }
-
-            BridgeTransactionStatus transactionStatus =
-                await depositBridge.GetTransactionStatusAsync(depositTrRs.TransactionId!, token);
-            OrderStatus orderStatus = transactionStatus == BridgeTransactionStatus.Succeed
-                ? OrderStatus.Completed
-                : OrderStatus.Canceled;
+            bool isTransactional = balance - 5 >= request.Amount;
 
             var newOrder = new Order
             {
@@ -125,15 +101,42 @@ public sealed class OrderService(
                 FromNetwork = request.FromNetwork,
                 ToNetwork = request.ToNetwork,
                 DestinationAddress = request.DestinationAddress,
-                OrderStatus = orderStatus,
                 ExchangeRateId = exchangeRate.Id,
                 Amount = request.Amount
             };
 
+            if (isTransactional)
+            {
+                TransactionResponse withdrawTrRs =
+                    await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
+                        virtualAccount.PrivateKey);
+                if (!withdrawTrRs.Success)
+                    throw new Exception("Error sending transaction");
+
+                TransactionResponse depositTrRs =
+                    await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
+                if (!depositTrRs.Success)
+                {
+                    TransactionResponse abortTrRs =
+                        await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
+                    if (!abortTrRs.Success) throw new Exception("Error sending transaction");
+                    return Result<CreateOrderResponse>.Failure(
+                        ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                }
+
+                BridgeTransactionStatus transactionStatus =
+                    await depositBridge.GetTransactionStatusAsync(depositTrRs.TransactionId!, token);
+                OrderStatus orderStatus = transactionStatus == BridgeTransactionStatus.Succeed
+                    ? OrderStatus.Completed
+                    : OrderStatus.Canceled;
+
+                newOrder.OrderStatus = orderStatus;
+            }
+
             await dbContext.Orders.AddAsync(newOrder, token);
             int res = await dbContext.SaveChangesAsync(token);
 
-            return res > 0
+            return res != 0
                 ? Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id, "Order created"))
                 : Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError("Could not create order"));
         }
@@ -154,47 +157,51 @@ public sealed class OrderService(
         if (request.FromNetwork == Solana)
         {
             var (publicKey, privateKey, seedPhrase) = await solanaBridge.CreateAccountAsync(token);
-            newVirtualAccount = await PopulateSolanaAccountAsync(publicKey, privateKey, seedPhrase, token);
+            await PopulateSolanaAccountAsync(newVirtualAccount, publicKey, privateKey, seedPhrase, token);
         }
         else if (request.FromNetwork == Radix)
         {
             var (publicKey, privateKey, seedPhrase) = radixBridge.CreateAccountAsync(token);
-            newVirtualAccount = await PopulateRadixAccountAsync(publicKey, privateKey, seedPhrase, token);
+            await PopulateRadixAccountAsync(newVirtualAccount, publicKey, privateKey, seedPhrase, token);
         }
 
         return newVirtualAccount;
     }
 
-    private async Task<VirtualAccount> PopulateSolanaAccountAsync(string publicKey, string privateKey,
+    private async Task PopulateSolanaAccountAsync(VirtualAccount virtualAccount, string publicKey,
+        string privateKey,
         string seedPhrase, CancellationToken token)
     {
-        return new VirtualAccount
-        {
-            NetworkId = await dbContext.Networks.Where(x => x.Name == Solana).Select(x => x.Id)
-                .FirstOrDefaultAsync(token),
-            PublicKey = publicKey,
-            PrivateKey = privateKey,
-            SeedPhrase = seedPhrase,
-            Address = publicKey,
-            NetworkType = NetworkType.Solana
-        };
+        virtualAccount.NetworkId = await dbContext.Networks
+            .Where(x => x.Name == Solana)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync(token);
+        virtualAccount.PublicKey = publicKey;
+        virtualAccount.PrivateKey = privateKey;
+        virtualAccount.SeedPhrase = seedPhrase;
+        virtualAccount.Address = publicKey;
+        virtualAccount.NetworkType = NetworkType.Solana;
     }
 
-    private async Task<VirtualAccount> PopulateRadixAccountAsync(PublicKey publicKey, PrivateKey privateKey,
-        string seedPhrase, CancellationToken token)
+    private async Task PopulateRadixAccountAsync(
+        VirtualAccount virtualAccount,
+        PublicKey publicKey,
+        PrivateKey privateKey,
+        string seedPhrase,
+        CancellationToken token)
     {
-        return new VirtualAccount
-        {
-            NetworkId = await dbContext.Networks.Where(x => x.Name == Radix).Select(x => x.Id)
-                .FirstOrDefaultAsync(token),
-            PublicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes()),
-            PrivateKey = privateKey.RawHex(),
-            SeedPhrase = seedPhrase,
-            Address = radixBridge.GetAddressAsync(publicKey, AddressType.Account,
-                radixOp.NetworkId == 0x01 ? RadixBridge.Enums.NetworkType.Main : RadixBridge.Enums.NetworkType.Test,
-                token),
-            NetworkType = NetworkType.Radix
-        };
+        virtualAccount.NetworkId = await dbContext.Networks
+            .Where(x => x.Name == Radix)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync(token);
+        virtualAccount.PublicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
+        virtualAccount.PrivateKey = privateKey.RawHex();
+        virtualAccount.SeedPhrase = seedPhrase;
+        virtualAccount.Address = radixBridge.GetAddressAsync(publicKey,
+            AddressType.Account, radixOp.NetworkId == 0x01
+                ? RadixBridge.Enums.NetworkType.Main
+                : RadixBridge.Enums.NetworkType.Test, token);
+        virtualAccount.NetworkType = NetworkType.Radix;
     }
 
     public async Task<Result<CheckBalanceResponse>> CheckBalanceAsync(Guid orderId, CancellationToken token = default)
@@ -209,6 +216,7 @@ public sealed class OrderService(
         IBridge bridge = order.FromNetwork == Solana ? solanaBridge : radixBridge;
 
         VirtualAccount? virtualAccount = await dbContext.VirtualAccounts
+            .Include(x => x.Network)
             .FirstOrDefaultAsync(x => x.UserId == order.UserId && x.Network.Name == order.FromNetwork, token);
         if (virtualAccount is null)
             return Result<CheckBalanceResponse>.Failure(ResultPatternError.NotFound("Virtual account not found"));
@@ -219,18 +227,21 @@ public sealed class OrderService(
             return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(order.Id, order.FromNetwork,
                 order.FromToken, balance, order.Amount, "completed", "Order is already completed."));
 
-        bool isExpired = (DateTimeOffset.UtcNow - order.CreatedAt).TotalMinutes >= 10;
-        if (isExpired)
+        bool isExpired = (DateTimeOffset.UtcNow - order.CreatedAt).TotalMinutes <= 10;
+        if (!isExpired)
         {
-            await UpdateOrderStatusAsync(order.Id, OrderStatus.Canceled, token);
-            return Result<CheckBalanceResponse>.Failure(
-                ResultPatternError.BadRequest("The replenishment timeout has expired. The order has been rejected."));
+            int res = await UpdateOrderStatusAsync(order.Id, OrderStatus.Canceled, token);
+            return res != 0
+                ? Result<CheckBalanceResponse>.Failure(
+                    ResultPatternError.BadRequest(
+                        "The replenishment timeout has expired. The order has been rejected."))
+                : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
 
         if (balance < order.Amount + 5)
         {
             return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(order.Id, order.FromNetwork,
-                order.FromToken, balance, order.Amount, "insufficient_funds",
+                order.FromToken, balance, order.Amount, OrderStatus.InsufficientFunds.ToString(),
                 "Insufficient funds. Waiting for replenishment."));
         }
 
@@ -264,20 +275,27 @@ public sealed class OrderService(
             ? OrderStatus.Completed
             : OrderStatus.Canceled;
 
-        await UpdateOrderStatusAsync(order.Id, newOrderStatus, token);
+        int res = await UpdateOrderStatusAsync(order.Id, newOrderStatus, token);
 
-        return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(order.Id, order.FromNetwork,
-            order.FromToken, order.Amount, order.Amount, "completed", "Средства успешно переведены."));
+        return res != 0
+            ? Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
+                order.Id, order.FromNetwork, order.FromToken, order.Amount, order.Amount,
+                OrderStatus.Completed.ToString(),
+                "Success"))
+            : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
     }
 
 
-    private async Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status, CancellationToken token)
+    private async Task<int> UpdateOrderStatusAsync(Guid orderId, OrderStatus status, CancellationToken token)
     {
         var order = await dbContext.Orders.FirstOrDefaultAsync(x => x.Id == orderId, token);
         if (order is not null)
         {
+            if (order.OrderStatus == status) return 1;
             order.OrderStatus = status;
-            await dbContext.SaveChangesAsync(token);
+            return await dbContext.SaveChangesAsync(token);
         }
+
+        return 0;
     }
 }
