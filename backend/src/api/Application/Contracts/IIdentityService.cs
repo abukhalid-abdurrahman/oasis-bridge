@@ -1,6 +1,6 @@
 namespace Application.Contracts;
 
-public interface IAccountService
+public interface IIdentityService
 {
     Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest request,
         CancellationToken token = default);

@@ -1,11 +1,11 @@
 namespace Infrastructure.ImplementationContract;
 
-public sealed class AccountService(
+public sealed class IdentityService(
     DataContext dbContext,
     IHttpContextAccessor accessor,
     IEmailService emailService,
-    ILogger<AccountService> logger,
-    IConfiguration configuration) : IAccountService
+    ILogger<IdentityService> logger,
+    IConfiguration configuration) : IIdentityService
 {
     public async Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest request,
         CancellationToken token = default)

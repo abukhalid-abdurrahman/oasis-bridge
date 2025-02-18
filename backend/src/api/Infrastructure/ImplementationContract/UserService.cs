@@ -4,7 +4,9 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class UserService(
     DataContext dbContext,
-    IHttpContextAccessor accessor) : IUserService
+    IHttpContextAccessor accessor,
+    IRadixBridge radixBridge,
+    ISolanaBridge solanaBridge) : IUserService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetAllUserResponse>>>> GetUsersAsync(UserFilter filter,
         CancellationToken token = default)
@@ -48,7 +50,7 @@ public sealed class UserService(
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
-        
+
         Guid? userId = accessor.GetId();
         if (userId is null)
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
@@ -59,20 +61,32 @@ public sealed class UserService(
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
                 ResultPatternError.NotFound("User not found."));
 
-        IEnumerable<GetVirtualAccountDetailResponse> result = await dbContext.VirtualAccounts
-            .Include(va => va.Balances) 
-            .ThenInclude(ab => ab.NetworkToken) 
-            .AsNoTracking()
-            .Where(va => va.UserId == userId)
-            .Select(va => new GetVirtualAccountDetailResponse(
+        var accounts = await (from n in dbContext.Networks
+            join nt in dbContext.NetworkTokens on n.Id equals nt.NetworkId
+            join ac in dbContext.AccountBalances on nt.Id equals ac.NetworkTokenId
+            join va in dbContext.VirtualAccounts on ac.VirtualAccountId equals va.Id
+            where va.UserId == userId
+            select new
+            {
                 va.Address,
-                va.Network.Name,
-                va.Balances
-                    .Select(ab => new ValueTuple<string, decimal>(ab.NetworkToken.Symbol, ab.Balance))
-                    .ToList()
-            ))
-            .ToListAsync(token);
+                Network = n.Name,
+                Token = nt.Symbol
+            }).ToListAsync(token);
 
+        List<GetVirtualAccountDetailResponse> result = new List<GetVirtualAccountDetailResponse>();
+        foreach (var account in accounts)
+        {
+            decimal balance = account.Token == "SOL"
+                ? await solanaBridge.GetAccountBalanceAsync(account.Address, token)
+                : await radixBridge.GetAccountBalanceAsync(account.Address, token);
+
+            result.Add(new GetVirtualAccountDetailResponse(
+                account.Address,
+                account.Network,
+                account.Token,
+                balance
+            ));
+        }
 
         return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Success(result);
     }

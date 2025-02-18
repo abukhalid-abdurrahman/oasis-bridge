@@ -8,7 +8,7 @@ public static class CustomServiceRegister
         builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<INetworkService, NetworkService>();
-        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.AddScoped<IIdentityService, IdentityService>();
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
         builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
         builder.Services.AddScoped<INetworkTokenService, NetworkTokenService>();

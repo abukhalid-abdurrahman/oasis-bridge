@@ -1,3 +1,5 @@
+using NetworkType = Domain.Enums.NetworkType;
+
 namespace Infrastructure.DataAccess.Seed;
 
 public class Seeder(DataContext dbContext)
