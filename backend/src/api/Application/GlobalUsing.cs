@@ -10,6 +10,8 @@ global using BuildingBlocks.Extensions.Http;
 global using Application.DTOs.Role.Requests;
 global using Application.DTOs.User.Responses;
 global using Application.DTOs.Role.Responses;
+global using Application.DTOs.Order.Requests;
+global using Application.DTOs.Order.Responses;
 global using Application.DTOs.Account.Requests;
 global using Application.DTOs.Network.Requests;
 global using Application.Extensions.Algorithms;
