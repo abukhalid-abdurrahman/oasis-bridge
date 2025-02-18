@@ -10,8 +10,9 @@ public static class RegisterServices
         builder.AddCorsService();
         builder.AddEmailService();
         builder.AddBridgeService();
-        builder.AddSwaggerService();
+        builder.AddWorkerService();
         builder.AddCustomServices();
+        builder.AddSwaggerService();
         builder.AddRateLimiterService();
         builder.Services.AddSwaggerGen();
         builder.Services.AddControllers();

@@ -11,6 +11,8 @@ public sealed class ExchangeRate : BaseEntity
     public NetworkToken ToToken { get; set; } = default!;
 
     public decimal Rate { get; set; }
+    
+    public string SourceUrl { get; set; } = default!;
 
     public ICollection<Order> Orders { get; set; } = [];
 }

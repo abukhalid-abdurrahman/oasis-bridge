@@ -5,12 +5,12 @@ global using Domain.Common;
 global using Domain.Entities;
 global using Newtonsoft.Json;
 global using Common.Contracts;
-global using Common.Contracts;
 global using Domain.Constants;
 global using System.Diagnostics;
 global using Application.Filters;
 global using RadixBridge.Helpers;
 global using API.Controllers.Base;
+global using Newtonsoft.Json.Linq;
 global using Application.Contracts;
 global using API.Infrastructure.DI;
 global using Microsoft.AspNetCore.Mvc;
@@ -37,9 +37,12 @@ global using System.ComponentModel.DataAnnotations;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Application.DTOs.NetworkToken.Requests;
+global using API.Infrastructure.Workers.ExchangeRate;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Microsoft.AspNetCore.ResponseCompression;
 global using API.Infrastructure.Extensions.ResultPattern;
 global using Application.Extensions.Responses.ApiResponse;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using API.Infrastructure.Middlewares.TokenValidation;
+
+
