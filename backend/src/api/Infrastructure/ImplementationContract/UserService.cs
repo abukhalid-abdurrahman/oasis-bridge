@@ -48,6 +48,7 @@ public sealed class UserService(
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        
         Guid? userId = accessor.GetId();
         if (userId is null)
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
@@ -58,21 +59,24 @@ public sealed class UserService(
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
                 ResultPatternError.NotFound("User not found."));
 
-        IEnumerable<GetVirtualAccountDetailResponse> result = await (from u in dbContext.Users
-                join va in dbContext.VirtualAccounts on u.Id equals va.UserId
-                join n in dbContext.Networks on va.NetworkId equals n.Id
-                join ab in dbContext.AccountBalances on va.Id equals ab.VirtualAccountId
-                join nt in dbContext.NetworkTokens on ab.NetworkTokenId equals nt.Id
-                where u.Id == userId
-                select new GetVirtualAccountDetailResponse(
-                    va.Address,
-                    n.Name,
-                    nt.Symbol,
-                    ab.Balance)
-            ).ToListAsync(token);
-        
+        IEnumerable<GetVirtualAccountDetailResponse> result = await dbContext.VirtualAccounts
+            .Include(va => va.Balances) 
+            .ThenInclude(ab => ab.NetworkToken) 
+            .AsNoTracking()
+            .Where(va => va.UserId == userId)
+            .Select(va => new GetVirtualAccountDetailResponse(
+                va.Address,
+                va.Network.Name,
+                va.Balances
+                    .Select(ab => new ValueTuple<string, decimal>(ab.NetworkToken.Symbol, ab.Balance))
+                    .ToList()
+            ))
+            .ToListAsync(token);
+
+
         return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Success(result);
     }
+
 
     public async Task<Result<GetUserDetailPrivateResponse>> GetByIdForSelf(CancellationToken token = default)
     {

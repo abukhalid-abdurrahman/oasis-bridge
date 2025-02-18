@@ -13,13 +13,12 @@ public sealed class NetworkService(
             .AsNoTracking()
             .ApplyFilter(filter.Name, x => x.Name)
             .ApplyFilter(filter.Description, x => x.Description)
-            .Include(n => n.NetworkTokens) 
+            .Include(n => n.NetworkTokens)
             .Select(n => new GetNetworkResponse(
                 n.Id,
                 n.Name,
                 n.Description,
-                n.NetworkType.ToString(),
-                n.NetworkTokens.Select(nt => nt.Symbol).ToList() 
+                n.NetworkTokens.Select(nt => nt.Symbol).ToList()
             ));
 
         int totalCount = await query.CountAsync(token);
@@ -39,13 +38,12 @@ public sealed class NetworkService(
 
         GetNetworkDetailResponse? network = await dbContext.Networks.AsNoTracking()
             .Where(x => x.Id == networkId)
-            .Include(n => n.NetworkTokens) 
+            .Include(n => n.NetworkTokens)
             .Select(n => new GetNetworkDetailResponse(
                 n.Id,
                 n.Name,
                 n.Description,
-                n.NetworkType.ToString(),
-                n.NetworkTokens.Select(nt => nt.Symbol).ToList() 
+                n.NetworkTokens.Select(nt => nt.Symbol).ToList()
             )).FirstOrDefaultAsync(token);
 
         return network is not null
@@ -88,13 +86,14 @@ public sealed class NetworkService(
             bool nameExists = await dbContext.Networks
                 .AnyAsync(x => x.Name == request.Name && x.Id != networkId, token);
             if (nameExists)
-                return Result<UpdateNetworkResponse>.Failure(ResultPatternError.Conflict("Network name already exists"));
+                return Result<UpdateNetworkResponse>.Failure(
+                    ResultPatternError.Conflict("Network name already exists"));
         }
 
         if (request.Description is not null)
             network.Description = request.Description;
 
-        dbContext.Networks.Update(network.ToEntity(accessor, request));
+        network.ToEntity(accessor, request);
         int res = await dbContext.SaveChangesAsync(token);
 
         return res != 0
