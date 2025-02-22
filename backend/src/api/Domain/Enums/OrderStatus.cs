@@ -8,5 +8,6 @@ public enum OrderStatus
     Expired,
     Completed,
     Canceled,
-    NotFound
+    NotFound,
+    InsufficientFundsForFee
 }

@@ -78,8 +78,8 @@ public sealed class UserService(
         foreach (var account in accounts)
         {
             decimal accountBalance = account.Token == "SOL"
-                ? await solanaBridge.GetAccountBalanceAsync(account.Address, token)
-                : await radixBridge.GetAccountBalanceAsync(account.Address, token);
+                ? (await solanaBridge.GetAccountBalanceAsync(account.Address, token)).Value
+                : (await radixBridge.GetAccountBalanceAsync(account.Address, token)).Value;
 
             result.Add(new GetVirtualAccountDetailResponse(
                 account.Address,

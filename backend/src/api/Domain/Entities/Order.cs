@@ -17,6 +17,7 @@ public sealed class Order : BaseEntity
     public string DestinationAddress { get; set; } = string.Empty;
 
     public decimal Amount { get; set; }
+    public string? TransactionHash { get; set; } = string.Empty;
 
     public OrderStatus OrderStatus { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }

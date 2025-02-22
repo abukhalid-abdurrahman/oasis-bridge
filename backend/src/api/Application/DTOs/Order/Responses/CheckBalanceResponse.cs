@@ -7,5 +7,6 @@ public record CheckBalanceResponse(
     decimal Balance,
     decimal RequiredBalance,
     string Status,
-    string Message
+    string Message,
+    string? TransactionId
 );
