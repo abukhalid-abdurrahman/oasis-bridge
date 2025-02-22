@@ -18,11 +18,18 @@ public class Program
         PublicKey = TechAccountData.PublicKey // Public key used for transactions.
     };
 
+    static readonly ILoggerFactory LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+    {
+        builder.AddConsole();
+    });
+
+    static readonly ILogger<SolanaBridge.SolanaBridge> Logger = LoggerFactory.CreateLogger<SolanaBridge.SolanaBridge>();
+
     /// <summary>
     /// TestService instance that runs the Solana Bridge API tests using the provided options.
     /// </summary>
     private static readonly ITestService TestService =
-        new TestService(Options);
+        new TestService(Options,Logger);
 
     /// <summary>
     /// Main method that executes the tests for the Solana Bridge operations.
@@ -34,17 +41,17 @@ public class Program
 
         // Uncomment to run each test:
         // Test account creation.
-        //ok//await TestService.CreateAccountTestAsync();
+        //ok// await TestService.CreateAccountTestAsync();
         // Test balance retrieval for the specified public key.
-        //ok//await TestService.GetAccountBalanceTestAsync(_options.PublicKey);
+        //ok// await TestService.GetAccountBalanceTestAsync(Options.PublicKey);
         // Test account restoration using the provided seed phrase.
-        //ok//await TestService.RestoreAccountTestAsync(TechAccountData.SeedPhrase);
+        //ok// await TestService.RestoreAccountTestAsync(TechAccountData.SeedPhrase);
         // Test withdrawal operation using a specified amount and keys.
-        //ok//await TestService.WithdrawTestAsync(3, ClientAccounts.PublicKey1, ClientAccounts.PrivateKey1);
+        //ok// await TestService.WithdrawTestAsync(3, ClientAccounts.PublicKey1, ClientAccounts.PrivateKey1);
         // Test deposit operation for a specified amount and key.
-        //ok//await TestService.DepositTestAsync(3, ClientAccounts.PublicKey1);
+        //ok// await TestService.DepositTestAsync(3, ClientAccounts.PublicKey1);
         // Test checking transaction status by providing the transaction ID.
-        //ok//await TestService.GetTransactionStatusTestAsync("3g45cTseY8yi3BZupjFzRPHJKp8QYWLr7Fhnq3MTBoYZTtUQRDwPxrDQMvuwm7WASGpb9VfgtMdVuzYcuoXr4aGz");
+        await TestService.GetTransactionStatusTestAsync("4VmGWf8T99P66YsUa6Y5HAN2dsBJXfgC6zGN29BrApPhogFvPKWXx5JUFhYiu3DmVSxafHJkDavbm4C7QMUsEso8");
 
         // Informing that the tests have been completed.
         Console.WriteLine("Tests Completed.");

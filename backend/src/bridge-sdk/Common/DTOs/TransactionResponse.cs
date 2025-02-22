@@ -9,5 +9,6 @@ public record TransactionResponse(
     string? TransactionId,
     string? Data,
     bool Success,
-    string? ErrorMessage
+    string? ErrorMessage,
+    BridgeTransactionStatus Status
 );

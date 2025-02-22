@@ -7,7 +7,9 @@ namespace SolanaBridge;
 /// Provides methods to retrieve account balances, create and restore accounts, and execute transactions such as withdrawals and deposits.
 /// Implements the <see cref="ISolanaBridge"/> interface.
 /// </summary>
-public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : ISolanaBridge
+public sealed class SolanaBridge(
+    ILogger<SolanaBridge> logger,
+    SolanaTechnicalAccountBridgeOptions options) : ISolanaBridge
 {
     private readonly IRpcClient _rpcClient = ClientFactory.GetClient(options.HostUri);
 
@@ -16,7 +18,8 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// </summary>
     /// <param name="amountInSol">The amount in SOL.</param>
     /// <returns>The amount in lamports.</returns>
-    private static ulong ConvertSolToLamports(decimal amountInSol) => (ulong)(amountInSol * 1_000_000_000m);
+    private static ulong ConvertSolToLamports(decimal amountInSol)
+        => (ulong)(amountInSol * 1_000_000_000m);
 
     /// <summary>
     /// Retrieves the balance of a given Solana account in SOL (native currency).
@@ -24,22 +27,28 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="accountAddress">The address of the Solana account.</param>
     /// <param name="token">A token to signal cancellation.</param>
     /// <returns>The balance in SOL as a decimal.</returns>
-    public async Task<decimal> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    public async Task<Result<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
     {
         try
         {
+            logger.LogInformation($"Starting method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
             token.ThrowIfCancellationRequested();
             RequestResult<ResponseValue<AccountInfo>> result = await _rpcClient.GetAccountInfoAsync(accountAddress);
             if (result.WasSuccessful && result.Result.Value?.Lamports != null)
                 // Convert lamports to SOL for readability.
-                return result.Result.Value.Lamports / 1_000_000_000m;
+                return Result<decimal>.Success(result.Result.Value.Lamports / 1_000_000_000m);
 
-            return 0m; // Return 0 if no balance found.
+            logger.LogInformation($"Finishing method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
+
+            return Result<decimal>.Failure(
+                ResultPatternError.NotFound("Account not found"));
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Error retrieving balance for account {accountAddress}: {e.Message}");
-            throw new ApplicationException("Failed to retrieve account balance.", e);
+            logger.LogError(
+                $"Error retrieving balance for account {accountAddress}: {e.Message}, in time:{DateTimeOffset.UtcNow}");
+            return Result<decimal>.Failure(
+                ResultPatternError.InternalServerError(e.Message));
         }
     }
 
@@ -48,11 +57,12 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// </summary>
     /// <param name="token">A token to signal cancellation.</param>
     /// <returns>A tuple containing the public key, private key, and seed phrase of the new account.</returns>
-    public async Task<(string PublicKey, string PrivateKey, string SeedPhrase)> CreateAccountAsync(
+    public async Task<Result<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(
         CancellationToken token = default)
     {
         try
         {
+            logger.LogInformation($"Starting method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
             token.ThrowIfCancellationRequested();
             Mnemonic mnemonic = new(WordList.English, WordCount.Twelve);
             Wallet wallet = new(mnemonic);
@@ -61,13 +71,17 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
             string publicKey = wallet.Account.PublicKey;
             string privateKey = Convert.ToBase64String(wallet.Account.PrivateKey);
 
-            return (publicKey, privateKey, seedPhrase);
+            logger.LogInformation($"Finishing method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
+
+            return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
+                .Success(new(publicKey, privateKey, seedPhrase));
         }
         catch (Exception e)
         {
             await Task.CompletedTask;
-            Console.WriteLine($"Error creating account: {e.Message}");
-            throw new ApplicationException("Failed to create account.", e);
+            logger.LogError($"Error creating account: {e.Message},time:{DateTimeOffset.UtcNow}");
+            return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
+                .Failure(ResultPatternError.InternalServerError(e.Message));
         }
     }
 
@@ -77,14 +91,17 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="seedPhrase">The 12-word mnemonic seed phrase.</param>
     /// <param name="token">A token to signal cancellation.</param>
     /// <returns>A tuple containing the public key and private key of the restored account.</returns>
-    public async Task<(string PublicKey, string PrivateKey)> RestoreAccountAsync(string seedPhrase,
+    public async Task<Result<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase,
         CancellationToken token = default)
     {
         try
         {
+            logger.LogInformation($"Starting method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
+
             token.ThrowIfCancellationRequested();
             if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
-                throw new ArgumentException("Invalid seed phrase.");
+                Result<(string PublicKey, string PrivateKey)>.Failure(
+                    ResultPatternError.InternalServerError("Invalid seed phrase."));
 
             Mnemonic mnemonic = new(seedPhrase);
             Wallet wallet = new(mnemonic);
@@ -92,13 +109,17 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
             string publicKey = wallet.Account.PublicKey;
             string privateKey = Convert.ToBase64String(wallet.Account.PrivateKey);
 
-            return (publicKey, privateKey);
+            logger.LogInformation($"Finishing method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
+
+            return Result<(string PublicKey, string PrivateKey)>
+                .Success(new(publicKey, privateKey));
         }
         catch (Exception ex)
         {
             await Task.CompletedTask;
-            Console.WriteLine($"Error restoring account: {ex.Message}");
-            throw new ApplicationException("Failed to restore account.", ex);
+            logger.LogError($"Error restoring account: {ex.Message}, time:{DateTimeOffset.UtcNow}");
+            return Result<(string PublicKey, string PrivateKey)>.Failure(
+                ResultPatternError.InternalServerError(ex.Message));
         }
     }
 
@@ -109,9 +130,27 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="senderAccountAddress">The public key of the client account.</param>
     /// <param name="senderPrivateKey">The private key of the client account.</param>
     /// <returns>A <see cref="TransactionResponse"/> containing transaction details.</returns>
-    public async Task<TransactionResponse> WithdrawAsync(decimal amount, string senderAccountAddress,
+    public async Task<Result<TransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress,
         string senderPrivateKey)
     {
+        logger.LogInformation($"Starting method to WithdrawAsync in time: {DateTimeOffset.UtcNow};");
+
+        Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(senderAccountAddress);
+
+        if (!getAccountBalanceRes.IsSuccess)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.InternalServerError("Error in getAccountBalance"));
+
+        if (amount > getAccountBalanceRes.Value)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Amount is too small to be included ."), new(
+                    "",
+                    null,
+                    false,
+                    "Invalid amount",
+                    BridgeTransactionStatus.InsufficientFunds));
+
+
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(
             Convert.FromBase64String(options.PrivateKey),
@@ -122,6 +161,8 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
             new PublicKey(senderAccountAddress)
         );
 
+        logger.LogInformation($"Finishing method to WithdrawAsync in time: {DateTimeOffset.UtcNow};");
+
         return await ExecuteTransactionAsync(clientAccount, technicalAccount, lamports);
     }
 
@@ -131,8 +172,25 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="amount">The amount in SOL to deposit.</param>
     /// <param name="receiverAccountAddress">The public key of the client account.</param>
     /// <returns>A <see cref="TransactionResponse"/> containing transaction details.</returns>
-    public async Task<TransactionResponse> DepositAsync(decimal amount, string receiverAccountAddress)
+    public async Task<Result<TransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
     {
+        logger.LogInformation($"Starting method to DepositAsync in time: {DateTimeOffset.UtcNow};");
+
+        Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(options.PublicKey);
+
+        if (!getAccountBalanceRes.IsSuccess)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.InternalServerError("Error in getAccountBalance"));
+
+        if (amount > getAccountBalanceRes.Value)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Amount is small to be included ."), new(
+                    "",
+                    null,
+                    false,
+                    "Invalid amount",
+                    BridgeTransactionStatus.InsufficientFunds));
+
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(
             Convert.FromBase64String(options.PrivateKey),
@@ -140,6 +198,7 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
         );
         PublicKey receiverAccount = new(receiverAccountAddress);
 
+        logger.LogInformation($"Finishing method to DepositAsync in time: {DateTimeOffset.UtcNow};");
 
         return await ExecuteTransactionAsync(technicalAccount, receiverAccount, lamports);
     }
@@ -151,15 +210,19 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="receiver">The receiver account.</param>
     /// <param name="lamports">The amount in lamports to transfer.</param>
     /// <returns>A <see cref="TransactionResponse"/> containing transaction details.</returns>
-    private async Task<TransactionResponse> ExecuteTransactionAsync(Account sender, PublicKey receiver, ulong lamports)
+    private async Task<Result<TransactionResponse>> ExecuteTransactionAsync(Account sender, PublicKey receiver,
+        ulong lamports)
     {
         try
         {
+            logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+
             RequestResult<ResponseValue<LatestBlockHash>> latestBlockHashResult =
                 await _rpcClient.GetLatestBlockHashAsync();
 
             if (!latestBlockHashResult.WasSuccessful || latestBlockHashResult.Result?.Value == null)
-                throw new Exception($"Failed to retrieve latest block hash: {latestBlockHashResult.Reason}");
+                return Result<TransactionResponse>.Failure(ResultPatternError
+                    .InternalServerError($"Failed to retrieve latest block hash: {latestBlockHashResult.Reason}"));
 
             string recentBlockHash = latestBlockHashResult.Result.Value.Blockhash;
 
@@ -179,19 +242,25 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
 
             RequestResult<string> result = await _rpcClient.SendTransactionAsync(transaction.Serialize());
             if (!result.WasSuccessful)
-                throw new Exception($"Transaction send error: {result.Reason}");
+                return Result<TransactionResponse>.Failure(ResultPatternError
+                    .InternalServerError($"Transaction send error: {result.Reason}"));
 
-            return new TransactionResponse(
+            logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+
+
+            return Result<TransactionResponse>.Success(new TransactionResponse(
                 result.Result,
                 result.Result,
                 true,
-                null
-            );
+                null,
+                BridgeTransactionStatus.Completed
+            ));
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error executing transaction: {ex.Message}");
-            throw new ApplicationException("Failed to execute transaction.", ex);
+            logger.LogError($"Error executing transaction: {ex.Message},time:{DateTimeOffset.UtcNow}");
+            return Result<TransactionResponse>.Failure(ResultPatternError
+                .InternalServerError(ex.Message));
         }
     }
 
@@ -201,30 +270,45 @@ public sealed class SolanaBridge(SolanaTechnicalAccountBridgeOptions options) : 
     /// <param name="transactionHash">The transaction hash to check.</param>
     /// <param name="token">A token to signal cancellation.</param>
     /// <returns>The <see cref="BridgeTransactionStatus"/> of the transaction.</returns>
-    public async Task<BridgeTransactionStatus> GetTransactionStatusAsync(string transactionHash,
+    public async Task<Result<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash,
         CancellationToken token = default)
     {
         try
         {
+            logger.LogInformation($"Starting method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
+
             token.ThrowIfCancellationRequested();
             RequestResult<TransactionMetaSlotInfo> transactionStatusResult =
                 await _rpcClient.GetTransactionAsync(transactionHash, commitment: Commitment.Confirmed);
 
             if (!transactionStatusResult.WasSuccessful)
-                throw new Exception($"Failed to retrieve transaction status: {transactionStatusResult.Reason}");
+                Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.InternalServerError(
+                        $"Failed to retrieve transaction status: {transactionStatusResult.Reason},time:{DateTimeOffset.UtcNow}"));
 
             TransactionMetaSlotInfo transactionInfo = transactionStatusResult.Result;
 
             if (transactionInfo == null)
-                return BridgeTransactionStatus.NotFound;
+                return Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.BadRequest("Transaction not found!"), BridgeTransactionStatus.NotFound);
 
-            bool isSuccess = transactionInfo.Meta?.Error == null;
-            return isSuccess ? BridgeTransactionStatus.Succeed : BridgeTransactionStatus.Failed;
+            logger.LogInformation($"Finishing method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
+
+            return transactionInfo.Meta?.Error?.Type switch
+            {
+                TransactionErrorType.AccountNotFound => Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.BadRequest(), BridgeTransactionStatus.NotFound),
+                TransactionErrorType.InsufficientFundsForFee => Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.BadRequest(), BridgeTransactionStatus.InsufficientFundsForFee),
+                _ => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Completed)
+            };
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error retrieving transaction status: {ex.Message}");
-            throw new ApplicationException("Failed to retrieve transaction status.", ex);
+            logger.LogError($"Error retrieving transaction status: {ex.Message},time:{DateTimeOffset.UtcNow}");
+            return Result<BridgeTransactionStatus>.Failure(
+                ResultPatternError.InternalServerError(
+                    $"Failed to retrieve transaction status.ErrorMessage: \n{ex.Message}"));
         }
     }
 }

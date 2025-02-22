@@ -17,8 +17,10 @@ public class TestService : ITestService
     /// Primary constructor that initializes the SolanaBridge instance with the provided options.
     /// </summary>
     /// <param name="options">Configuration options for the SolanaBridge.</param>
-    public TestService(SolanaTechnicalAccountBridgeOptions options) =>
-        _bridge = new(options);
+    /// <param name="logger"></param>
+    public TestService(SolanaTechnicalAccountBridgeOptions options, ILogger<SolanaBridge.SolanaBridge> logger)
+        => _bridge = new(logger, options);
+
 
     /// <summary>
     /// Asynchronously tests the process of creating a new account on the Solana network.
@@ -29,12 +31,22 @@ public class TestService : ITestService
         try
         {
             // Creating a new account via the SolanaBridge
-            (string PublicKey, string PrivateKey, string SeedPhrase) response = await _bridge.CreateAccountAsync();
+            Result<(string PublicKey, string PrivateKey, string SeedPhrase)> response =
+                await _bridge.CreateAccountAsync();
 
-            // Displaying the generated account details
-            Console.WriteLine($"PublicKey: {response.PublicKey}");
-            Console.WriteLine($"PrivateKey: {response.PrivateKey}");
-            Console.WriteLine($"SeedPhrase: {response.SeedPhrase}");
+            if (response.IsSuccess)
+            {
+                // Displaying the generated account details
+                Console.WriteLine($"PublicKey: {response.Value.PublicKey}");
+                Console.WriteLine($"PrivateKey: {response.Value.PrivateKey}");
+                Console.WriteLine($"SeedPhrase: {response.Value.SeedPhrase}");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -52,10 +64,19 @@ public class TestService : ITestService
         try
         {
             // Fetching the account balance
-            decimal balance = await _bridge.GetAccountBalanceAsync(accountAddress);
+            Result<decimal> response = await _bridge.GetAccountBalanceAsync(accountAddress);
 
-            // Displaying the balance in SOL (Solana tokens)
-            Console.WriteLine($"Account Balance: {balance} SOL");
+            if (response.IsSuccess)
+            {
+                // Displaying the balance in SOL (Solana tokens)
+                Console.WriteLine($"Account Balance: {response.Value} SOL");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -73,11 +94,20 @@ public class TestService : ITestService
         try
         {
             // Restoring the account using the provided seed phrase
-            (string PublicKey, string PrivateKey) response = await _bridge.RestoreAccountAsync(seedPhrase);
+            Result<(string PublicKey, string PrivateKey)> response = await _bridge.RestoreAccountAsync(seedPhrase);
 
-            // Displaying the restored account details
-            Console.WriteLine($"Restored PublicKey: {response.PublicKey}");
-            Console.WriteLine($"Restored PrivateKey: {response.PrivateKey}");
+            if (response.IsSuccess)
+            {
+                // Displaying the restored account details
+                Console.WriteLine($"Restored PublicKey: {response.Value.PublicKey}");
+                Console.WriteLine($"Restored PrivateKey: {response.Value.PrivateKey}");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -97,14 +127,24 @@ public class TestService : ITestService
         try
         {
             // Performing the withdrawal operation
-            TransactionResponse transactionResponse =
+            Result<TransactionResponse> response =
                 await _bridge.WithdrawAsync(amount, accountAddress, clientPrivateKey);
 
-            // Displaying the transaction details
-            Console.WriteLine($"TransactionId: {transactionResponse.TransactionId}");
-            Console.WriteLine($"ErrorMessage: {transactionResponse.ErrorMessage}");
-            Console.WriteLine($"Success: {transactionResponse.Success}");
-            Console.WriteLine($"Data: {transactionResponse.Data}");
+            if (response.IsSuccess)
+            {
+                // Displaying the transaction details
+                Console.WriteLine($"TransactionId: {response.Value?.TransactionId}");
+                Console.WriteLine($"ErrorMessage: {response.Value?.ErrorMessage}");
+                Console.WriteLine($"Success: {response.Value?.Success}");
+                Console.WriteLine($"Data: {response.Value?.Data}");
+                Console.WriteLine($"TransactionStatus: {response.Value?.Status.ToString()}");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -123,13 +163,23 @@ public class TestService : ITestService
         try
         {
             // Performing the deposit operation
-            TransactionResponse transactionResponse = await _bridge.DepositAsync(amount, accountAddress);
+            Result<TransactionResponse> response = await _bridge.DepositAsync(amount, accountAddress);
 
-            // Displaying the transaction details
-            Console.WriteLine($"TransactionId: {transactionResponse.TransactionId}");
-            Console.WriteLine($"ErrorMessage: {transactionResponse.ErrorMessage}");
-            Console.WriteLine($"Success: {transactionResponse.Success}");
-            Console.WriteLine($"Data: {transactionResponse.Data}");
+            if (response.IsSuccess)
+            {
+                // Displaying the transaction details
+                Console.WriteLine($"TransactionId: {response.Value?.TransactionId}");
+                Console.WriteLine($"ErrorMessage: {response.Value?.ErrorMessage}");
+                Console.WriteLine($"Success: {response.Value?.Success}");
+                Console.WriteLine($"Data: {response.Value?.Data}");
+                Console.WriteLine($"TransactionStatus: {response.Value?.Status.ToString()}");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -147,11 +197,19 @@ public class TestService : ITestService
         try
         {
             // Fetching the transaction status
-            BridgeTransactionStatus status = await _bridge.GetTransactionStatusAsync(transactionHash);
+            Result<BridgeTransactionStatus> response = await _bridge.GetTransactionStatusAsync(transactionHash);
 
-            // Displaying the transaction status
-            Console.WriteLine($"Transaction Status: {status}");
-            Console.WriteLine($"Transaction Confirmations: {status}");
+            if (response.IsSuccess)
+            {
+                // Displaying the transaction status
+                Console.WriteLine($"Transaction Status: {response.Value.ToString()}");
+            }
+            else
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
         }
         catch (Exception ex)
         {

@@ -7,5 +7,6 @@ public enum OrderStatus
     InsufficientFunds,
     Expired,
     Completed,
-    Canceled
+    Canceled,
+    NotFound
 }

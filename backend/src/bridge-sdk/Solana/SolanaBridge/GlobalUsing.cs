@@ -11,4 +11,5 @@ global using Common.Validations;
 global using Solnet.Rpc.Messages;
 global using Solnet.Wallet.Bip39;
 global using Solnet.Rpc.Core.Http;
-global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Logging;
+global using BuildingBlocks.Extensions.ResultPattern;
