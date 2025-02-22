@@ -51,7 +51,7 @@ public class Program
         // Test deposit operation for a specified amount and key.
         //ok// await TestService.DepositTestAsync(3, ClientAccounts.PublicKey1);
         // Test checking transaction status by providing the transaction ID.
-        await TestService.GetTransactionStatusTestAsync("4VmGWf8T99P66YsUa6Y5HAN2dsBJXfgC6zGN29BrApPhogFvPKWXx5JUFhYiu3DmVSxafHJkDavbm4C7QMUsEso8");
+        //ok// await TestService.GetTransactionStatusTestAsync("4VmGWf8T99P66YsUa6Y5HAN2dsBJXfgC6zGN29BrApPhogFvPKWXx5JUFhYiu3DmVSxafHJkDavbm4C7QMUsEso8");
 
         // Informing that the tests have been completed.
         Console.WriteLine("Tests Completed.");

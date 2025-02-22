@@ -12,6 +12,7 @@ public sealed class SolanaBridge(
     SolanaTechnicalAccountBridgeOptions options) : ISolanaBridge
 {
     private readonly IRpcClient _rpcClient = ClientFactory.GetClient(options.HostUri);
+    private const decimal Lamports = 1_000_000_000m;
 
     /// <summary>
     /// Converts SOL to lamports (the smallest unit in Solana).
@@ -19,7 +20,7 @@ public sealed class SolanaBridge(
     /// <param name="amountInSol">The amount in SOL.</param>
     /// <returns>The amount in lamports.</returns>
     private static ulong ConvertSolToLamports(decimal amountInSol)
-        => (ulong)(amountInSol * 1_000_000_000m);
+        => (ulong)(amountInSol * Lamports);
 
     /// <summary>
     /// Retrieves the balance of a given Solana account in SOL (native currency).
@@ -36,7 +37,7 @@ public sealed class SolanaBridge(
             RequestResult<ResponseValue<AccountInfo>> result = await _rpcClient.GetAccountInfoAsync(accountAddress);
             if (result.WasSuccessful && result.Result.Value?.Lamports != null)
                 // Convert lamports to SOL for readability.
-                return Result<decimal>.Success(result.Result.Value.Lamports / 1_000_000_000m);
+                return Result<decimal>.Success(result.Result.Value.Lamports / Lamports);
 
             logger.LogInformation($"Finishing method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
 
@@ -135,22 +136,6 @@ public sealed class SolanaBridge(
     {
         logger.LogInformation($"Starting method to WithdrawAsync in time: {DateTimeOffset.UtcNow};");
 
-        Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(senderAccountAddress);
-
-        if (!getAccountBalanceRes.IsSuccess)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.InternalServerError("Error in getAccountBalance"));
-
-        if (amount > getAccountBalanceRes.Value)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.BadRequest("Amount is too small to be included ."), new(
-                    "",
-                    null,
-                    false,
-                    "Invalid amount",
-                    BridgeTransactionStatus.InsufficientFunds));
-
-
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(
             Convert.FromBase64String(options.PrivateKey),
@@ -175,21 +160,6 @@ public sealed class SolanaBridge(
     public async Task<Result<TransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
     {
         logger.LogInformation($"Starting method to DepositAsync in time: {DateTimeOffset.UtcNow};");
-
-        Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(options.PublicKey);
-
-        if (!getAccountBalanceRes.IsSuccess)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.InternalServerError("Error in getAccountBalance"));
-
-        if (amount > getAccountBalanceRes.Value)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.BadRequest("Amount is small to be included ."), new(
-                    "",
-                    null,
-                    false,
-                    "Invalid amount",
-                    BridgeTransactionStatus.InsufficientFunds));
 
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(
@@ -216,6 +186,22 @@ public sealed class SolanaBridge(
         try
         {
             logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+
+            Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(sender.PublicKey);
+
+            if (!getAccountBalanceRes.IsSuccess)
+                return Result<TransactionResponse>.Failure(
+                    ResultPatternError.InternalServerError("Error in getAccountBalance"));
+
+            if (lamports / Lamports > getAccountBalanceRes.Value)
+                return Result<TransactionResponse>.Failure(
+                    ResultPatternError.BadRequest("Amount is too small to be included ."), new(
+                        "",
+                        null,
+                        false,
+                        "Invalid amount",
+                        BridgeTransactionStatus.InsufficientFunds));
+
 
             RequestResult<ResponseValue<LatestBlockHash>> latestBlockHashResult =
                 await _rpcClient.GetLatestBlockHashAsync();

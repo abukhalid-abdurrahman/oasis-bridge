@@ -13,7 +13,7 @@ public interface IRadixBridge : IBridge
     /// <param name="networkType">The network type (e.g., mainnet, testnet).</param>
     /// <param name="token">Cancellation token for async operations.</param>
     /// <returns>The generated Radix address as a string.</returns>
-    string GetAddressAsync(PublicKey publicKey, AddressType addressType, NetworkType networkType,
+    Result<string> GetAddressAsync(PublicKey publicKey, AddressType addressType, NetworkType networkType,
         CancellationToken token = default);
 
     /// <summary>
@@ -21,7 +21,7 @@ public interface IRadixBridge : IBridge
     /// </summary>
     /// <param name="token">Cancellation token for async operations.</param>
     /// <returns>A tuple containing the public key, private key, and seed phrase.</returns>
-    new (PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase) CreateAccountAsync(
+    new Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> CreateAccountAsync(
         CancellationToken token = default);
 
     /// <summary>
@@ -30,6 +30,6 @@ public interface IRadixBridge : IBridge
     /// <param name="seedPhrase">The seed phrase used to restore the account.</param>
     /// <param name="token">Cancellation token for async operations.</param>
     /// <returns>A tuple containing the public key and private key of the restored account.</returns>
-    new (PublicKey PublicKey, PrivateKey PrivateKey) RestoreAccountAsync(string seedPhrase,
+    new Result<(PublicKey PublicKey, PrivateKey PrivateKey)> RestoreAccountAsync(string seedPhrase,
         CancellationToken token = default);
 }

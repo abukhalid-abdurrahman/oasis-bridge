@@ -17,22 +17,28 @@ public static class Program
         AccountAddress = TechAccountData.AccountAddress
     };
 
+    static readonly ILoggerFactory LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(_ => { });
+
+    static readonly ILogger<RadixBridge.RadixBridge> Logger = LoggerFactory.CreateLogger<RadixBridge.RadixBridge>();
+
+
     /// <summary>
     /// Service instance for running tests on the Radix Bridge API.
     /// </summary>
     private static readonly ITestService TestService = new TestService(
         new OptionsWrapper<RadixTechnicalAccountBridgeOptions>(Options),
-        new HttpClient()
+        new HttpClient(), Logger
     );
 
-    private static IRadixBridge _bridge = new RadixBridge.RadixBridge(Options, new());
+    private static IRadixBridge _bridge = new RadixBridge.RadixBridge(Options, new(), Logger);
+
     /// <summary>
     /// Main entry point for the program, initiating tests.
     /// </summary>
     public static async Task Main()
     {
         Console.WriteLine("Starting Radix Bridge Tests...");
-        
+
         await RunTestsAsync();
 
         Console.WriteLine("Tests Completed.");
@@ -45,20 +51,20 @@ public static class Program
     {
         try
         {
-           await TestService.CreateAccountTestAsync();
+            //ok// await TestService.CreateAccountTestAsync();
 
-            PrivateKey privateKey = new(Encoders.Hex.DecodeData(TechAccountData.PrivateKey), Curve.ED25519);
-           await TestService.GetAddressTestAsync(privateKey.PublicKey(), AddressType.Account, NetworkType.Test);
+            //ok// PrivateKey privateKey = new(Encoders.Hex.DecodeData("d5a3e1f65e36c70ee8d1712f25adafbfd0730e19c22442334ee4b177ea8943df"), Curve.ED25519);
+            //ok// await TestService.GetAddressTestAsync(privateKey.PublicKey(), AddressType.Account, NetworkType.Test);
 
-            await TestService.RestoreAccountTestAsync(TechAccountData.SeedPhrase);
+            //ok// await TestService.RestoreAccountTestAsync("bacon pool door document cushion goat mammal design sheriff doll chicken butter fuel swift urge fury lobster agree jewel stock fine crawl beauty farm");
 
-           await TestService.WithdrawTestAsync(1000, TestData.AccountAddress, TestData.PrivateKey);
+            //ok// await TestService.WithdrawTestAsync(10000, TestData.AccountAddress, TestData.PrivateKey);
 
-           await TestService.DepositTestAsync(1000, TestData.AccountAddress1);
+            //ok// await TestService.DepositTestAsync(1000, TestData.AccountAddress);
 
-           await TestService.GetAccountBalanceTestAsync(TestData.AccountAddress1);
+            //ok// await TestService.GetAccountBalanceTestAsync(TechAccountData.AccountAddress);
 
-           await TestService.GetTransactionStatusTestAsync(TestData.TransactionAddress);
+            //ok// await TestService.GetTransactionStatusTestAsync("txid_tdx_2_1d479uqfc58m340uve6avnlvprd4fw7ua8e5c8f8yu5phtqtwwx5sdr9e23");
 
             await Task.CompletedTask;
         }
@@ -68,7 +74,6 @@ public static class Program
         }
     }
 }
-
 
 /// <summary>
 /// Contains technical account data for testing.

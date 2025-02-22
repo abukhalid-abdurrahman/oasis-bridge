@@ -14,10 +14,13 @@ public class TestService : ITestService
     /// </summary>
     /// <param name="options">Configuration options for the RadixBridge.</param>
     /// <param name="httpClient">HTTP client used for API calls.</param>
-    public TestService(IOptions<RadixTechnicalAccountBridgeOptions> options, HttpClient httpClient)
-    {
-        _bridge = new RadixBridge.RadixBridge(options.Value, httpClient);
-    }
+    /// <param name="logger"></param>
+    public TestService(
+        IOptions<RadixTechnicalAccountBridgeOptions> options,
+        HttpClient httpClient,
+        ILogger<RadixBridge.RadixBridge> logger)
+        => _bridge = new RadixBridge.RadixBridge(options.Value, httpClient, logger);
+
 
     /// <summary>
     /// Creates a new account by calling the RadixBridge API, logs the generated keys and seed phrase.
@@ -26,8 +29,18 @@ public class TestService : ITestService
     {
         TryExecute(() =>
         {
-            var (_, privateKey, seedPhrase) = _bridge.CreateAccountAsync();
-            LogAccountDetails(privateKey, seedPhrase);
+            Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> response =
+                _bridge.CreateAccountAsync();
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                LogAccountDetails(response.Value.PrivateKey, response.Value.SeedPhrase);
+            }
         });
         await Task.CompletedTask;
     }
@@ -40,8 +53,17 @@ public class TestService : ITestService
     {
         await TryExecuteAsync(async () =>
         {
-            decimal balance = await _bridge.GetAccountBalanceAsync(accountAddress);
-            Console.WriteLine($"Account Balance: {balance} XRD");
+            Result<decimal> response = await _bridge.GetAccountBalanceAsync(accountAddress);
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                Console.WriteLine($"Account Balance: {response.Value} XRD");
+            }
         });
     }
 
@@ -53,8 +75,18 @@ public class TestService : ITestService
     {
         TryExecute(() =>
         {
-            var (_, privateKey) = _bridge.RestoreAccountAsync(seedPhrase);
-            LogAccountDetails(privateKey, null);
+            Result<(PublicKey PublicKey, PrivateKey PrivateKey)> response = _bridge.RestoreAccountAsync(seedPhrase);
+
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                LogAccountDetails(response.Value.PrivateKey, null);
+            }
         });
         await Task.CompletedTask;
     }
@@ -69,8 +101,18 @@ public class TestService : ITestService
     {
         await TryExecuteAsync(async () =>
         {
-            var transactionResponse = await _bridge.WithdrawAsync(amount, accountAddress, clientPrivateKey);
-            LogTransactionDetails(transactionResponse);
+            Result<TransactionResponse>
+                response = await _bridge.WithdrawAsync(amount, accountAddress, clientPrivateKey);
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                LogTransactionDetails(response.Value!);
+            }
         });
     }
 
@@ -83,8 +125,18 @@ public class TestService : ITestService
     {
         await TryExecuteAsync(async () =>
         {
-            var transactionResponse = await _bridge.DepositAsync(amount, accountAddress);
-            LogTransactionDetails(transactionResponse);
+            Result<TransactionResponse>
+                response = await _bridge.DepositAsync(amount, accountAddress);
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                LogTransactionDetails(response.Value!);
+            }
         });
     }
 
@@ -96,8 +148,17 @@ public class TestService : ITestService
     {
         await TryExecuteAsync(async () =>
         {
-            var status = await _bridge.GetTransactionStatusAsync(transactionHash);
-            Console.WriteLine($"Transaction Status: {status}");
+            Result<BridgeTransactionStatus> response = await _bridge.GetTransactionStatusAsync(transactionHash);
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                Console.WriteLine($"Transaction Status: {response.Value.ToString()}");
+            }
         });
     }
 
@@ -111,10 +172,19 @@ public class TestService : ITestService
     {
         TryExecute(() =>
         {
-            string address = _bridge.GetAddressAsync(publicKey, addressType, networkType);
-            Console.WriteLine($"Generated Address: {address}");
-            Console.WriteLine($"Address Type: {addressType}");
-            Console.WriteLine($"Network Type: {networkType}");
+            Result<string> response = _bridge.GetAddressAsync(publicKey, addressType, networkType);
+            if (!response.IsSuccess)
+            {
+                Console.WriteLine($"ErrorType:{response.Error.ErrorType.ToString()}");
+                Console.WriteLine($"ErrorCode:{response.Error.Code}");
+                Console.WriteLine($"ErrorMessage:{response.Error.Message}");
+            }
+            else
+            {
+                Console.WriteLine($"Generated Address: {response.Value}");
+                Console.WriteLine($"Address Type: {addressType}");
+                Console.WriteLine($"Network Type: {networkType}");
+            }
         });
         await Task.CompletedTask;
     }
@@ -177,6 +247,8 @@ public class TestService : ITestService
         Console.WriteLine($"TransactionId: {transactionResponse.TransactionId}");
         Console.WriteLine($"Success: {transactionResponse.Success}");
         Console.WriteLine($"ErrorMessage: {transactionResponse.ErrorMessage}");
+        Console.WriteLine($"Status: {transactionResponse.Status.ToString()}");
+        Console.WriteLine($"Data: {transactionResponse.Data}");
     }
 
     #endregion

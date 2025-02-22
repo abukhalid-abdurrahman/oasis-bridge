@@ -60,14 +60,15 @@ public static class RadixHttpClientHelper
     /// <param name="client">The HTTP client used to send the request.</param>
     /// <param name="options"></param>
     /// <returns>A task representing the operation. The task result contains the current epoch response, or null if the request fails.</returns>
-    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,RadixTechnicalAccountBridgeOptions options)
+    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,
+        RadixTechnicalAccountBridgeOptions options)
     {
         // Prepare the data to be sent in the request, containing the network ID
         var data = new
         {
-            network = options.NetworkId==0x01
-                ?RadixBridgeHelper.MainNet
-                :RadixBridgeHelper.StokeNet
+            network = options.NetworkId == 0x01
+                ? RadixBridgeHelper.MainNet
+                : RadixBridgeHelper.StokeNet
         };
 
         // Use the PostAsync helper method to send the request and retrieve the response
