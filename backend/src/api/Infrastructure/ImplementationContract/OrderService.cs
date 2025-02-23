@@ -288,7 +288,7 @@ public sealed class OrderService(
             int res = await UpdateOrderStatusAsync(order.Id, OrderStatus.Canceled, token);
             return res != 0
                 ? Result<CheckBalanceResponse>.Success(
-                       new( order.Id,
+                    new(order.Id,
                         order.FromNetwork,
                         order.FromToken,
                         balance.Value,
