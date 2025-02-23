@@ -287,10 +287,8 @@ public sealed class OrderService(
         {
             int res = await UpdateOrderStatusAsync(order.Id, OrderStatus.Canceled, token);
             return res != 0
-                ? Result<CheckBalanceResponse>.Failure(
-                    ResultPatternError.BadRequest(
-                        "The replenishment timeout has expired. The order has been rejected."), new(
-                        order.Id,
+                ? Result<CheckBalanceResponse>.Success(
+                       new( order.Id,
                         order.FromNetwork,
                         order.FromToken,
                         balance.Value,
@@ -305,8 +303,7 @@ public sealed class OrderService(
             && order.OrderStatus != OrderStatus.Completed
             && order.OrderStatus != OrderStatus.Canceled)
         {
-            return Result<CheckBalanceResponse>.Failure(
-                ResultPatternError.BadRequest("Insufficient funds. Waiting for replenishment."),
+            return Result<CheckBalanceResponse>.Success(
                 new CheckBalanceResponse(
                     order.Id,
                     order.FromNetwork,
