@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:latest
@@ -41,6 +39,20 @@ services:
       - ConnectionStrings__DefaultConnection=Server=localhost;Port=5432;Database=oasis_bridge_db;User Id=postgres;Password=123456;
     depends_on:
       - postgres
+    networks:
+      - internal_network
+
+  oasisbridge_frontend:
+    image: nazarovqurbonali/oasis-bridge-frontend:v10
+    container_name: oasisbridge_frontend
+    restart: always
+    platform: linux/arm64
+    ports:
+      - "80:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://oasisbridge/api/v1
+    depends_on:
+      - oasisbridge
     networks:
       - internal_network
 
