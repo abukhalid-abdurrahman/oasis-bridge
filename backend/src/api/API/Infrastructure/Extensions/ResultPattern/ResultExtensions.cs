@@ -6,7 +6,7 @@ public static class ResultExtensions
     {
         ApiResponse<T> apiResponse = result.IsSuccess
             ? ApiResponse<T>.Success(result.Value)
-            : ApiResponse<T>.Fail(result.Error);
+            : ApiResponse<T>.Fail(result.Error, result.Value);
 
         return result.Error.ErrorType switch
         {

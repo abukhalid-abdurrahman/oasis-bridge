@@ -91,7 +91,7 @@ public sealed class OrderService(
             IBridge depositBridge = request.FromToken == Xrd ? solanaBridge : radixBridge;
 
             Result<decimal> balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
-            if (!balance.IsSuccess)
+            if (balance is { IsSuccess: false, Error.ErrorType: ErrorType.InternalServerError })
                 return Result<CreateOrderResponse>.Failure(
                     ResultPatternError.InternalServerError("Error getting account balance"));
             bool isTransactional = balance.Value >= request.Amount;
@@ -112,22 +112,40 @@ public sealed class OrderService(
 
             if (isTransactional)
             {
-                Result<TransactionResponse> withdrawTrRs =
-                    await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
-                        virtualAccount.PrivateKey);
-                if (!withdrawTrRs.IsSuccess)
-                    return Result<CreateOrderResponse>.Failure(
-                        ResultPatternError.InternalServerError("Error sending transaction"));
-
-                Result<TransactionResponse> depositTrRs =
-                    await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
-                if (!depositTrRs.IsSuccess)
+                Result<TransactionResponse> withdrawTrRs = default!;
+                Result<TransactionResponse> depositTrRs = default!;
+                Result<TransactionResponse> abortTrRs;
+                try
                 {
-                    Result<TransactionResponse> abortTrRs =
-                        await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
-                    if (!abortTrRs.IsSuccess)
+                    withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
+                        virtualAccount.PrivateKey);
+                    if (!withdrawTrRs.IsSuccess)
                         return Result<CreateOrderResponse>.Failure(
-                            ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                            ResultPatternError.InternalServerError("Error sending transaction"));
+                    depositTrRs =
+                        await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
+                    if (!depositTrRs.IsSuccess)
+                    {
+                        abortTrRs =
+                            await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
+                        if (!abortTrRs.IsSuccess)
+                            return Result<CreateOrderResponse>.Failure(
+                                ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                        return Result<CreateOrderResponse>.Failure(depositTrRs.Error);
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (withdrawTrRs.IsSuccess && (depositTrRs is null || !depositTrRs.IsSuccess))
+                    {
+                        abortTrRs =
+                            await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
+                        if (!abortTrRs.IsSuccess)
+                            return Result<CreateOrderResponse>.Failure(
+                                ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                    }
+
+                    return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
                 }
 
                 Result<BridgeTransactionStatus> transactionStatus =
@@ -151,6 +169,7 @@ public sealed class OrderService(
                 newOrder.TransactionHash = depositTrRs.Value?.TransactionId!;
             }
 
+            newOrder.OrderStatus = OrderStatus.InsufficientFunds;
             await dbContext.Orders.AddAsync(newOrder, token);
             int res = await dbContext.SaveChangesAsync(token);
 
@@ -248,7 +267,7 @@ public sealed class OrderService(
 
         Result<decimal> balance = await bridge.GetAccountBalanceAsync(virtualAccount.Address, token);
 
-        if (!balance.IsSuccess)
+        if (balance is { IsSuccess: false, Error.ErrorType: ErrorType.InternalServerError })
             return Result<CheckBalanceResponse>.Failure(
                 ResultPatternError.InternalServerError("Error in get account balance"));
 
@@ -258,8 +277,8 @@ public sealed class OrderService(
                 order.FromNetwork,
                 order.FromToken,
                 balance.Value,
-                order.Amount,
-                order.Status.ToString(),
+                0,
+                order.OrderStatus.ToString(),
                 "Order is already completed.",
                 order.TransactionHash));
 
@@ -270,7 +289,15 @@ public sealed class OrderService(
             return res != 0
                 ? Result<CheckBalanceResponse>.Failure(
                     ResultPatternError.BadRequest(
-                        "The replenishment timeout has expired. The order has been rejected."))
+                        "The replenishment timeout has expired. The order has been rejected."), new(
+                        order.Id,
+                        order.FromNetwork,
+                        order.FromToken,
+                        balance.Value,
+                        order.Amount,
+                        OrderStatus.Canceled.ToString(),
+                        "Order is already completed.",
+                        order.TransactionHash))
                 : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
 
@@ -278,16 +305,18 @@ public sealed class OrderService(
             && order.OrderStatus != OrderStatus.Completed
             && order.OrderStatus != OrderStatus.Canceled)
         {
-            return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
-                order.Id,
-                order.FromNetwork,
-                order.FromToken,
-                balance.Value,
-                order.Amount,
-                OrderStatus.InsufficientFunds.ToString(),
-                "Insufficient funds. Waiting for replenishment.",
-                order.TransactionHash
-            ));
+            return Result<CheckBalanceResponse>.Failure(
+                ResultPatternError.BadRequest("Insufficient funds. Waiting for replenishment."),
+                new CheckBalanceResponse(
+                    order.Id,
+                    order.FromNetwork,
+                    order.FromToken,
+                    balance.Value,
+                    order.Amount,
+                    order.OrderStatus.ToString(),
+                    "Insufficient funds. Waiting for replenishment.",
+                    order.TransactionHash
+                ));
         }
 
         return await ProcessTransactionAsync(order, virtualAccount, token);
@@ -297,24 +326,53 @@ public sealed class OrderService(
     private async Task<Result<CheckBalanceResponse>> ProcessTransactionAsync(Order order, VirtualAccount virtualAccount,
         CancellationToken token)
     {
+        Result<decimal> balance = default!;
         if (order.OrderStatus != OrderStatus.Canceled && order.OrderStatus != OrderStatus.Completed)
         {
             IBridge withdrawBridge = order.FromToken == Xrd ? radixBridge : solanaBridge;
             IBridge depositBridge = order.FromToken == Xrd ? solanaBridge : radixBridge;
 
-            Result<TransactionResponse> withdrawTrRs =
-                await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address, virtualAccount.PrivateKey);
-            if (!withdrawTrRs.IsSuccess)
-                return Result<CheckBalanceResponse>.Failure(
-                    ResultPatternError.InternalServerError("Error in withdraw"));
 
-            Result<TransactionResponse> depositTrRs =
-                await depositBridge.DepositAsync(order.Amount, order.DestinationAddress);
-            if (!depositTrRs.IsSuccess)
+            ExchangeRate exchangeRate =
+                await dbContext.ExchangeRates.FirstOrDefaultAsync(
+                    x => x.Id == order.ExchangeRateId, token) ?? new();
+
+            decimal convertedAmount = exchangeRate.Rate * order.Amount;
+
+
+            Result<TransactionResponse> withdrawTrRs;
+            Result<TransactionResponse> depositTrRs = default!;
+            Result<TransactionResponse> abortTrRs;
+            try
             {
-                await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
-                return Result<CheckBalanceResponse>.Failure(
-                    ResultPatternError.InternalServerError("Error in deposit"));
+                withdrawTrRs = await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address,
+                    virtualAccount.PrivateKey);
+                if (!withdrawTrRs.IsSuccess)
+                    return Result<CheckBalanceResponse>.Failure(
+                        ResultPatternError.InternalServerError("Error sending transaction"));
+                depositTrRs =
+                    await depositBridge.DepositAsync(convertedAmount, order.DestinationAddress);
+                if (!depositTrRs.IsSuccess)
+                {
+                    abortTrRs =
+                        await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
+                    if (!abortTrRs.IsSuccess)
+                        return Result<CheckBalanceResponse>.Failure(
+                            ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                }
+            }
+            catch (Exception e)
+            {
+                if (!depositTrRs.IsSuccess)
+                {
+                    abortTrRs =
+                        await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
+                    if (!abortTrRs.IsSuccess)
+                        return Result<CheckBalanceResponse>.Failure(
+                            ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                }
+
+                return Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
             }
 
             Result<BridgeTransactionStatus> transactionStatus =
@@ -334,11 +392,12 @@ public sealed class OrderService(
                 _ => OrderStatus.NotFound
             };
 
-            order.Status = order.Status;
+            order.OrderStatus = orderStatus;
             order.TransactionHash = depositTrRs.Value?.TransactionId;
             dbContext.Orders.Update(order);
             int res = await dbContext.SaveChangesAsync(token);
 
+            balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
             return res != 0
                 ? Result<CheckBalanceResponse>.Success(
                     new CheckBalanceResponse(
@@ -346,7 +405,7 @@ public sealed class OrderService(
                         order.FromNetwork,
                         order.FromToken,
                         order.Amount,
-                        order.Amount,
+                        0,
                         OrderStatus.Completed.ToString(),
                         "Success",
                         order.TransactionHash))
@@ -357,8 +416,8 @@ public sealed class OrderService(
             order.Id,
             order.FromNetwork,
             order.FromToken,
-            order.Amount,
-            order.Amount,
+            balance.Value,
+            0,
             OrderStatus.Completed.ToString(),
             "Success",
             order.TransactionHash));

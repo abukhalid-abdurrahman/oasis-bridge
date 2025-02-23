@@ -16,4 +16,5 @@ public class ApiResponse<T>
     public static ApiResponse<T> Success(T? data) => new(true, ResultPatternError.None(), data);
 
     public static ApiResponse<T> Fail(ResultPatternError error) => new(false, error, default);
+    public static ApiResponse<T> Fail(ResultPatternError error,T? value) => new(false, error, value);
 }

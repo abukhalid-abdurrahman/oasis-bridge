@@ -194,7 +194,9 @@ public sealed class RadixBridge : IRadixBridge
     private async Task<Result<TransactionResponse>> ExecuteTransactionAsync(decimal amount, string accountAddress,
         string privateKey, bool isWithdraw)
     {
-        _logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+        try
+        {
+              _logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
 
         using PrivateKey
             senderPrivateKey =
@@ -215,7 +217,7 @@ public sealed class RadixBridge : IRadixBridge
 
         if (amount > getAccountBalanceRes.Value)
             return Result<TransactionResponse>.Failure(
-                ResultPatternError.BadRequest("Amount is too small to be included ."), new(
+                ResultPatternError.BadRequest("Amount is too small in tech account to be included ."), new(
                     "",
                     null,
                     false,
@@ -223,10 +225,11 @@ public sealed class RadixBridge : IRadixBridge
                     BridgeTransactionStatus.InsufficientFunds));
 
 
-        // Build the transaction manifest with the necessary actions (lock fee, withdraw, take resource, deposit)
+        decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.ToZero);
+        
         using TransactionManifest manifest = new ManifestBuilder()
-            .AccountLockFeeAndWithdraw(sender, new("10"), _xrdAddress, new($"{amount}"))
-            .TakeFromWorktop(_xrdAddress, new($"{amount}"), new("xrdBucket"))
+            .AccountLockFeeAndWithdraw(sender, new("50"), _xrdAddress, new($"{roundedAmount}"))
+            .TakeFromWorktop(_xrdAddress, new($"{roundedAmount}"), new("xrdBucket"))
             .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
             .Build(_options.NetworkId);
 
@@ -275,6 +278,13 @@ public sealed class RadixBridge : IRadixBridge
             response == null ? "Transaction failed" : null,
             response != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
         ));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            return Result<TransactionResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
+        }
+      
     }
 
     /// <summary>
