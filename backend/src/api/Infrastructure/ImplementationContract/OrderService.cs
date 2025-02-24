@@ -167,7 +167,7 @@ public sealed class OrderService(
                 newOrder.OrderStatus = orderStatus;
                 newOrder.TransactionHash = depositTrRs.Value?.TransactionId!;
             }
-           
+
 
             await dbContext.Orders.AddAsync(newOrder, token);
             int res = await dbContext.SaveChangesAsync(token);
