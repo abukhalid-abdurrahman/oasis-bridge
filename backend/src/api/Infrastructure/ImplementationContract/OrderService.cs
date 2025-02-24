@@ -94,7 +94,7 @@ public sealed class OrderService(
             if (balance is { IsSuccess: false, Error.ErrorType: ErrorType.InternalServerError })
                 return Result<CreateOrderResponse>.Failure(
                     ResultPatternError.InternalServerError("Error getting account balance"));
-            bool isTransactional = balance.Value >= request.Amount;
+            bool isTransactional = balance.Value > request.Amount;
 
             Order newOrder = new Order
             {
@@ -108,6 +108,7 @@ public sealed class OrderService(
                 DestinationAddress = request.DestinationAddress,
                 ExchangeRateId = exchangeRate.Id,
                 Amount = request.Amount,
+                OrderStatus = OrderStatus.InsufficientFunds
             };
 
             if (isTransactional)
@@ -120,8 +121,7 @@ public sealed class OrderService(
                     withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
                         virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
-                        return Result<CreateOrderResponse>.Failure(
-                            ResultPatternError.InternalServerError("Error sending transaction"));
+                        return Result<CreateOrderResponse>.Failure(withdrawTrRs.Error);
                     depositTrRs =
                         await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
                     if (!depositTrRs.IsSuccess)
@@ -129,8 +129,7 @@ public sealed class OrderService(
                         abortTrRs =
                             await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
                         if (!abortTrRs.IsSuccess)
-                            return Result<CreateOrderResponse>.Failure(
-                                ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                            return Result<CreateOrderResponse>.Failure(abortTrRs.Error);
                         return Result<CreateOrderResponse>.Failure(depositTrRs.Error);
                     }
                 }
@@ -142,7 +141,7 @@ public sealed class OrderService(
                             await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
                         if (!abortTrRs.IsSuccess)
                             return Result<CreateOrderResponse>.Failure(
-                                ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                                abortTrRs.Error);
                     }
 
                     return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
@@ -151,7 +150,7 @@ public sealed class OrderService(
                 Result<BridgeTransactionStatus> transactionStatus =
                     await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
                 if (!transactionStatus.IsSuccess)
-                    ResultPatternError.InternalServerError("Error in get transaction status");
+                    return Result<CreateOrderResponse>.Failure(transactionStatus.Error);
 
                 OrderStatus orderStatus = transactionStatus.Value switch
                 {
@@ -168,8 +167,8 @@ public sealed class OrderService(
                 newOrder.OrderStatus = orderStatus;
                 newOrder.TransactionHash = depositTrRs.Value?.TransactionId!;
             }
+           
 
-            newOrder.OrderStatus = OrderStatus.InsufficientFunds;
             await dbContext.Orders.AddAsync(newOrder, token);
             int res = await dbContext.SaveChangesAsync(token);
 
@@ -271,6 +270,7 @@ public sealed class OrderService(
             return Result<CheckBalanceResponse>.Failure(
                 ResultPatternError.InternalServerError("Error in get account balance"));
 
+
         if (order.OrderStatus == OrderStatus.Completed)
             return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
                 order.Id,
@@ -299,7 +299,7 @@ public sealed class OrderService(
                 : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
 
-        if (balance.Value < order.Amount
+        if (balance.Value <= order.Amount
             && order.OrderStatus != OrderStatus.Completed
             && order.OrderStatus != OrderStatus.Canceled)
         {
@@ -311,10 +311,11 @@ public sealed class OrderService(
                     balance.Value,
                     order.Amount,
                     order.OrderStatus.ToString(),
-                    "Insufficient funds. Waiting for replenishment.",
+                    "Insufficient funds. Waiting for replenishment or Insufficient funds to cover transaction fees.",
                     order.TransactionHash
                 ));
         }
+
 
         return await ProcessTransactionAsync(order, virtualAccount, token);
     }
@@ -345,8 +346,7 @@ public sealed class OrderService(
                 withdrawTrRs = await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address,
                     virtualAccount.PrivateKey);
                 if (!withdrawTrRs.IsSuccess)
-                    return Result<CheckBalanceResponse>.Failure(
-                        ResultPatternError.InternalServerError("Error sending transaction"));
+                    return Result<CheckBalanceResponse>.Failure(withdrawTrRs.Error);
                 depositTrRs =
                     await depositBridge.DepositAsync(convertedAmount, order.DestinationAddress);
                 if (!depositTrRs.IsSuccess)
@@ -354,8 +354,8 @@ public sealed class OrderService(
                     abortTrRs =
                         await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
                     if (!abortTrRs.IsSuccess)
-                        return Result<CheckBalanceResponse>.Failure(
-                            ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                        return Result<CheckBalanceResponse>.Failure(abortTrRs.Error);
+                    return Result<CheckBalanceResponse>.Failure(depositTrRs.Error);
                 }
             }
             catch (Exception e)
@@ -365,8 +365,9 @@ public sealed class OrderService(
                     abortTrRs =
                         await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
                     if (!abortTrRs.IsSuccess)
-                        return Result<CheckBalanceResponse>.Failure(
-                            ResultPatternError.InternalServerError("Transaction failed, rollback attempted"));
+                        return Result<CheckBalanceResponse>.Failure(depositTrRs.Error);
+
+                    return Result<CheckBalanceResponse>.Failure(depositTrRs.Error);
                 }
 
                 return Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
@@ -375,7 +376,7 @@ public sealed class OrderService(
             Result<BridgeTransactionStatus> transactionStatus =
                 await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
             if (!transactionStatus.IsSuccess)
-                ResultPatternError.InternalServerError("Error in get transaction status");
+                return Result<CheckBalanceResponse>.Failure(transactionStatus.Error);
 
             OrderStatus orderStatus = transactionStatus.Value switch
             {
@@ -401,7 +402,7 @@ public sealed class OrderService(
                         order.Id,
                         order.FromNetwork,
                         order.FromToken,
-                        order.Amount,
+                        balance.Value,
                         0,
                         OrderStatus.Completed.ToString(),
                         "Success",
@@ -415,8 +416,8 @@ public sealed class OrderService(
             order.FromToken,
             balance.Value,
             0,
-            OrderStatus.Completed.ToString(),
-            "Success",
+            order.OrderStatus.ToString(),
+            "",
             order.TransactionHash));
     }
 

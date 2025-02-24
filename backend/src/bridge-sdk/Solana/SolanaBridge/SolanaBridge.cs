@@ -9,9 +9,9 @@ namespace SolanaBridge;
 /// </summary>
 public sealed class SolanaBridge(
     ILogger<SolanaBridge> logger,
-    SolanaTechnicalAccountBridgeOptions options) : ISolanaBridge
+    SolanaTechnicalAccountBridgeOptions options,
+    IRpcClient rpcClient) : ISolanaBridge
 {
-    private readonly IRpcClient _rpcClient = ClientFactory.GetClient(options.HostUri);
     private const decimal Lamports = 1_000_000_000m;
 
     /// <summary>
@@ -34,7 +34,7 @@ public sealed class SolanaBridge(
         {
             logger.LogInformation($"Starting method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
             token.ThrowIfCancellationRequested();
-            RequestResult<ResponseValue<AccountInfo>> result = await _rpcClient.GetAccountInfoAsync(accountAddress);
+            RequestResult<ResponseValue<AccountInfo>> result = await rpcClient.GetAccountInfoAsync(accountAddress);
             if (result.WasSuccessful && result.Result.Value?.Lamports != null)
                 // Convert lamports to SOL for readability.
                 return Result<decimal>.Success(result.Result.Value.Lamports / Lamports);
@@ -193,7 +193,7 @@ public sealed class SolanaBridge(
                 return Result<TransactionResponse>.Failure(
                     ResultPatternError.InternalServerError("Error in getAccountBalance"));
 
-            if (lamports / Lamports > getAccountBalanceRes.Value)
+            if (lamports / Lamports >= getAccountBalanceRes.Value)
                 return Result<TransactionResponse>.Failure(
                     ResultPatternError.BadRequest("Amount is too small to be included ."), new(
                         "",
@@ -204,7 +204,7 @@ public sealed class SolanaBridge(
 
 
             RequestResult<ResponseValue<LatestBlockHash>> latestBlockHashResult =
-                await _rpcClient.GetLatestBlockHashAsync();
+                await rpcClient.GetLatestBlockHashAsync();
 
             if (!latestBlockHashResult.WasSuccessful || latestBlockHashResult.Result?.Value == null)
                 return Result<TransactionResponse>.Failure(ResultPatternError
@@ -226,7 +226,7 @@ public sealed class SolanaBridge(
 
             transaction.Sign(sender);
 
-            RequestResult<string> result = await _rpcClient.SendTransactionAsync(transaction.Serialize());
+            RequestResult<string> result = await rpcClient.SendTransactionAsync(transaction.Serialize());
             if (!result.WasSuccessful)
                 return Result<TransactionResponse>.Failure(ResultPatternError
                     .InternalServerError($"Transaction send error: {result.Reason}"));
@@ -265,7 +265,7 @@ public sealed class SolanaBridge(
 
             token.ThrowIfCancellationRequested();
             RequestResult<TransactionMetaSlotInfo> transactionStatusResult =
-                await _rpcClient.GetTransactionAsync(transactionHash, commitment: Commitment.Confirmed);
+                await rpcClient.GetTransactionAsync(transactionHash, commitment: Commitment.Confirmed);
 
             if (!transactionStatusResult.WasSuccessful)
                 Result<BridgeTransactionStatus>.Failure(

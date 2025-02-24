@@ -215,7 +215,7 @@ public sealed class RadixBridge : IRadixBridge
             return Result<TransactionResponse>.Failure(
                 ResultPatternError.InternalServerError("Error in getAccountBalance"));
 
-        if (amount > getAccountBalanceRes.Value)
+        if (amount >= getAccountBalanceRes.Value)
             return Result<TransactionResponse>.Failure(
                 ResultPatternError.BadRequest("Amount is too small in tech account to be included ."), new(
                     "",

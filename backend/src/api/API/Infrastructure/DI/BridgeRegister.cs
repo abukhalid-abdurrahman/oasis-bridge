@@ -1,3 +1,5 @@
+using Solnet.Rpc;
+
 namespace API.Infrastructure.DI;
 
 public static class BridgeRegister
@@ -9,6 +11,9 @@ public static class BridgeRegister
         builder.Services.AddScoped<IBridge, SolanaBridge.SolanaBridge>();
         builder.Services.AddScoped<ISolanaBridge, SolanaBridge.SolanaBridge>();
 
+
+        builder.Services.AddScoped<IRpcClient>(provider =>
+            ClientFactory.GetClient(builder.Configuration["SolanaTechnicalAccountBridgeOptions:HostUri"] ?? ""));
         builder.Services.AddSingleton(new SolanaTechnicalAccountBridgeOptions
         {
             HostUri = builder.Configuration["SolanaTechnicalAccountBridgeOptions:HostUri"] ?? "",

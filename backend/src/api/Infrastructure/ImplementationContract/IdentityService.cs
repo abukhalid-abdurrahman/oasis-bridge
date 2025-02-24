@@ -53,17 +53,16 @@ public sealed class IdentityService(
 
         int res = await dbContext.SaveChangesAsync(token);
 
-        if (res == 0)
-            return Result<RegisterResponse>.Failure(ResultPatternError.InternalServerError("Could not register user."));
+        return res == 0
+            ? Result<RegisterResponse>.Failure(ResultPatternError.InternalServerError("Could not register user."))
+            : Result<RegisterResponse>.Success(new(user.Id));
 
-        BaseResult emailResult = await emailService.SendEmailAsync(request.EmailAddress,
-            "Welcome to OASIS Bridge!",
-            "You have successfully registered on OASIS Bridge. If you did not create this account, please contact support.");
+        /* BaseResult emailResult = await emailService.SendEmailAsync(request.EmailAddress,
+             "Welcome to OASIS Bridge!",
+             "You have successfully registered on OASIS Bridge. If you did not create this account, please contact support.");
 
-        if (!emailResult.IsSuccess)
-            logger.LogError("Failed to send verification email.");
-
-        return Result<RegisterResponse>.Success(new(user.Id));
+         if (!emailResult.IsSuccess)
+             logger.LogError("Failed to send verification email.");*/
     }
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken token = default)
@@ -88,7 +87,6 @@ public sealed class IdentityService(
             return Result<LoginResponse>.Failure(ResultPatternError.InternalServerError("Error generating token!"));
         }
 
-        await Task.Run(async () =>
         {
             string? userAgent = accessor.GetUserAgent();
 
@@ -122,17 +120,17 @@ public sealed class IdentityService(
             int res = await dbContext.SaveChangesAsync(token);
 
             if (res != 0)
-            {
-                BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
-                    "Successful Login to OASIS Bridge",
-                    "You have successfully logged into your OASIS Bridge account. If this was not you, please contact support immediately.");
-
-                if (!emailResult.IsSuccess)
-                    logger.LogError("Failed to send login notification email.");
-            }
-            else
                 logger.LogError($"Failed save information about login. Time: {DateTimeOffset.UtcNow} .");
-        }, token);
+        }
+        /* {
+             BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+                 "Successful Login to OASIS Bridge",
+                 "You have successfully logged into your OASIS Bridge account. If this was not you, please contact support immediately.");
+
+             if (!emailResult.IsSuccess)
+                 logger.LogError("Failed to send login notification email.");
+         }*/
+
 
         return Result<LoginResponse>.Success(result.Value);
     }
@@ -193,12 +191,12 @@ public sealed class IdentityService(
         if (res == 0)
             return BaseResult.Failure(ResultPatternError.InternalServerError("Could not change password."));
 
-        BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
-            "Password Changed Successfully",
-            "Your password has been changed successfully. If this was not you, please contact support immediately.");
+        /* BaseResult emailResult = await emailService.SendEmailAsync(user.Email,
+             "Password Changed Successfully",
+             "Your password has been changed successfully. If this was not you, please contact support immediately.");
 
-        if (!emailResult.IsSuccess)
-            logger.LogError("Failed to send password change notification email.");
+         if (!emailResult.IsSuccess)
+             logger.LogError("Failed to send password change notification email.");*/
 
         return BaseResult.Success();
     }

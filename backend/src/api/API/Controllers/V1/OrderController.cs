@@ -1,6 +1,7 @@
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}/orders")]
+[Authorize]
 public sealed class OrderController(IOrderService orderService) : V1BaseController
 {
     [HttpPost]

@@ -1,3 +1,5 @@
+using Solnet.Rpc;
+
 namespace SolanaBridgeTest.Services;
 
 /// <summary>
@@ -18,8 +20,8 @@ public class TestService : ITestService
     /// </summary>
     /// <param name="options">Configuration options for the SolanaBridge.</param>
     /// <param name="logger"></param>
-    public TestService(SolanaTechnicalAccountBridgeOptions options, ILogger<SolanaBridge.SolanaBridge> logger)
-        => _bridge = new(logger, options);
+    public TestService(SolanaTechnicalAccountBridgeOptions options, ILogger<SolanaBridge.SolanaBridge> logger,IRpcClient rpcClient)
+        => _bridge = new(logger, options,rpcClient);
 
 
     /// <summary>
