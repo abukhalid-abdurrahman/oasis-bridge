@@ -1,4 +1,5 @@
 global using Solnet.Rpc;
+global using System.Net;
 global using Common.DTOs;
 global using Common.Enums;
 global using Solnet.Wallet;

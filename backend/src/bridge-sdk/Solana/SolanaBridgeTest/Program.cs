@@ -1,6 +1,4 @@
-﻿using Solnet.Rpc;
-
-namespace SolanaBridgeTest;
+﻿namespace SolanaBridgeTest;
 
 /// <summary>
 /// Main program class that initializes and runs tests for the Solana Bridge API.
@@ -28,11 +26,12 @@ public class Program
     static readonly ILogger<SolanaBridge.SolanaBridge> Logger = LoggerFactory.CreateLogger<SolanaBridge.SolanaBridge>();
 
     private static readonly IRpcClient RpcClient = ClientFactory.GetClient(Options.HostUri);
+
     /// <summary>
     /// TestService instance that runs the Solana Bridge API tests using the provided options.
     /// </summary>
     private static readonly ITestService TestService =
-        new TestService(Options,Logger,RpcClient);
+        new TestService(Options, Logger, RpcClient);
 
     /// <summary>
     /// Main method that executes the tests for the Solana Bridge operations.

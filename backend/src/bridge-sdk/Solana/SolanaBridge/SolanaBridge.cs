@@ -35,14 +35,14 @@ public sealed class SolanaBridge(
             logger.LogInformation($"Starting method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
             token.ThrowIfCancellationRequested();
             RequestResult<ResponseValue<AccountInfo>> result = await rpcClient.GetAccountInfoAsync(accountAddress);
+
             if (result.WasSuccessful && result.Result.Value?.Lamports != null)
                 // Convert lamports to SOL for readability.
                 return Result<decimal>.Success(result.Result.Value.Lamports / Lamports);
 
-            logger.LogInformation($"Finishing method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
 
             return Result<decimal>.Failure(
-                ResultPatternError.NotFound("Account not found"));
+                ResultPatternError.NotFound("Solana account not found"));
         }
         catch (Exception e)
         {
@@ -50,6 +50,10 @@ public sealed class SolanaBridge(
                 $"Error retrieving balance for account {accountAddress}: {e.Message}, in time:{DateTimeOffset.UtcNow}");
             return Result<decimal>.Failure(
                 ResultPatternError.InternalServerError(e.Message));
+        }
+        finally
+        {
+            logger.LogInformation($"Finishing method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
         }
     }
 
@@ -72,7 +76,6 @@ public sealed class SolanaBridge(
             string publicKey = wallet.Account.PublicKey;
             string privateKey = Convert.ToBase64String(wallet.Account.PrivateKey);
 
-            logger.LogInformation($"Finishing method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
 
             return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
                 .Success(new(publicKey, privateKey, seedPhrase));
@@ -83,6 +86,10 @@ public sealed class SolanaBridge(
             logger.LogError($"Error creating account: {e.Message},time:{DateTimeOffset.UtcNow}");
             return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
                 .Failure(ResultPatternError.InternalServerError(e.Message));
+        }
+        finally
+        {
+            logger.LogInformation($"Finishing method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
         }
     }
 
@@ -102,7 +109,7 @@ public sealed class SolanaBridge(
             token.ThrowIfCancellationRequested();
             if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
                 Result<(string PublicKey, string PrivateKey)>.Failure(
-                    ResultPatternError.InternalServerError("Invalid seed phrase."));
+                    ResultPatternError.BadRequest("Invalid format seed phrase."));
 
             Mnemonic mnemonic = new(seedPhrase);
             Wallet wallet = new(mnemonic);
@@ -110,7 +117,6 @@ public sealed class SolanaBridge(
             string publicKey = wallet.Account.PublicKey;
             string privateKey = Convert.ToBase64String(wallet.Account.PrivateKey);
 
-            logger.LogInformation($"Finishing method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
 
             return Result<(string PublicKey, string PrivateKey)>
                 .Success(new(publicKey, privateKey));
@@ -121,6 +127,10 @@ public sealed class SolanaBridge(
             logger.LogError($"Error restoring account: {ex.Message}, time:{DateTimeOffset.UtcNow}");
             return Result<(string PublicKey, string PrivateKey)>.Failure(
                 ResultPatternError.InternalServerError(ex.Message));
+        }
+        finally
+        {
+            logger.LogInformation($"Finishing method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
         }
     }
 
@@ -190,8 +200,7 @@ public sealed class SolanaBridge(
             Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(sender.PublicKey);
 
             if (!getAccountBalanceRes.IsSuccess)
-                return Result<TransactionResponse>.Failure(
-                    ResultPatternError.InternalServerError("Error in getAccountBalance"));
+                return Result<TransactionResponse>.Failure(getAccountBalanceRes.Error);
 
             if (lamports / Lamports >= getAccountBalanceRes.Value)
                 return Result<TransactionResponse>.Failure(
@@ -228,10 +237,16 @@ public sealed class SolanaBridge(
 
             RequestResult<string> result = await rpcClient.SendTransactionAsync(transaction.Serialize());
             if (!result.WasSuccessful)
-                return Result<TransactionResponse>.Failure(ResultPatternError
-                    .InternalServerError($"Transaction send error: {result.Reason}"));
-
-            logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+            {
+                return result.HttpStatusCode switch
+                {
+                    HttpStatusCode.InternalServerError => Result<TransactionResponse>.Failure(
+                        ResultPatternError.InternalServerError($"Transaction send error: {result.Reason}")),
+                    HttpStatusCode.BadRequest => Result<TransactionResponse>.Failure(
+                        ResultPatternError.BadRequest($"Transaction send error: {result.Reason}")),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
 
 
             return Result<TransactionResponse>.Success(new TransactionResponse(
@@ -247,6 +262,10 @@ public sealed class SolanaBridge(
             logger.LogError($"Error executing transaction: {ex.Message},time:{DateTimeOffset.UtcNow}");
             return Result<TransactionResponse>.Failure(ResultPatternError
                 .InternalServerError(ex.Message));
+        }
+        finally
+        {
+            logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
         }
     }
 
@@ -268,17 +287,21 @@ public sealed class SolanaBridge(
                 await rpcClient.GetTransactionAsync(transactionHash, commitment: Commitment.Confirmed);
 
             if (!transactionStatusResult.WasSuccessful)
-                Result<BridgeTransactionStatus>.Failure(
-                    ResultPatternError.InternalServerError(
-                        $"Failed to retrieve transaction status: {transactionStatusResult.Reason},time:{DateTimeOffset.UtcNow}"));
+            {
+                return transactionStatusResult.HttpStatusCode switch
+                {
+                    HttpStatusCode.InternalServerError => Result<BridgeTransactionStatus>.Failure(
+                        ResultPatternError.InternalServerError(
+                            $"Failed to retrieve transaction status: {transactionStatusResult.Reason},time:{DateTimeOffset.UtcNow}")),
+                    HttpStatusCode.BadRequest => Result<BridgeTransactionStatus>.Failure(
+                        ResultPatternError.BadRequest(
+                            $"Failed to retrieve transaction status: {transactionStatusResult.Reason},time:{DateTimeOffset.UtcNow}")),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
 
             TransactionMetaSlotInfo transactionInfo = transactionStatusResult.Result;
 
-            if (transactionInfo == null)
-                return Result<BridgeTransactionStatus>.Failure(
-                    ResultPatternError.BadRequest("Transaction not found!"), BridgeTransactionStatus.NotFound);
-
-            logger.LogInformation($"Finishing method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
 
             return transactionInfo.Meta?.Error?.Type switch
             {
@@ -295,6 +318,10 @@ public sealed class SolanaBridge(
             return Result<BridgeTransactionStatus>.Failure(
                 ResultPatternError.InternalServerError(
                     $"Failed to retrieve transaction status.ErrorMessage: \n{ex.Message}"));
+        }
+        finally
+        {
+            logger.LogInformation($"Finishing method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
         }
     }
 }

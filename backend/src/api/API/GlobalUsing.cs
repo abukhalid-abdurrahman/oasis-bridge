@@ -1,3 +1,4 @@
+global using Solnet.Rpc;
 global using System.Text;
 global using RadixBridge;
 global using SolanaBridge;
@@ -44,5 +45,3 @@ global using API.Infrastructure.Extensions.ResultPattern;
 global using Application.Extensions.Responses.ApiResponse;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using API.Infrastructure.Middlewares.TokenValidation;
-
-

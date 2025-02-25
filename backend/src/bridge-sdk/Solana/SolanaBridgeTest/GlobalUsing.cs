@@ -1,3 +1,4 @@
+global using Solnet.Rpc;
 global using Common.DTOs;
 global using Common.Enums;
 global using SolanaBridge;
