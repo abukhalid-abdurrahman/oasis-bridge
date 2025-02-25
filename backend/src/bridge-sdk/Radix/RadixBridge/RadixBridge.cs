@@ -4,62 +4,60 @@ namespace RadixBridge;
 
 /// <summary>
 /// Represents a bridge for interacting with the Radix network.
-/// This class provides functionality to manage accounts, check balances, 
-/// and execute transactions (deposit/withdraw) on the Radix network.
+/// Provides functionality to manage accounts, check balances, 
+/// and execute transactions (withdraw/deposit) with detailed logging.
 /// </summary>
 public sealed class RadixBridge : IRadixBridge
 {
-    private readonly RadixTechnicalAccountBridgeOptions _options; // Options to configure the bridge
-    private readonly HttpClient _httpClient; // HTTP client used to make requests to Radix API
-    private readonly string _network; // Name of the network (MainNet or StokeNet)
-    private readonly Address _xrdAddress; // Address associated with XRD resources
-    private readonly ILogger<RadixBridge> _logger; // Logger used to log 
+    private readonly RadixTechnicalAccountBridgeOptions _options; // Options for configuring the bridge
+    private readonly HttpClient _httpClient; // HTTP client for making requests to the Radix API
+    private readonly string _network; // Network name (MainNet or StokeNet)
+    private readonly Address _xrdAddress; // Address associated with the XRD resource
+    private readonly ILogger<RadixBridge> _logger; // Logger
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RadixBridge"/> class.
+    /// Initializes a new instance of the RadixBridge class.
     /// Sets the network and XRD address based on the provided options.
     /// </summary>
-    /// <param name="options">The options for configuring the Radix bridge.</param>
-    /// <param name="httpClient">The HTTP client used for making requests.</param>
-    /// <param name="logger"></param>
     public RadixBridge(RadixTechnicalAccountBridgeOptions options, HttpClient httpClient, ILogger<RadixBridge> logger)
     {
         _logger = logger;
-        _options = options ?? throw new ArgumentNullException(nameof(options)); // Ensure options are provided
-        _httpClient =
-            httpClient ?? throw new ArgumentNullException(nameof(httpClient)); // Ensure HttpClient is provided
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
-        // Set the network and XRD address based on the provided network ID
+        _logger.LogInformation("Initializing RadixBridge. Checking NetworkId at {Time}", DateTimeOffset.UtcNow);
         if (options.NetworkId == (byte)NetworkType.Main)
         {
-            _network = RadixBridgeHelper.MainNet; // Use MainNet for the main network
-            _xrdAddress = new(RadixBridgeHelper.MainNetXrdAddress); // Set the address for MainNet
+            _network = RadixBridgeHelper.MainNet;
+            _xrdAddress = new Address(RadixBridgeHelper.MainNetXrdAddress);
+            _logger.LogInformation("Network set to MainNet. XRD Address: {Address}", _xrdAddress.AddressString());
         }
         else
         {
-            _network = RadixBridgeHelper.StokeNet; // Use StokeNet for the test network
-            _xrdAddress = new(RadixBridgeHelper.StokeNetXrdAddress); // Set the address for StokeNet
+            _network = RadixBridgeHelper.StokeNet;
+            _xrdAddress = new Address(RadixBridgeHelper.StokeNetXrdAddress);
+            _logger.LogInformation("Network set to StokeNet. XRD Address: {Address}", _xrdAddress.AddressString());
         }
     }
 
     /// <summary>
-    /// Gets the balance of an account.
+    /// Retrieves the balance of an account.
     /// </summary>
-    /// <param name="accountAddress">The address of the account to check.</param>
-    /// <param name="token">A cancellation token to cancel the request if needed.</param>
-    /// <returns>The account balance as a decimal.</returns>
     public async Task<Result<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
     {
-        _logger.LogInformation($"Starting method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Starting GetAccountBalanceAsync for account {Account} at {Time}", accountAddress,
+            DateTimeOffset.UtcNow);
         token.ThrowIfCancellationRequested();
+
         var data = new
         {
             network = _network,
-            account_address = accountAddress, // The account address to check balance for
-            resource_address = _xrdAddress.AddressString() // The XRD address for the resource
+            account_address = accountAddress, // Account address to check balance
+            resource_address = _xrdAddress.AddressString() // XRD resource address
         };
 
-        // Send a request to the Radix API to get the account's fungible resource balance
+        // Send request to Radix API to retrieve fungible resource balance
+        _logger.LogInformation("Sending request to Radix API for account balance.");
         AccountFungibleResourceBalanceDto? result =
             await RadixHttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
                 _httpClient,
@@ -68,9 +66,10 @@ public sealed class RadixBridge : IRadixBridge
                 token
             );
 
-        _logger.LogInformation($"Finishing method to GetAccountBalanceAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Received response from Radix API for account balance at {Time}", DateTimeOffset.UtcNow);
+        _logger.LogInformation("Finished GetAccountBalanceAsync for account {Account} at {Time}", accountAddress,
+            DateTimeOffset.UtcNow);
 
-        // Return the balance if the result is valid, otherwise return 0
         return result != null
             ? Result<decimal>.Success(decimal.Parse(result.FungibleResourceBalance.Amount))
             : Result<decimal>.Success();
@@ -79,178 +78,177 @@ public sealed class RadixBridge : IRadixBridge
     /// <summary>
     /// Creates a new Radix account with a randomly generated seed phrase.
     /// </summary>
-    /// <param name="token">A cancellation token to cancel the request if needed.</param>
-    /// <returns>A tuple containing the public key, private key, and seed phrase of the new account.</returns>
     public Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> CreateAccountAsync(
         CancellationToken token = default)
     {
-        _logger.LogInformation($"Starting method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Starting CreateAccountAsync at {Time}", DateTimeOffset.UtcNow);
+        token.ThrowIfCancellationRequested();
 
-        token.ThrowIfCancellationRequested(); // Check if cancellation has been requested
-
-        // Generate a new mnemonic (seed phrase) using a word list
+        // Generate a new mnemonic (seed phrase) using an English word list
+        _logger.LogInformation("Generating mnemonic for new account.");
         Mnemonic mnemonic = new(Wordlist.English, WordCount.TwentyFour);
         // Derive the private key from the mnemonic
+        _logger.LogInformation("Deriving private key from mnemonic.");
         PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
 
-        _logger.LogInformation($"Finishing method to CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
-
-        // Return the public key, private key, and the seed phrase
+        _logger.LogInformation("Finished CreateAccountAsync at {Time}", DateTimeOffset.UtcNow);
         return Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)>
-            .Success(new(privateKey.PublicKey(), privateKey, mnemonic.ToString()));
+            .Success((privateKey.PublicKey(), privateKey, mnemonic.ToString()));
     }
 
     /// <summary>
     /// Restores an account using a seed phrase.
     /// </summary>
-    /// <param name="seedPhrase">The seed phrase of the account to restore.</param>
-    /// <param name="token">A cancellation token to cancel the request if needed.</param>
-    /// <returns>A tuple containing the public key and private key of the restored account.</returns>
     public Result<(PublicKey PublicKey, PrivateKey PrivateKey)> RestoreAccountAsync(string seedPhrase,
         CancellationToken token = default)
     {
-        _logger.LogInformation($"Starting method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Starting RestoreAccountAsync at {Time}", DateTimeOffset.UtcNow);
+        token.ThrowIfCancellationRequested();
 
-        token.ThrowIfCancellationRequested(); // Check if cancellation has been requested
-
-        // Validate the provided seed phrase before proceeding
         if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
+        {
+            _logger.LogWarning("Invalid seed phrase format provided.");
             return Result<(PublicKey PublicKey, PrivateKey PrivateKey)>
                 .Failure(ResultPatternError.BadRequest("SeedPhrase format is invalid."));
+        }
 
-        // Create a new mnemonic from the provided seed phrase
+        _logger.LogInformation("Creating mnemonic from seed phrase.");
         Mnemonic mnemonic = new(seedPhrase);
-        // Derive the private key from the mnemonic
+        _logger.LogInformation("Deriving private key from mnemonic.");
         PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
 
-        _logger.LogInformation($"Finishing method to RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
-
-        // Return the public key and private key
+        _logger.LogInformation("Finished RestoreAccountAsync at {Time}", DateTimeOffset.UtcNow);
         return Result<(PublicKey PublicKey, PrivateKey PrivateKey)>
-            .Success(new(privateKey.PublicKey(), privateKey));
+            .Success((privateKey.PublicKey(), privateKey));
     }
 
     /// <summary>
-    /// Gets the address of an account or identity based on the public key, address type, and network type.
+    /// Retrieves the address of an account or identity based on the public key.
     /// </summary>
-    /// <param name="publicKey">The public key associated with the account or identity.</param>
-    /// <param name="addressType">The type of address (Account or Identity).</param>
-    /// <param name="networkType">The type of network (Main or Stoke).</param>
-    /// <param name="token">A cancellation token to cancel the request if needed.</param>
-    /// <returns>The address string corresponding to the given public key and network type.</returns>
     public Result<string> GetAddressAsync(PublicKey publicKey, AddressType addressType, NetworkType networkType,
         CancellationToken token = default)
     {
-        _logger.LogInformation($"Starting method to GetAddressAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Starting GetAddressAsync at {Time}", DateTimeOffset.UtcNow);
+        token.ThrowIfCancellationRequested();
 
-        token.ThrowIfCancellationRequested(); // Check if cancellation has been requested
+        byte network = (byte)networkType;
+        _logger.LogInformation("Finished GetAddressAsync at {Time}", DateTimeOffset.UtcNow);
 
-        byte network = (byte)networkType; // Convert network type to byte
-
-        _logger.LogInformation($"Finishing method to GetAddressAsync in time: {DateTimeOffset.UtcNow};");
-
-
-        // Return the address string based on the address type (Account or Identity)
         return addressType switch
         {
             AddressType.Account => Result<string>.Success(Address.VirtualAccountAddressFromPublicKey(publicKey, network)
                 .AddressString()),
             AddressType.Identity => Result<string>.Success(Address
                 .VirtualIdentityAddressFromPublicKey(publicKey, network).AddressString()),
-            _ => Result<string>.Failure(
-                ResultPatternError.BadRequest("Invalid format address-type")) // Invalid address type
+            _ => Result<string>.Failure(ResultPatternError.BadRequest("Invalid address type."))
         };
     }
 
     /// <summary>
     /// Withdraws a specified amount from an account.
     /// </summary>
-    /// <param name="amount">The amount to withdraw.</param>
-    /// <param name="senderAccountAddress">The address of the sender account.</param>
-    /// <param name="senderPrivateKey">The private key of the sender account.</param>
-    /// <returns>A task representing the transaction response.</returns>
     public async Task<Result<TransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress,
         string senderPrivateKey)
     {
+        _logger.LogInformation("Initiating WithdrawAsync for account {Account} at {Time}", senderAccountAddress,
+            DateTimeOffset.UtcNow);
         if (senderAccountAddress == _options.AccountAddress)
+        {
+            _logger.LogWarning("Withdrawal attempted from tech account. Operation not allowed.");
             return Result<TransactionResponse>.Failure(
                 ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
+        }
 
         return await ExecuteTransactionAsync(amount, senderAccountAddress, senderPrivateKey, true);
     }
 
-
     /// <summary>
     /// Deposits a specified amount to an account.
     /// </summary>
-    /// <param name="amount">The amount to deposit.</param>
-    /// <param name="receiverAccountAddress">The address of the receiver account.</param>
-    /// <returns>A task representing the transaction response.</returns>
     public async Task<Result<TransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
     {
+        _logger.LogInformation("Initiating DepositAsync for account {Account} at {Time}", receiverAccountAddress,
+            DateTimeOffset.UtcNow);
         if (receiverAccountAddress == _options.AccountAddress)
+        {
+            _logger.LogWarning("Deposit attempted to tech account. Operation not allowed.");
             return Result<TransactionResponse>.Failure(
                 ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
+        }
 
         return await ExecuteTransactionAsync(amount, receiverAccountAddress, _options.PrivateKey, false);
     }
 
     /// <summary>
     /// Executes a transaction (withdrawal or deposit) by building and submitting the transaction manifest.
+    /// Detailed logging is provided at each step.
     /// </summary>
-    /// <param name="amount">The amount involved in the transaction.</param>
-    /// <param name="accountAddress">The account address (sender or receiver).</param>
-    /// <param name="privateKey">The private key associated with the account.</param>
-    /// <param name="isWithdraw">Indicates whether the transaction is a withdrawal (true) or deposit (false).</param>
-    /// <returns>A task representing the transaction response.</returns>
     private async Task<Result<TransactionResponse>> ExecuteTransactionAsync(decimal amount, string accountAddress,
         string privateKey, bool isWithdraw)
     {
         try
         {
-            _logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+            _logger.LogInformation("Starting ExecuteTransactionAsync at {Time}", DateTimeOffset.UtcNow);
 
-            using PrivateKey
-                senderPrivateKey =
-                    new(Encoders.Hex.DecodeData(privateKey),
-                        Curve.ED25519); // Create a private key from the provided hex
+            // Create sender's private key and derive sender address
+            _logger.LogInformation("Decoding private key and creating sender's PrivateKey instance.");
+            using PrivateKey senderPrivateKey = new PrivateKey(Encoders.Hex.DecodeData(privateKey), Curve.ED25519);
+            _logger.LogInformation("Deriving sender's address from private key.");
             using Address sender =
-                Address.VirtualAccountAddressFromPublicKey(senderPrivateKey.PublicKey(),
-                    _options.NetworkId); // Derive sender's address
+                Address.VirtualAccountAddressFromPublicKey(senderPrivateKey.PublicKey(), _options.NetworkId);
 
-            Address receiver = new(accountAddress); // Set the receiver's address
+            // Determine receiver's address based on transaction type
+            _logger.LogInformation("Setting receiver's address.");
+            Address receiver = new Address(accountAddress);
             if (isWithdraw)
-                receiver = new(_options
-                    .AccountAddress); // For withdrawal, the receiver is the account address from options
+            {
+                _logger.LogInformation("Withdrawal operation: overriding receiver with tech account address.");
+                receiver = new Address(_options.AccountAddress);
+            }
 
-            Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(sender.AddressString());
+            // Retrieve account balance
+            _logger.LogInformation("Retrieving account balance for sender: {SenderAddress}", sender.AddressString());
+            Result<decimal> balanceResult = await GetAccountBalanceAsync(sender.AddressString());
+            if (!balanceResult.IsSuccess)
+            {
+                _logger.LogError("Failed to retrieve balance: {Error}", balanceResult.Error.Message);
+                return Result<TransactionResponse>.Failure(balanceResult.Error);
+            }
 
-            if (!getAccountBalanceRes.IsSuccess)
-                return Result<TransactionResponse>.Failure(getAccountBalanceRes.Error);
-
-            if (amount >= getAccountBalanceRes.Value)
+            // Validate sufficient balance
+            if (amount >= balanceResult.Value)
+            {
+                _logger.LogWarning(
+                    "Insufficient funds: Requested amount {Amount} is greater than or equal to balance {Balance}",
+                    amount, balanceResult.Value);
                 return Result<TransactionResponse>.Failure(
-                    ResultPatternError.BadRequest("Amount is too small in tech account to be included ."), new(
-                        "",
-                        null,
-                        false,
-                        "Invalid amount",
+                    ResultPatternError.BadRequest("Amount is too small in tech account to be included."),
+                    new TransactionResponse("", null, false, "Invalid amount",
                         BridgeTransactionStatus.InsufficientFunds));
+            }
 
-
+            // Round the amount to 18 decimal places
+            _logger.LogInformation("Rounding amount {Amount} to 18 decimal places.", amount);
             decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.ToZero);
 
+            // Build the transaction manifest with detailed logging
+            _logger.LogInformation("Building transaction manifest.");
             using TransactionManifest manifest = new ManifestBuilder()
-                .AccountLockFeeAndWithdraw(sender, new("50"), _xrdAddress, new($"{roundedAmount}"))
+                .AccountLockFeeAndWithdraw(sender, new("100"), _xrdAddress, new($"{roundedAmount}"))
                 .TakeFromWorktop(_xrdAddress, new($"{roundedAmount}"), new("xrdBucket"))
                 .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
                 .Build(_options.NetworkId);
+            _logger.LogInformation("Transaction manifest built. Validating manifest...");
+            manifest.StaticallyValidate();
+            _logger.LogInformation("Manifest validated successfully.");
 
-            manifest.StaticallyValidate(); // Validate the manifest before execution
-
-            // Get the current epoch for the transaction header
+            // Retrieve current epoch for transaction header
+            _logger.LogInformation("Retrieving current epoch from construction metadata.");
             ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
+            _logger.LogInformation("Current epoch is {Epoch}", currentEpoch);
 
+            // Build and notarize the transaction
+            _logger.LogInformation("Building transaction header and notarizing transaction.");
             using NotarizedTransaction transaction = new TransactionBuilder()
                 .Header(new TransactionHeader(
                     networkId: _options.NetworkId,
@@ -261,89 +259,95 @@ public sealed class RadixBridge : IRadixBridge
                     notaryIsSignatory: true,
                     tipPercentage: 0
                 ))
-                .Manifest(manifest) // Attach the manifest
-                .Message(new Message.None()) // No additional message for the transaction
-                .NotarizeWithPrivateKey(senderPrivateKey); // Notarize the transaction with the sender's private key
+                .Manifest(manifest)
+                .Message(new Message.None())
+                .NotarizeWithPrivateKey(senderPrivateKey);
+            _logger.LogInformation("Transaction compiled successfully.");
 
-            // Prepare the data to send to the Radix API
+            // Prepare data payload for transaction submission
+            _logger.LogInformation("Preparing data payload for transaction submission.");
             var data = new
             {
                 network = _network,
-                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()), // Compile the transaction
-                force_recalculate = true // Flag to force recalculation
+                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()),
+                force_recalculate = true
             };
 
-            // Submit the transaction to the Radix network
+            // Submit transaction to the Radix network
+            _logger.LogInformation("Submitting transaction to Radix network.");
             TransactionSubmitResponse? response =
                 await RadixHttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
                     _httpClient,
                     $"{_options.HostUri}/core/lts/transaction/submit",
                     data
                 );
+            _logger.LogInformation("Transaction submission completed.");
 
-
-            // Return the transaction response, including intent hash and status
-            return Result<TransactionResponse>.Success(new(
+            // Return transaction response
+            _logger.LogInformation("Returning successful transaction response.");
+            return Result<TransactionResponse>.Success(new TransactionResponse(
                 transaction.IntentHash().AsStr(),
                 response?.Duplicate.ToString(),
-                response != null, // If response is null, the transaction failed
+                response != null,
                 response == null ? "Transaction failed" : null,
                 response != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
             ));
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message);
+            _logger.LogError("Error during ExecuteTransactionAsync: {Message}", e.Message);
             return Result<TransactionResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
         }
         finally
         {
-            _logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+            _logger.LogInformation("Finishing ExecuteTransactionAsync at {Time}", DateTimeOffset.UtcNow);
         }
     }
 
     /// <summary>
-    /// Gets the status of a submitted transaction.
+    /// Retrieves the status of a submitted transaction.
     /// </summary>
-    /// <param name="transactionHash">The hash of the transaction to check status for.</param>
-    /// <param name="token">A cancellation token to cancel the request if needed.</param>
-    /// <returns>The status of the transaction (Succeed, Failed, or NotFound).</returns>
     public async Task<Result<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash,
         CancellationToken token = default)
     {
-        _logger.LogInformation($"Starting method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
-
+        _logger.LogInformation("Starting GetTransactionStatusAsync at {Time}", DateTimeOffset.UtcNow);
         token.ThrowIfCancellationRequested();
+
         var data = new
         {
             network = _network,
-            intent_hash = transactionHash // Provide the transaction hash to check status
+            intent_hash = transactionHash
         };
 
-        // Send a request to get the status of the transaction
+        _logger.LogInformation("Sending request to Radix for transaction status.");
         TransactionStatusResponse? response = await RadixHttpClientHelper.PostAsync<object, TransactionStatusResponse>(
             _httpClient,
             $"{_options.HostUri}/core/transaction/status",
             data,
             token
         );
-
-        _logger.LogInformation($"Finishing method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
+        _logger.LogInformation("Received transaction status from Radix at {Time}", DateTimeOffset.UtcNow);
 
         if (response is null)
+        {
+            _logger.LogError("Radix GetTransactionStatus method returned null.");
             return Result<BridgeTransactionStatus>.Failure(
                 ResultPatternError.InternalServerError("Error in Radix GetTransactionStatus method"));
+        }
 
-        // Return the transaction status based on the response
+        _logger.LogInformation("Interpreting transaction status: {Status}", response.IntentStatus);
         return response.IntentStatus switch
         {
             RadixTransactionStatus.CommittedSuccess => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
-                .Completed), // Success
+                .Completed),
             RadixTransactionStatus.CommittedFailure => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
-                .Canceled), // Failure
-            RadixTransactionStatus.NotSeen=>Result<BridgeTransactionStatus>.Failure(ResultPatternError.NotFound("TransactionStatus radix not found"),
-                BridgeTransactionStatus.NotFound),
-            _ => throw new ArgumentOutOfRangeException()
+                .Canceled),
+            RadixTransactionStatus.NotSeen => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.NotFound),
+            RadixTransactionStatus.InMemPool=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Completed),
+            RadixTransactionStatus.PermanentRejection=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Canceled),
+            RadixTransactionStatus.FateUncertainButLikelyRejection=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Canceled),
+            RadixTransactionStatus.FateUncertain=>Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Pending),
+               _ => throw new ArgumentOutOfRangeException()
         };
     }
 
@@ -352,89 +356,75 @@ public sealed class RadixBridge : IRadixBridge
     /// <summary>
     /// Creates a new account asynchronously using a randomly generated seed phrase.
     /// </summary>
-    /// <param name="token">A cancellation token to support task cancellation.</param>
-    /// <returns>A tuple containing the public key, private key, and the generated seed phrase.</returns>
     async Task<Result<(string PublicKey, string PrivateKey, string SeedPhrase)>> IBridge.CreateAccountAsync(
         CancellationToken token)
     {
         try
         {
-            _logger.LogInformation($"Starting method to IBridge.CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
-
-            // Check if cancellation has been requested, and throw if it has
+            _logger.LogInformation("Starting IBridge.CreateAccountAsync at {Time}", DateTimeOffset.UtcNow);
             token.ThrowIfCancellationRequested();
 
-            // Generate a new mnemonic (seed phrase) using an English word list with 24 words
+            _logger.LogInformation("Generating mnemonic for IBridge account creation.");
             Mnemonic mnemonic = new(Wordlist.English, WordCount.TwentyFour);
-
-            // Derive the private key from the generated mnemonic
+            _logger.LogInformation("Deriving private key from mnemonic for IBridge account.");
             using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
-
-            // Convert the derived public key to a hexadecimal string for easy representation
             string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
 
-
-            // Return a tuple containing the public key, private key, and the generated mnemonic (seed phrase)
+            _logger.LogInformation("IBridge account created successfully.");
             return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
-                .Success(new(publicKey, privateKey.RawHex(), mnemonic.ToString()));
+                .Success((publicKey, privateKey.RawHex(), mnemonic.ToString()));
         }
         catch (Exception e)
         {
+            _logger.LogError( "Error in IBridge.CreateAccountAsync: {Message}", e.Message);
             await Task.CompletedTask;
-            return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>.Failure(
-                ResultPatternError.InternalServerError(e.Message));
+            return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
+                .Failure(ResultPatternError.InternalServerError(e.Message));
         }
         finally
         {
-            _logger.LogInformation($"Finishing method to IBridge.CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
+            _logger.LogInformation("Finishing IBridge.CreateAccountAsync at {Time}", DateTimeOffset.UtcNow);
         }
     }
 
     /// <summary>
     /// Restores an account asynchronously using a provided seed phrase.
     /// </summary>
-    /// <param name="seedPhrase">The seed phrase used to restore the account.</param>
-    /// <param name="token">A cancellation token to support task cancellation.</param>
-    /// <returns>A tuple containing the public key and private key restored from the seed phrase.</returns>
-    /// <exception cref="ArgumentException">Thrown when the seed phrase is invalid.</exception>
     async Task<Result<(string PublicKey, string PrivateKey)>> IBridge.RestoreAccountAsync(string seedPhrase,
         CancellationToken token)
     {
         try
         {
-            _logger.LogInformation($"Starting method to IBridge.RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
-
-            // Check if cancellation has been requested, and throw if it has
+            _logger.LogInformation("Starting IBridge.RestoreAccountAsync at {Time}", DateTimeOffset.UtcNow);
             token.ThrowIfCancellationRequested();
 
-            // Validate the provided seed phrase to ensure it's correct and usable
             if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
+            {
+                _logger.LogWarning("Invalid seed phrase format provided for IBridge.RestoreAccountAsync.");
                 return Result<(string PublicKey, string PrivateKey)>
                     .Failure(ResultPatternError.BadRequest("SeedPhrase format is invalid."));
+            }
 
-
-            // Restore the account from the provided valid seed phrase
+            _logger.LogInformation("Creating mnemonic from seed phrase for account restoration.");
             Mnemonic mnemonic = new(seedPhrase);
+            _logger.LogInformation("Deriving private key for account restoration.");
             PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
-
-            // Convert the restored public key to a hexadecimal string for easy representation
             string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
 
-
-            // Return a tuple containing the public key and private key
+            _logger.LogInformation("IBridge account restored successfully.");
             return Result<(string PublicKey, string PrivateKey)>
-                .Success(new(publicKey, privateKey.RawHex()));
+                .Success((publicKey, privateKey.RawHex()));
         }
         catch (Exception e)
         {
+            _logger.LogError( "Error in IBridge.RestoreAccountAsync: {Message}", e.Message);
             await Task.CompletedTask;
-            return Result<(string PublicKey, string PrivateKey)>.Failure(
-                ResultPatternError.InternalServerError(e.Message));
+            return Result<(string PublicKey, string PrivateKey)>
+                .Failure(ResultPatternError.InternalServerError(e.Message));
         }
         finally
         {
-            _logger.LogInformation(
-                $"Finishing method to IBridge.RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
+            _logger.LogInformation("Finishing IBridge.RestoreAccountAsync at {Time}", DateTimeOffset.UtcNow);
         }
     }
 

@@ -6,6 +6,10 @@ namespace RadixBridge.Helpers;
 /// </summary>
 public static class RadixHttpClientHelper
 {
+    // Static logger for detailed logging. In production, consider using dependency injection.
+    private static readonly ILogger Logger = LoggerFactory.Create(_ => { })
+        .CreateLogger("RadixHttpClientHelper");
+
     /// <summary>
     /// Sends an HTTP POST request with the specified request object and deserializes the response into the specified response type.
     /// </summary>
@@ -21,49 +25,62 @@ public static class RadixHttpClientHelper
     {
         try
         {
-            // Serialize the request object to JSON for transmission
+            Logger.LogInformation("Starting PostAsync for URL: {Url} at {Time}", url, DateTimeOffset.UtcNow);
+
+            // Serialize the request object to JSON
+            Logger.LogInformation("Serializing request object of type {Type} to JSON.", typeof(TRequest));
             string json = JsonConvert.SerializeObject(request);
 
-            // Create the HTTP content with the serialized JSON data, set the encoding to UTF-8, and specify the content type as application/json
+            Logger.LogInformation("Serialized JSON: {Json}", json);
+
+            // Create the HTTP content with the serialized JSON data
             using StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            Logger.LogInformation("HTTP content created with UTF-8 encoding and 'application/json' content type.");
 
             // Send the HTTP POST request and await the response
+            Logger.LogInformation("Sending HTTP POST request to URL: {Url}", url);
             using HttpResponseMessage response = await httpClient.PostAsync(url, content, token);
 
-            // Check if the response indicates success (status code 2xx)
+            Logger.LogInformation("Received HTTP response with status code: {StatusCode}", response.StatusCode);
+
             if (response.IsSuccessStatusCode)
             {
                 // Read the response content as a string
+                Logger.LogInformation("Response status indicates success. Reading response content.");
                 string stringRes = await response.Content.ReadAsStringAsync(token);
+                Logger.LogInformation("Response content read: {ResponseContent}", stringRes);
 
-                // Deserialize the response string into the specified response type and return it
-                return JsonConvert.DeserializeObject<TResponse>(stringRes);
+                // Deserialize the response string into the specified response type
+                Logger.LogInformation("Deserializing response into type {Type}.", typeof(TResponse));
+                TResponse? deserializedResponse = JsonConvert.DeserializeObject<TResponse>(stringRes);
+                Logger.LogInformation("Deserialization successful. Returning deserialized response.");
+                return deserializedResponse;
             }
-
-            // Return default (null) if the response status indicates failure
-            return default;
+            else
+            {
+                Logger.LogWarning("HTTP response was not successful. Status code: {StatusCode}", response.StatusCode);
+                return default;
+            }
         }
         catch (Exception e)
         {
-            // Log the error to the console (can be replaced with proper logging mechanism)
-            Console.WriteLine($"HTTP Request Error: {e.Message}");
-
-            // Rethrow the exception to allow upstream handling of the error
-            throw;
+            Logger.LogError(e, "HTTP Request Error in PostAsync: {Message}", e.Message);
+            throw; // Rethrow to allow upstream handling
         }
     }
 
     /// <summary>
     /// Sends a request to retrieve construction metadata, such as the current epoch, for a given network.
-    /// This method uses the <see cref="PostAsync{TRequest,TResponse}"/> helper method.
     /// </summary>
     /// <param name="client">The HTTP client used to send the request.</param>
-    /// <param name="options"></param>
+    /// <param name="options">The Radix technical account bridge options.</param>
     /// <returns>A task representing the operation. The task result contains the current epoch response, or null if the request fails.</returns>
     public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,
         RadixTechnicalAccountBridgeOptions options)
     {
-        // Prepare the data to be sent in the request, containing the network ID
+        Logger.LogInformation("Starting GetConstructionMetadata at {Time}", DateTimeOffset.UtcNow);
+
+        // Prepare the data with the correct network identifier
         var data = new
         {
             network = options.NetworkId == 0x01
@@ -71,11 +88,17 @@ public static class RadixHttpClientHelper
                 : RadixBridgeHelper.StokeNet
         };
 
-        // Use the PostAsync helper method to send the request and retrieve the response
-        return await PostAsync<object, CurrentEpochResponse>(
+        Logger.LogInformation("Prepared request data for construction metadata: {Data}",
+            JsonConvert.SerializeObject(data));
+
+        // Use the PostAsync helper method to send the request
+        CurrentEpochResponse? response = await PostAsync<object, CurrentEpochResponse>(
             client,
-            $"{options.HostUri}/core/lts/transaction/construction", // URL for the endpoint
-            data // The network ID data to send in the request body
+            $"{options.HostUri}/core/lts/transaction/construction",
+            data
         );
+
+        Logger.LogInformation("Finished GetConstructionMetadata at {Time}", DateTimeOffset.UtcNow);
+        return response;
     }
 }

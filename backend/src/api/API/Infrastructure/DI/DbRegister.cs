@@ -7,7 +7,6 @@ public static class DbRegister
         builder.Services.AddDbContext<DataContext>(configure =>
         {
             configure.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-            configure.LogTo(Console.WriteLine);
         });
         return builder;
     }
