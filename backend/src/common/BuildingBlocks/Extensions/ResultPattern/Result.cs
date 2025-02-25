@@ -9,7 +9,7 @@ public sealed class Result<T> : BaseResult
         Value = value;
     }
 
-    public static Result<T> Success(T? value) => new(true, ResultPatternError.None(), value);
+    public static Result<T> Success(T? value=default) => new(true, ResultPatternError.None(), value);
 
     public static Result<T> Failure(ResultPatternError error, T value=default!) => new(false, error, value);
 }

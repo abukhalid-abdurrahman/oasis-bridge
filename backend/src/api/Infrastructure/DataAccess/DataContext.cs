@@ -1,3 +1,5 @@
+using Role = Domain.Entities.Role;
+
 namespace Infrastructure.DataAccess;
 
 public sealed class DataContext(DbContextOptions<DataContext> options) : DbContext(options)

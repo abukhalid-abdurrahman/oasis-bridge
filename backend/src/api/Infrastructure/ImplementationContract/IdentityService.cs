@@ -1,3 +1,5 @@
+using Role = Domain.Entities.Role;
+
 namespace Infrastructure.ImplementationContract;
 
 public sealed class IdentityService(

@@ -340,7 +340,7 @@ public sealed class RadixBridge : IRadixBridge
     async Task<Result<(string PublicKey, string PrivateKey, string SeedPhrase)>> IBridge.CreateAccountAsync(
         CancellationToken token)
     {
-        return await Task.Run(() =>
+        try
         {
             _logger.LogInformation($"Starting method to IBridge.CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
 
@@ -356,12 +356,21 @@ public sealed class RadixBridge : IRadixBridge
             // Convert the derived public key to a hexadecimal string for easy representation
             string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
 
-            _logger.LogInformation($"Finishing method to IBridge.CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
 
             // Return a tuple containing the public key, private key, and the generated mnemonic (seed phrase)
             return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>
                 .Success(new(publicKey, privateKey.RawHex(), mnemonic.ToString()));
-        }, token);
+        }
+        catch (Exception e)
+        {
+            await Task.CompletedTask;
+            return Result<(string PublicKey, string PrivateKey, string SeedPhrase)>.Failure(
+                ResultPatternError.InternalServerError(e.Message));
+        }
+        finally
+        {
+            _logger.LogInformation($"Finishing method to IBridge.CreateAccountAsync in time: {DateTimeOffset.UtcNow};");
+        }
     }
 
     /// <summary>
@@ -374,7 +383,7 @@ public sealed class RadixBridge : IRadixBridge
     async Task<Result<(string PublicKey, string PrivateKey)>> IBridge.RestoreAccountAsync(string seedPhrase,
         CancellationToken token)
     {
-        return await Task.Run(() =>
+        try
         {
             _logger.LogInformation($"Starting method to IBridge.RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
 
@@ -383,8 +392,8 @@ public sealed class RadixBridge : IRadixBridge
 
             // Validate the provided seed phrase to ensure it's correct and usable
             if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
-                Result<(string PublicKey, string PrivateKey)>.Failure(
-                    ResultPatternError.BadRequest("SeedPhrase is invalid.")); // Throw exception if invalid seed phrase
+                return Result<(string PublicKey, string PrivateKey)>
+                    .Failure(ResultPatternError.BadRequest("SeedPhrase format is invalid."));
 
 
             // Restore the account from the provided valid seed phrase
@@ -394,13 +403,22 @@ public sealed class RadixBridge : IRadixBridge
             // Convert the restored public key to a hexadecimal string for easy representation
             string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
 
-            _logger.LogInformation(
-                $"Finishing method to IBridge.RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
 
             // Return a tuple containing the public key and private key
             return Result<(string PublicKey, string PrivateKey)>
                 .Success(new(publicKey, privateKey.RawHex()));
-        }, token);
+        }
+        catch (Exception e)
+        {
+            await Task.CompletedTask;
+            return Result<(string PublicKey, string PrivateKey)>.Failure(
+                ResultPatternError.InternalServerError(e.Message));
+        }
+        finally
+        {
+            _logger.LogInformation(
+                $"Finishing method to IBridge.RestoreAccountAsync in time: {DateTimeOffset.UtcNow};");
+        }
     }
 
     #endregion
