@@ -309,7 +309,7 @@ public sealed class SolanaBridge(
         {
             token.ThrowIfCancellationRequested();
             logger.LogInformation("Fetching transaction status for {TxHash}", transactionHash);
-            
+
             Commitment commitment = Commitment.Confirmed;
             RequestResult<TransactionMetaSlotInfo> transactionStatusResult =
                 await rpcClient.GetTransactionAsync(transactionHash, commitment);
@@ -326,14 +326,14 @@ public sealed class SolanaBridge(
                 logger.LogError(
                     "Failed to retrieve transaction status for {TxHash}. Response was unsuccessful. Raw response: {RawResponse}",
                     transactionHash, transactionStatusResult.RawRpcResponse ?? "null");
-                if(transactionStatusResult.HttpStatusCode==HttpStatusCode.BadRequest)
-                return Result<BridgeTransactionStatus>.Failure(
-                    ResultPatternError.InternalServerError("Transaction status retrieval failed."));
+                if (transactionStatusResult.HttpStatusCode == HttpStatusCode.BadRequest)
+                    return Result<BridgeTransactionStatus>.Failure(
+                        ResultPatternError.InternalServerError("Transaction status retrieval failed."));
             }
 
             logger.LogInformation("Transaction status response: {@Response}", transactionStatusResult);
 
-            BridgeTransactionStatus status = transactionStatusResult.Result.Meta?.Error == null
+            BridgeTransactionStatus status = transactionStatusResult.Result?.Meta?.Error == null
                 ? BridgeTransactionStatus.Completed
                 : BridgeTransactionStatus.Canceled;
             return Result<BridgeTransactionStatus>.Success(status);
@@ -342,7 +342,7 @@ public sealed class SolanaBridge(
         {
             logger.LogError(ex, "Exception occurred while retrieving transaction status for {TxHash}", transactionHash);
             return Result<BridgeTransactionStatus>.Failure(
-                ResultPatternError.InternalServerError("Unexpected error occurred."));
+                ResultPatternError.InternalServerError(ex.Message));
         }
     }
 }
