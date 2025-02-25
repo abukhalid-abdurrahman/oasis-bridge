@@ -29,7 +29,7 @@ services:
       - internal_network
 
   oasisbridge:
-    image: nazarovqurbonali/my-webapi:v8
+    image: nazarovqurbonali/oasis-bridge:v14
     container_name: oasisbridge
     restart: always
     platform: linux/arm64
@@ -43,7 +43,7 @@ services:
       - internal_network
 
   oasisbridge_frontend:
-    image: nazarovqurbonali/oasis-bridge-frontend:v10
+    image: nazarovqurbonali/oasis-bridge-frontend:v12
     container_name: oasisbridge_frontend
     restart: always
     platform: linux/arm64
