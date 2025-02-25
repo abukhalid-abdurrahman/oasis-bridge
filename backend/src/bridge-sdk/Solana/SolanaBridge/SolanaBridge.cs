@@ -42,7 +42,7 @@ public sealed class SolanaBridge(
 
 
             return Result<decimal>.Failure(
-                ResultPatternError.NotFound("Solana account not found"));
+                ResultPatternError.NotFound("Solana account not found or problem with network"));
         }
         catch (Exception e)
         {

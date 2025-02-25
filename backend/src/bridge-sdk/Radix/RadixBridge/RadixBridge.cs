@@ -73,7 +73,7 @@ public sealed class RadixBridge : IRadixBridge
         // Return the balance if the result is valid, otherwise return 0
         return result != null
             ? Result<decimal>.Success(decimal.Parse(result.FungibleResourceBalance.Amount))
-            : Result<decimal>.Failure(ResultPatternError.NotFound("Account not found"));
+            : Result<decimal>.Failure(ResultPatternError.NotFound("Radix account not found or problem with network"));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class RadixBridge : IRadixBridge
         // Validate the provided seed phrase before proceeding
         if (!SeedPhraseValidator.IsValidSeedPhrase(seedPhrase))
             return Result<(PublicKey PublicKey, PrivateKey PrivateKey)>
-                .Failure(ResultPatternError.BadRequest("SeedPhrase is invalid."));
+                .Failure(ResultPatternError.BadRequest("SeedPhrase format is invalid."));
 
         // Create a new mnemonic from the provided seed phrase
         Mnemonic mnemonic = new(seedPhrase);
@@ -196,95 +196,98 @@ public sealed class RadixBridge : IRadixBridge
     {
         try
         {
-              _logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+            _logger.LogInformation($"Starting method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
 
-        using PrivateKey
-            senderPrivateKey =
-                new(Encoders.Hex.DecodeData(privateKey), Curve.ED25519); // Create a private key from the provided hex
-        using Address sender =
-            Address.VirtualAccountAddressFromPublicKey(senderPrivateKey.PublicKey(),
-                _options.NetworkId); // Derive sender's address
+            using PrivateKey
+                senderPrivateKey =
+                    new(Encoders.Hex.DecodeData(privateKey),
+                        Curve.ED25519); // Create a private key from the provided hex
+            using Address sender =
+                Address.VirtualAccountAddressFromPublicKey(senderPrivateKey.PublicKey(),
+                    _options.NetworkId); // Derive sender's address
 
-        Address receiver = new(accountAddress); // Set the receiver's address
-        if (isWithdraw)
-            receiver = new(_options.AccountAddress); // For withdrawal, the receiver is the account address from options
+            Address receiver = new(accountAddress); // Set the receiver's address
+            if (isWithdraw)
+                receiver = new(_options
+                    .AccountAddress); // For withdrawal, the receiver is the account address from options
 
-        Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(sender.AddressString());
+            Result<decimal> getAccountBalanceRes = await GetAccountBalanceAsync(sender.AddressString());
 
-        if (!getAccountBalanceRes.IsSuccess)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.InternalServerError("Error in getAccountBalance"));
+            if (!getAccountBalanceRes.IsSuccess)
+                return Result<TransactionResponse>.Failure(getAccountBalanceRes.Error);
 
-        if (amount >= getAccountBalanceRes.Value)
-            return Result<TransactionResponse>.Failure(
-                ResultPatternError.BadRequest("Amount is too small in tech account to be included ."), new(
-                    "",
-                    null,
-                    false,
-                    "Invalid amount",
-                    BridgeTransactionStatus.InsufficientFunds));
-
-
-        decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.ToZero);
-        
-        using TransactionManifest manifest = new ManifestBuilder()
-            .AccountLockFeeAndWithdraw(sender, new("50"), _xrdAddress, new($"{roundedAmount}"))
-            .TakeFromWorktop(_xrdAddress, new($"{roundedAmount}"), new("xrdBucket"))
-            .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
-            .Build(_options.NetworkId);
-
-        manifest.StaticallyValidate(); // Validate the manifest before execution
-
-        // Get the current epoch for the transaction header
-        ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
-
-        using NotarizedTransaction transaction = new TransactionBuilder()
-            .Header(new TransactionHeader(
-                networkId: _options.NetworkId,
-                startEpochInclusive: currentEpoch,
-                endEpochExclusive: currentEpoch + 50,
-                nonce: RadixBridgeHelper.RandomNonce(),
-                notaryPublicKey: senderPrivateKey.PublicKey(),
-                notaryIsSignatory: true,
-                tipPercentage: 0
-            ))
-            .Manifest(manifest) // Attach the manifest
-            .Message(new Message.None()) // No additional message for the transaction
-            .NotarizeWithPrivateKey(senderPrivateKey); // Notarize the transaction with the sender's private key
-
-        // Prepare the data to send to the Radix API
-        var data = new
-        {
-            network = _network,
-            notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()), // Compile the transaction
-            force_recalculate = true // Flag to force recalculation
-        };
-
-        // Submit the transaction to the Radix network
-        TransactionSubmitResponse? response = await RadixHttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
-            _httpClient,
-            $"{_options.HostUri}/core/lts/transaction/submit",
-            data
-        );
-
-        _logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+            if (amount >= getAccountBalanceRes.Value)
+                return Result<TransactionResponse>.Failure(
+                    ResultPatternError.BadRequest("Amount is too small in tech account to be included ."), new(
+                        "",
+                        null,
+                        false,
+                        "Invalid amount",
+                        BridgeTransactionStatus.InsufficientFunds));
 
 
-        // Return the transaction response, including intent hash and status
-        return Result<TransactionResponse>.Success(new(
-            transaction.IntentHash().AsStr(),
-            response?.Duplicate.ToString(),
-            response != null, // If response is null, the transaction failed
-            response == null ? "Transaction failed" : null,
-            response != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
-        ));
+            decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.ToZero);
+
+            using TransactionManifest manifest = new ManifestBuilder()
+                .AccountLockFeeAndWithdraw(sender, new("50"), _xrdAddress, new($"{roundedAmount}"))
+                .TakeFromWorktop(_xrdAddress, new($"{roundedAmount}"), new("xrdBucket"))
+                .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
+                .Build(_options.NetworkId);
+
+            manifest.StaticallyValidate(); // Validate the manifest before execution
+
+            // Get the current epoch for the transaction header
+            ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
+
+            using NotarizedTransaction transaction = new TransactionBuilder()
+                .Header(new TransactionHeader(
+                    networkId: _options.NetworkId,
+                    startEpochInclusive: currentEpoch,
+                    endEpochExclusive: currentEpoch + 50,
+                    nonce: RadixBridgeHelper.RandomNonce(),
+                    notaryPublicKey: senderPrivateKey.PublicKey(),
+                    notaryIsSignatory: true,
+                    tipPercentage: 0
+                ))
+                .Manifest(manifest) // Attach the manifest
+                .Message(new Message.None()) // No additional message for the transaction
+                .NotarizeWithPrivateKey(senderPrivateKey); // Notarize the transaction with the sender's private key
+
+            // Prepare the data to send to the Radix API
+            var data = new
+            {
+                network = _network,
+                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()), // Compile the transaction
+                force_recalculate = true // Flag to force recalculation
+            };
+
+            // Submit the transaction to the Radix network
+            TransactionSubmitResponse? response =
+                await RadixHttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+                    _httpClient,
+                    $"{_options.HostUri}/core/lts/transaction/submit",
+                    data
+                );
+
+
+            // Return the transaction response, including intent hash and status
+            return Result<TransactionResponse>.Success(new(
+                transaction.IntentHash().AsStr(),
+                response?.Duplicate.ToString(),
+                response != null, // If response is null, the transaction failed
+                response == null ? "Transaction failed" : null,
+                response != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
+            ));
         }
         catch (Exception e)
         {
             _logger.LogError(e.Message);
             return Result<TransactionResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
         }
-      
+        finally
+        {
+            _logger.LogInformation($"Finishing method to ExecuteTransactionAsync in time: {DateTimeOffset.UtcNow};");
+        }
     }
 
     /// <summary>
