@@ -1,4 +1,5 @@
 using NetworkType = Domain.Enums.NetworkType;
+using Role = Domain.Entities.Role;
 
 namespace Infrastructure.DataAccess.Seed;
 

@@ -41,8 +41,7 @@ public sealed class SolanaBridge(
                 return Result<decimal>.Success(result.Result.Value.Lamports / Lamports);
 
 
-            return Result<decimal>.Failure(
-                ResultPatternError.NotFound("Solana account not found or problem with network"));
+            return Result<decimal>.Success();
         }
         catch (Exception e)
         {
@@ -145,7 +144,12 @@ public sealed class SolanaBridge(
         string senderPrivateKey)
     {
         logger.LogInformation($"Starting method to WithdrawAsync in time: {DateTimeOffset.UtcNow};");
+        
+        if (senderPrivateKey == options.PublicKey)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
 
+        
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(
             Convert.FromBase64String(options.PrivateKey),
@@ -170,6 +174,10 @@ public sealed class SolanaBridge(
     public async Task<Result<TransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
     {
         logger.LogInformation($"Starting method to DepositAsync in time: {DateTimeOffset.UtcNow};");
+
+        if (receiverAccountAddress == options.PublicKey)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
 
         ulong lamports = ConvertSolToLamports(amount);
         Account technicalAccount = new(

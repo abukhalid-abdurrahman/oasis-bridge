@@ -10,15 +10,11 @@ public static class RegisterMiddlewares
             await seeder.InitialAsync();
         }
 
-        app.UseMiddleware<RequestTimingMiddleware>();
-        app.UseMiddleware<LoggingMiddleware>();
-
         app.UseHttpLogging();
         app.UseHttpsRedirection();
         app.UseExceptionHandler("/error");
         app.UseResponseCompression();
         //app.UseRateLimiter();
-        app.UseMiddleware<RequestCancellationMiddleware>();
 
         app.UseCors("AllowAll");
 

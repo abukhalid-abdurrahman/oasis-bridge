@@ -73,7 +73,7 @@ public sealed class RadixBridge : IRadixBridge
         // Return the balance if the result is valid, otherwise return 0
         return result != null
             ? Result<decimal>.Success(decimal.Parse(result.FungibleResourceBalance.Amount))
-            : Result<decimal>.Failure(ResultPatternError.NotFound("Radix account not found or problem with network"));
+            : Result<decimal>.Success();
     }
 
     /// <summary>
@@ -171,7 +171,13 @@ public sealed class RadixBridge : IRadixBridge
     /// <returns>A task representing the transaction response.</returns>
     public async Task<Result<TransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress,
         string senderPrivateKey)
-        => await ExecuteTransactionAsync(amount, senderAccountAddress, senderPrivateKey, true);
+    {
+        if (senderAccountAddress == _options.AccountAddress)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
+
+        return await ExecuteTransactionAsync(amount, senderAccountAddress, senderPrivateKey, true);
+    }
 
 
     /// <summary>
@@ -181,7 +187,13 @@ public sealed class RadixBridge : IRadixBridge
     /// <param name="receiverAccountAddress">The address of the receiver account.</param>
     /// <returns>A task representing the transaction response.</returns>
     public async Task<Result<TransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        => await ExecuteTransactionAsync(amount, receiverAccountAddress, _options.PrivateKey, false);
+    {
+        if (receiverAccountAddress == _options.AccountAddress)
+            return Result<TransactionResponse>.Failure(
+                ResultPatternError.BadRequest("Transaction from tech account to the same account is not allowed."));
+
+        return await ExecuteTransactionAsync(amount, receiverAccountAddress, _options.PrivateKey, false);
+    }
 
     /// <summary>
     /// Executes a transaction (withdrawal or deposit) by building and submitting the transaction manifest.
@@ -318,15 +330,20 @@ public sealed class RadixBridge : IRadixBridge
 
         _logger.LogInformation($"Finishing method to GetTransactionStatusAsync in time: {DateTimeOffset.UtcNow};");
 
+        if (response is null)
+            return Result<BridgeTransactionStatus>.Failure(
+                ResultPatternError.InternalServerError("Error in Radix GetTransactionStatus method"));
+
         // Return the transaction status based on the response
-        return response?.IntentStatus switch
+        return response.IntentStatus switch
         {
             RadixTransactionStatus.CommittedSuccess => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
                 .Completed), // Success
             RadixTransactionStatus.CommittedFailure => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
                 .Canceled), // Failure
-            _ => Result<BridgeTransactionStatus>.Failure(ResultPatternError.NotFound(),
-                BridgeTransactionStatus.NotFound) // Transaction not found
+            RadixTransactionStatus.NotSeen=>Result<BridgeTransactionStatus>.Failure(ResultPatternError.NotFound("TransactionStatus radix not found"),
+                BridgeTransactionStatus.NotFound),
+            _ => throw new ArgumentOutOfRangeException()
         };
     }
 
