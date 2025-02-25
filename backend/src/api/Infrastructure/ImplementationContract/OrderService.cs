@@ -346,7 +346,7 @@ public sealed class OrderService(
             else
             {
                 logger.LogInformation("Validating destination address as Radix address.");
-                bool check = IsValidSolanaAddress(request.DestinationAddress);
+                bool check = IsValidRadixAddress(request.DestinationAddress);
                 if (!check)
                 {
                     logger.LogWarning("Invalid Radix address format: {Address}", request.DestinationAddress);
