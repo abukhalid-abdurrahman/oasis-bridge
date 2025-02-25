@@ -224,6 +224,7 @@ public sealed class OrderService(
                         await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
                     if (!transactionStatus.IsSuccess)
                     {
+                        
                         logger.LogError("Failed to retrieve transaction status: {Error}",
                             transactionStatus.Error.Message);
                         return Result<CreateOrderResponse>.Failure(transactionStatus.Error);

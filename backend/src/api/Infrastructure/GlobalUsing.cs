@@ -47,6 +47,8 @@ global using Microsoft.EntityFrameworkCore.Metadata;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
+global using Application.DTOs.VirtualAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 

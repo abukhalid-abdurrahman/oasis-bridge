@@ -2,12 +2,14 @@ namespace Infrastructure.ImplementationContract;
 
 public sealed class UserRoleService(
     DataContext dbContext,
-    IHttpContextAccessor accessor) : IUserRoleService
+    IHttpContextAccessor accessor,
+    ILogger<UserRoleService> logger) : IUserRoleService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetUserRolesResponse>>>> GetUserRolesAsync(UserRoleFilter filter,
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        logger.LogInformation("Fetching user roles with filter: {@Filter}", filter);
 
         IQueryable<GetUserRolesResponse> userRolesQuery = dbContext.UserRoles
             .Include(x => x.User)
@@ -23,6 +25,7 @@ public sealed class UserRoleService(
             .Select(x => x.ToRead());
 
         int totalCount = await userRolesQuery.CountAsync(token);
+        logger.LogInformation("Total user roles found: {TotalCount}", totalCount);
 
         PagedResponse<IEnumerable<GetUserRolesResponse>> result =
             PagedResponse<IEnumerable<GetUserRolesResponse>>.Create(
@@ -38,6 +41,7 @@ public sealed class UserRoleService(
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        logger.LogInformation("Fetching user role details for UserId: {UserId}", id);
 
         GetUserRoleDetailResponse? userRole = await dbContext.UserRoles
             .Include(x => x.User)
@@ -46,99 +50,134 @@ public sealed class UserRoleService(
             .Select(x => x.ToReadDetail())
             .FirstOrDefaultAsync(token);
 
-        return userRole is not null
-            ? Result<GetUserRoleDetailResponse>.Success(userRole)
-            : Result<GetUserRoleDetailResponse>.Failure(ResultPatternError.NotFound("Role not found"));
+        if (userRole is not null)
+        {
+            logger.LogInformation("User role details found for UserId: {UserId}", id);
+            return Result<GetUserRoleDetailResponse>.Success(userRole);
+        }
+
+        logger.LogWarning("User role not found for UserId: {UserId}", id);
+        return Result<GetUserRoleDetailResponse>.Failure(ResultPatternError.NotFound("Role not found"));
     }
 
     public async Task<Result<CreateUserRoleResponse>> CreateUserRoleAsync(CreateUserRoleRequest request,
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        logger.LogInformation("Creating user role for UserId: {UserId}, RoleId: {RoleId}", request.UserId,
+            request.RoleId);
 
-        bool roleExists = await dbContext.Roles
-            .AnyAsync(x => x.Id == request.RoleId, token);
-        if (!roleExists)
-            return Result<CreateUserRoleResponse>.Failure(
-                ResultPatternError.NotFound("Role not found"));
+        if (!await dbContext.Roles.AnyAsync(x => x.Id == request.RoleId, token))
+        {
+            logger.LogWarning("Role not found: {RoleId}", request.RoleId);
+            return Result<CreateUserRoleResponse>.Failure(ResultPatternError.NotFound("Role not found"));
+        }
 
+        if (!await dbContext.Users.AnyAsync(x => x.Id == request.UserId, token))
+        {
+            logger.LogWarning("User not found: {UserId}", request.UserId);
+            return Result<CreateUserRoleResponse>.Failure(ResultPatternError.NotFound("User not found"));
+        }
 
-        bool userExists = await dbContext.Users
-            .AnyAsync(x => x.Id == request.UserId, token);
-        if (!userExists)
-            return Result<CreateUserRoleResponse>.Failure(
-                ResultPatternError.NotFound("User not found"));
-
-        bool conflict = await dbContext.UserRoles.AnyAsync(x
-            => x.UserId == request.UserId && x.RoleId == request.RoleId, token);
-        if (conflict)
-            return Result<CreateUserRoleResponse>.Failure(
-                ResultPatternError.Conflict("Already exist"));
+        if (await dbContext.UserRoles.AnyAsync(x => x.UserId == request.UserId && x.RoleId == request.RoleId, token))
+        {
+            logger.LogWarning("UserRole already exists for UserId: {UserId}, RoleId: {RoleId}", request.UserId,
+                request.RoleId);
+            return Result<CreateUserRoleResponse>.Failure(ResultPatternError.Conflict("Already exist"));
+        }
 
         UserRole newUserRole = request.ToEntity(accessor);
         await dbContext.UserRoles.AddAsync(newUserRole, token);
         int res = await dbContext.SaveChangesAsync(token);
 
-        return res != 0
-            ? Result<CreateUserRoleResponse>.Success(new CreateUserRoleResponse(newUserRole.Id))
-            : Result<CreateUserRoleResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
+        if (res != 0)
+        {
+            logger.LogInformation("UserRole created successfully with Id: {UserRoleId}", newUserRole.Id);
+            return Result<CreateUserRoleResponse>.Success(new CreateUserRoleResponse(newUserRole.Id));
+        }
+
+        logger.LogError("Failed to save UserRole for UserId: {UserId}, RoleId: {RoleId}", request.UserId,
+            request.RoleId);
+        return Result<CreateUserRoleResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
     }
 
     public async Task<Result<UpdateUserRoleResponse>> UpdateUserRoleAsync(Guid id, UpdateUserRoleRequest request,
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        logger.LogInformation("Updating UserRole with Id: {UserRoleId}", id);
 
-        bool roleExists = await dbContext.Roles
-            .AnyAsync(x => x.Id == request.RoleId, token);
+        bool roleExists = await dbContext.Roles.AnyAsync(x => x.Id == request.RoleId, token);
         if (!roleExists)
-            return Result<UpdateUserRoleResponse>.Failure(
-                ResultPatternError.NotFound("Role not found"));
+        {
+            logger.LogWarning("Role not found: {RoleId}", request.RoleId);
+            return Result<UpdateUserRoleResponse>.Failure(ResultPatternError.NotFound("Role not found"));
+        }
 
-
-        bool userExists = await dbContext.Users
-            .AnyAsync(x => x.Id == request.UserId, token);
+        bool userExists = await dbContext.Users.AnyAsync(x => x.Id == request.UserId, token);
         if (!userExists)
-            return Result<UpdateUserRoleResponse>.Failure(
-                ResultPatternError.NotFound("User not found"));
+        {
+            logger.LogWarning("User not found: {UserId}", request.UserId);
+            return Result<UpdateUserRoleResponse>.Failure(ResultPatternError.NotFound("User not found"));
+        }
 
-        UserRole? userRole = await dbContext.UserRoles.FirstOrDefaultAsync(x
-            => x.Id == id, token);
+        UserRole? userRole = await dbContext.UserRoles.FirstOrDefaultAsync(x => x.Id == id, token);
         if (userRole is null)
-            return Result<UpdateUserRoleResponse>.Failure(
-                ResultPatternError.NotFound("UserRole not found"));
+        {
+            logger.LogWarning("UserRole not found for Id: {UserRoleId}", id);
+            return Result<UpdateUserRoleResponse>.Failure(ResultPatternError.NotFound("UserRole not found"));
+        }
 
         if (userRole.UserId == request.UserId && userRole.RoleId == request.RoleId)
+        {
+            logger.LogInformation("UserRole is already up to date for Id: {UserRoleId}", id);
             return Result<UpdateUserRoleResponse>.Success(new(id));
+        }
 
-        bool roleAlreadyAssigned = await dbContext.UserRoles
-            .AnyAsync(x => x.UserId == request.UserId && x.RoleId == request.RoleId, token);
+        bool roleAlreadyAssigned =
+            await dbContext.UserRoles.AnyAsync(x => x.UserId == request.UserId && x.RoleId == request.RoleId, token);
         if (roleAlreadyAssigned)
-            return Result<UpdateUserRoleResponse>.Failure(
-                ResultPatternError.Conflict("User already has this role."));
+        {
+            logger.LogWarning("User already has this role: UserId {UserId}, RoleId {RoleId}", request.UserId,
+                request.RoleId);
+            return Result<UpdateUserRoleResponse>.Failure(ResultPatternError.Conflict("User already has this role."));
+        }
 
-        UserRole updateUserRole = userRole.ToEntity(accessor, request);
-
+        userRole.ToEntity(accessor, request);
         int res = await dbContext.SaveChangesAsync(token);
 
-        return res != 0
-            ? Result<UpdateUserRoleResponse>.Success(new UpdateUserRoleResponse(updateUserRole.Id))
-            : Result<UpdateUserRoleResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
+        if (res != 0)
+        {
+            logger.LogInformation("UserRole updated successfully for Id: {UserRoleId}", id);
+            return Result<UpdateUserRoleResponse>.Success(new UpdateUserRoleResponse(userRole.Id));
+        }
+
+        logger.LogError("Failed to update UserRole with Id: {UserRoleId}", id);
+        return Result<UpdateUserRoleResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
     }
 
     public async Task<BaseResult> DeleteUserRoleAsync(Guid id, CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        logger.LogInformation("Attempting to delete UserRole with Id: {UserRoleId}", id);
 
         UserRole? userRole = await dbContext.UserRoles.FirstOrDefaultAsync(x => x.Id == id, token);
-
-        if (userRole is null) return BaseResult.Failure(ResultPatternError.NotFound("UserRole not found"));
+        if (userRole is null)
+        {
+            logger.LogWarning("UserRole not found for Id: {UserRoleId}", id);
+            return BaseResult.Failure(ResultPatternError.NotFound("UserRole not found"));
+        }
 
         userRole.ToEntity(accessor);
         int res = await dbContext.SaveChangesAsync(token);
 
-        return res != 0
-            ? BaseResult.Success()
-            : BaseResult.Failure(ResultPatternError.InternalServerError("Couldn't delete UserRole'"));
+        if (res != 0)
+        {
+            logger.LogInformation("UserRole deleted successfully with Id: {UserRoleId}", id);
+            return BaseResult.Success();
+        }
+
+        logger.LogError("Failed to delete UserRole with Id: {UserRoleId}", id);
+        return BaseResult.Failure(ResultPatternError.InternalServerError("Couldn't delete UserRole"));
     }
 }

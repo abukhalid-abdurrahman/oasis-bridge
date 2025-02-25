@@ -83,7 +83,8 @@ public sealed class SolanaBridge(
             string privateKey = Convert.ToBase64String(wallet.Account.PrivateKey);
 
             logger.LogInformation("Account created successfully. PublicKey: {PublicKey}", publicKey);
-            return Task.FromResult(Result<(string PublicKey, string PrivateKey, string SeedPhrase)>.Success((publicKey, privateKey,
+            return Task.FromResult(Result<(string PublicKey, string PrivateKey, string SeedPhrase)>.Success((publicKey,
+                privateKey,
                 seedPhrase)));
         }
         catch (Exception ex)
@@ -199,6 +200,7 @@ public sealed class SolanaBridge(
         return await ExecuteTransactionAsync(technicalAccount, receiverAccount, lamports);
     }
 
+
     /// <summary>
     /// Executes a transaction between two accounts.
     /// </summary>
@@ -305,51 +307,42 @@ public sealed class SolanaBridge(
     {
         try
         {
-            logger.LogInformation("Starting GetTransactionStatusAsync for transaction {TxHash} at {Time}",
-                transactionHash, DateTimeOffset.UtcNow);
             token.ThrowIfCancellationRequested();
-
-            logger.LogInformation("Sending RPC request to get transaction status for {TxHash}.", transactionHash);
+            logger.LogInformation("Fetching transaction status for {TxHash}", transactionHash);
+            
+            Commitment commitment = Commitment.Confirmed;
             RequestResult<TransactionMetaSlotInfo> transactionStatusResult =
-                await rpcClient.GetTransactionAsync(transactionHash, commitment: Commitment.Confirmed);
-            if (!transactionStatusResult.WasSuccessful)
+                await rpcClient.GetTransactionAsync(transactionHash, commitment);
+
+            if (transactionStatusResult == null)
             {
-                string errMsg =
-                    $"Failed to retrieve transaction status: {transactionStatusResult.Reason}, at {DateTimeOffset.UtcNow}";
-                logger.LogError(errMsg);
-                return transactionStatusResult.HttpStatusCode switch
-                {
-                    HttpStatusCode.InternalServerError => Result<BridgeTransactionStatus>.Failure(
-                        ResultPatternError.InternalServerError(errMsg)),
-                    HttpStatusCode.BadRequest => Result<BridgeTransactionStatus>.Failure(
-                        ResultPatternError.BadRequest(errMsg)),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                logger.LogError("Transaction status response is null for {TxHash}", transactionHash);
+                return Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.InternalServerError("Transaction status retrieval failed."));
             }
 
-            TransactionMetaSlotInfo transactionInfo = transactionStatusResult.Result;
-            logger.LogInformation("Transaction status retrieved. Interpreting status...");
-
-            BridgeTransactionStatus status = transactionInfo.Meta?.Error?.Type switch
+            if (!transactionStatusResult.WasSuccessful || transactionStatusResult.Result == null)
             {
-                TransactionErrorType.AccountNotFound => BridgeTransactionStatus.NotFound,
-                TransactionErrorType.InsufficientFundsForFee => BridgeTransactionStatus.InsufficientFundsForFee,
-                _ => BridgeTransactionStatus.Completed
-            };
+                logger.LogError(
+                    "Failed to retrieve transaction status for {TxHash}. Response was unsuccessful. Raw response: {RawResponse}",
+                    transactionHash, transactionStatusResult.RawRpcResponse ?? "null");
+                if(transactionStatusResult.HttpStatusCode==HttpStatusCode.BadRequest)
+                return Result<BridgeTransactionStatus>.Failure(
+                    ResultPatternError.InternalServerError("Transaction status retrieval failed."));
+            }
 
-            logger.LogInformation("Transaction status interpreted as: {Status}", status);
+            logger.LogInformation("Transaction status response: {@Response}", transactionStatusResult);
+
+            BridgeTransactionStatus status = transactionStatusResult.Result.Meta?.Error == null
+                ? BridgeTransactionStatus.Completed
+                : BridgeTransactionStatus.Canceled;
             return Result<BridgeTransactionStatus>.Success(status);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving transaction status at {Time}", DateTimeOffset.UtcNow);
+            logger.LogError(ex, "Exception occurred while retrieving transaction status for {TxHash}", transactionHash);
             return Result<BridgeTransactionStatus>.Failure(
-                ResultPatternError.InternalServerError(
-                    $"Failed to retrieve transaction status. ErrorMessage: \n{ex.Message}"));
-        }
-        finally
-        {
-            logger.LogInformation("Finishing GetTransactionStatusAsync at {Time}", DateTimeOffset.UtcNow);
+                ResultPatternError.InternalServerError("Unexpected error occurred."));
         }
     }
 }
