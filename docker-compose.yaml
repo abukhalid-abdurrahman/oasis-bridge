@@ -29,10 +29,16 @@ services:
       - internal_network
 
   oasisbridge:
-    image: nazarovqurbonali/oasis-bridge:v14
+    image: nazarovqurbonali/oasis-bridge:v17
     container_name: oasisbridge
-    restart: always
+    restart: on-failure
     platform: linux/arm64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:80/api/v1/ping"]
+      interval: 40s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
     ports:
       - "3000:80"
     environment:
