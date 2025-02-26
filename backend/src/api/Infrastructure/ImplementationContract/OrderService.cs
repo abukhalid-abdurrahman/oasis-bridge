@@ -332,7 +332,7 @@ public sealed class OrderService(
             }
 
             // Validate destination address format based on network
-            if (request.FromNetwork == Xrd)
+            if (request.FromToken == Xrd)
             {
                 logger.LogInformation("Validating destination address as Solana address.");
                 bool check = IsValidSolanaAddress(request.DestinationAddress);
