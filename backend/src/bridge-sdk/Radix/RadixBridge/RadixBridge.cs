@@ -343,7 +343,7 @@ public sealed class RadixBridge : IRadixBridge
             RadixTransactionStatus.CommittedFailure => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
                 .Canceled),
             RadixTransactionStatus.NotSeen => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.NotFound),
-            RadixTransactionStatus.InMemPool=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Completed),
+            RadixTransactionStatus.InMemPool=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Pending),
             RadixTransactionStatus.PermanentRejection=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Canceled),
             RadixTransactionStatus.FateUncertainButLikelyRejection=> Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Canceled),
             RadixTransactionStatus.FateUncertain=>Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus.Pending),
