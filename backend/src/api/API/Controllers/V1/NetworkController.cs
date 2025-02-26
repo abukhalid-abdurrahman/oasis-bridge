@@ -5,11 +5,13 @@ namespace API.Controllers.V1;
 public sealed class NetworkController(INetworkService networkService) : V1BaseController
 {
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetNetworksAsync([FromQuery] NetworkFilter filter,
         CancellationToken cancellationToken)
         => (await networkService.GetNetworksAsync(filter, cancellationToken)).ToActionResult();
 
     [HttpGet("{networkId:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetNetworkDetailAsync(Guid networkId, CancellationToken cancellationToken)
         => (await networkService.GetNetworkDetailAsync(networkId, cancellationToken)).ToActionResult();
 

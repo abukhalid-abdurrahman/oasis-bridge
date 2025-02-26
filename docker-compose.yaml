@@ -29,7 +29,7 @@ services:
       - internal_network
 
   oasisbridge:
-    image: nazarovqurbonali/oasis-bridge:v17
+    image: nazarovqurbonali/oasis-bridge:v18
     container_name: oasisbridge
     restart: always
     platform: linux/arm64
