@@ -224,7 +224,6 @@ public sealed class OrderService(
                         await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
                     if (!transactionStatus.IsSuccess)
                     {
-                        
                         logger.LogError("Failed to retrieve transaction status: {Error}",
                             transactionStatus.Error.Message);
                         return Result<CreateOrderResponse>.Failure(transactionStatus.Error);
@@ -466,7 +465,7 @@ public sealed class OrderService(
         }
         // Otherwise, if balance is sufficient, process the transaction
         else if (balance.Value > order.Amount && order.OrderStatus != OrderStatus.Canceled &&
-                 order.OrderStatus != OrderStatus.Completed && order.OrderStatus!=OrderStatus.Expired)
+                 order.OrderStatus != OrderStatus.Completed && order.OrderStatus != OrderStatus.Expired)
         {
             logger.LogInformation(
                 "Sufficient funds detected for order {OrderId}. Initiating transaction processing...", order.Id);
@@ -554,17 +553,17 @@ public sealed class OrderService(
             int res = await dbContext.SaveChangesAsync(token);
             logger.LogInformation("Database save result for order {OrderId}: {Result}", order.Id, res);
 
-           Result<decimal> nowBalance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
-           if (nowBalance.IsSuccess) return Result<CheckBalanceResponse>.Failure(nowBalance.Error);
+            Result<decimal> nowBalance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
+            if (nowBalance.IsSuccess) return Result<CheckBalanceResponse>.Failure(nowBalance.Error);
             return res != 0
                 ? Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
                     order.Id,
                     order.FromNetwork,
                     order.FromToken,
                     nowBalance.Value,
-                    order.OrderStatus!=OrderStatus.Completed?order.Amount:0,
+                    order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
                     order.OrderStatus.ToString(),
-                    order.OrderStatus==OrderStatus.Completed?"Order is already completed.":"",
+                    order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
                     order.TransactionHash))
                 : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
@@ -603,7 +602,7 @@ public sealed class OrderService(
                 balance.Value,
                 order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
                 order.OrderStatus.ToString(),
-                order.OrderStatus == OrderStatus.Completed ?"Order is already completed.":"",
+                order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
                 order.TransactionHash));
         }
 
@@ -616,7 +615,7 @@ public sealed class OrderService(
             balance.Value,
             order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
             order.OrderStatus.ToString(),
-            order.OrderStatus == OrderStatus.Completed ?"Order is already completed.":"",
+            order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
             order.TransactionHash));
     }
 
