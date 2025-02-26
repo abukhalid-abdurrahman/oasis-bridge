@@ -442,15 +442,15 @@ public sealed class OrderService(
                     order.FromToken,
                     balance.Value,
                     order.Amount,
-                    OrderStatus.Canceled.ToString(),
-                    "Order is already completed.",
+                    OrderStatus.Expired.ToString(),
+                    "Order is canceled.",
                     order.TransactionHash))
                 : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
 
         // If balance is insufficient to cover the order amount
         if (balance.Value <= order.Amount && order.OrderStatus != OrderStatus.Completed &&
-            order.OrderStatus != OrderStatus.Canceled)
+            order.OrderStatus != OrderStatus.Canceled && order.OrderStatus != OrderStatus.Expired)
         {
             logger.LogInformation("Insufficient funds for order {OrderId}. Balance: {Balance}, Required: {Amount}",
                 order.Id, balance.Value, order.Amount);
@@ -466,7 +466,7 @@ public sealed class OrderService(
         }
         // Otherwise, if balance is sufficient, process the transaction
         else if (balance.Value > order.Amount && order.OrderStatus != OrderStatus.Canceled &&
-                 order.OrderStatus != OrderStatus.Completed)
+                 order.OrderStatus != OrderStatus.Completed && order.OrderStatus!=OrderStatus.Expired)
         {
             logger.LogInformation(
                 "Sufficient funds detected for order {OrderId}. Initiating transaction processing...", order.Id);
@@ -562,9 +562,9 @@ public sealed class OrderService(
                     order.FromNetwork,
                     order.FromToken,
                     nowBalance.Value,
-                    0,
-                    OrderStatus.Completed.ToString(),
-                    "Success",
+                    order.OrderStatus!=OrderStatus.Completed?order.Amount:0,
+                    order.OrderStatus.ToString(),
+                    order.OrderStatus==OrderStatus.Completed?"Order is already completed.":"",
                     order.TransactionHash))
                 : Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError());
         }
@@ -603,7 +603,7 @@ public sealed class OrderService(
                 balance.Value,
                 order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
                 order.OrderStatus.ToString(),
-                "",
+                order.OrderStatus == OrderStatus.Completed ?"Order is already completed.":"",
                 order.TransactionHash));
         }
 
@@ -616,7 +616,7 @@ public sealed class OrderService(
             balance.Value,
             order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
             order.OrderStatus.ToString(),
-            "",
+            order.OrderStatus == OrderStatus.Completed ?"Order is already completed.":"",
             order.TransactionHash));
     }
 
