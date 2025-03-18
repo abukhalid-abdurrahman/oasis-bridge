@@ -1,0 +1,25 @@
+import Image from "next/image";
+
+interface CryptoItemProps {
+  image: string;
+  crypto: string;
+  className?: string;
+  onClick?: () => void;
+}
+
+export default function CryptoItem({
+  image,
+  crypto,
+  className,
+  onClick
+}: CryptoItemProps) {
+  return (
+    <div
+      className={`flex gap-2 bg-gray px-3 py-3 rounded-xl items-center sm:px-2 sm:py-2 ${className}`}
+      onClick={onClick}
+    >
+      <Image src={image} alt={crypto} width={27} height={27} className="sm:w-6" />
+      <p className="p">{crypto}</p>
+    </div>
+  );
+}

@@ -1,0 +1,16 @@
+global using Solnet.Rpc;
+global using System.Net;
+global using Common.DTOs;
+global using Common.Enums;
+global using Solnet.Wallet;
+global using Common.Options;
+global using Solnet.Programs;
+global using Common.Contracts;
+global using Solnet.Rpc.Types;
+global using Solnet.Rpc.Models;
+global using Common.Validations;
+global using Solnet.Rpc.Messages;
+global using Solnet.Wallet.Bip39;
+global using Solnet.Rpc.Core.Http;
+global using Microsoft.Extensions.Logging;
+global using BuildingBlocks.Extensions.ResultPattern;
