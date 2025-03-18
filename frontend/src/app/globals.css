@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #020010;
+  --gray: #ededed;
+  --dark-gray: #d9d9d9;
+  --text-gray: #787878;
+}
+
+/* body {
+  background-color: url('./src/public/bg.jpg');
+} */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input:disabled {
+  background-color: transparent;
+}
+
+.btn {
+  /* padding: 7px 14px; */
+  border-radius: 100px;
+  border: 0;
+  background: rgb(168, 168, 180);
+  background: linear-gradient(
+    180deg,
+    rgba(168, 168, 180, 1) 0%,
+    rgba(121, 121, 129, 1) 100%
+  );
+  color: #fff;
+  transition: .3s;
+}
+
+.btn:hover {
+  box-shadow: 0 3px 5px rgb(0, 0, 0, 0.2);
+}
+
+.btn-lg {
+  padding: 14px 20px;
+}
+
+.btn-sm {
+  padding: 10px 20px;
+}
+
+.input-swap {
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+  border-radius: 5px;
+  font-size: 24px;
+}
+
+.input {
+  outline: none;
+  padding: 14px 20px;
+  font-family: inherit;
+  border-radius: 12px;
+  background-color: var(--gray);
+  font-size: 16px;
+}
+
+.h1 {
+  font-size: 24px;
+}
+
+.h2 {
+  font-size: 20px;
+}
+
+.p {
+  font-size: 16px;
+}
+
+.p-sm {
+  font-size: 14px;
+  /* line-height: 20px; */
+}
+
+@media (max-width: 640px) {
+  .h1 {
+    font-size: 22px;
+  }
+
+  .h2 {
+    font-size: 18px;
+  }
+
+  .p {
+    font-size: 15px;
+    line-height: 18px;
+  }
+
+  .p-sm {
+    font-size: 13px;
+  }
+
+  .input {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .input-swap {
+    padding: 0;
+    font-size: 22px;
+  }
+
+  .btn-lg {
+    padding: 11px 18px;
+  }
+  
+  .btn-sm {
+    padding: 5px 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .h1 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .h1 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 400px) {
+
+  .input-swap {
+    padding: 0;
+    font-size: 20px;
+  }
+
+  .btn-lg {
+    padding: 9px 18px;
+  }
+}
+
+@media (max-height: 690px) {
+  .main {
+    height: auto !important;
+  }
+}

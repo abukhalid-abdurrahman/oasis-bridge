@@ -1,0 +1,38 @@
+import Cookies from "js-cookie";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+export const shortAddress = (address: string) => {
+  if (address) {
+    return `${address.slice(0, 5)}...${address.slice(-4)}`;
+  }
+};
+
+export const parseJwt = (token: string) => {
+  if (!token) {
+    return;
+  }
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace("-", "+").replace("_", "/");
+  return JSON.parse(window.atob(base64));
+};
+
+export const removeUser = (
+  setUser: (user: null) => void,
+  router: AppRouterInstance
+) => {
+  setUser(null);
+  Cookies.remove("oasisToken");
+  router.push("/?signin=true");
+};
+
+export const redirectOnUnauthorize = (
+  err: any,
+  setUser: (user: null) => void,
+  router: AppRouterInstance
+) => {
+  if (err.response?.status === 401) {
+    setUser(null);
+    Cookies.remove("oasisToken");
+    router.push("/?signin=true");
+  }
+};
