@@ -44,7 +44,7 @@ public sealed class ExchangeRateUpdaterService(DataContext context, HttpClient c
 
     private static decimal GetPrice(JArray tickers, string symbol)
     {
-        foreach (var ticker in tickers)
+        foreach (JToken ticker in tickers)
         {
             if (ticker["symbol"]?.ToString() == symbol &&
                 decimal.TryParse(ticker["last"]?.ToString(), out decimal price))
@@ -70,7 +70,7 @@ public sealed class ExchangeRateUpdaterService(DataContext context, HttpClient c
             return;
         }
 
-        var exchangeRate = new Domain.Entities.ExchangeRate
+        Domain.Entities.ExchangeRate exchangeRate = new Domain.Entities.ExchangeRate
         {
             FromTokenId = fromToken.Id,
             ToTokenId = toToken.Id,

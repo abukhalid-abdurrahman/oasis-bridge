@@ -34,7 +34,7 @@ public sealed class NetworkService(
 
         logger.LogInformation("Applying pagination: PageNumber = {PageNumber}, PageSize = {PageSize}",
             filter.PageNumber, filter.PageSize);
-        var pagedResult = PagedResponse<IEnumerable<GetNetworkResponse>>.Create(
+        PagedResponse<IEnumerable<GetNetworkResponse>> pagedResult = PagedResponse<IEnumerable<GetNetworkResponse>>.Create(
             filter.PageSize,
             filter.PageNumber,
             totalCount,

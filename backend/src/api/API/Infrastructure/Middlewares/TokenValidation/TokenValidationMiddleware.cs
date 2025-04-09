@@ -13,7 +13,7 @@ public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactor
 
         if (context.User.Identity is { IsAuthenticated: true })
         {
-            await using var scope = serviceScopeFactory.CreateAsyncScope();
+            await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
             DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
             string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
@@ -57,7 +57,7 @@ public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactor
         }
         catch (Exception ex)
         {
-            var logger = context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
+            ILogger<TokenValidationMiddleware> logger = context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
             logger.LogError(ex, "Failed to write error response");
         }
     }

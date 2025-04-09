@@ -7,7 +7,7 @@ public static class HttpAccessor
     public static Guid? GetId(this IHttpContextAccessor accessor)
         => accessor.HttpContext?.User.Claims
             .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?
-            .Value is { } userIdString && Guid.TryParse(userIdString, out var userId)
+            .Value is { } userIdString && Guid.TryParse(userIdString, out global::System.Guid userId)
             ? userId
             : null;
 

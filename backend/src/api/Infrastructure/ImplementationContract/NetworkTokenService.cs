@@ -28,7 +28,7 @@ public sealed class NetworkTokenService(
 
         logger.LogInformation("Applying pagination: PageNumber = {PageNumber}, PageSize = {PageSize}",
             filter.PageNumber, filter.PageSize);
-        var pagedResult = PagedResponse<IEnumerable<GetNetworkTokenResponse>>.Create(
+        PagedResponse<IEnumerable<GetNetworkTokenResponse>> pagedResult = PagedResponse<IEnumerable<GetNetworkTokenResponse>>.Create(
             filter.PageSize,
             filter.PageNumber,
             totalCount,
