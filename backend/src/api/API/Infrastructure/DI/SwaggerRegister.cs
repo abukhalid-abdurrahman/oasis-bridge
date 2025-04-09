@@ -9,7 +9,7 @@ public static class SwaggerRegister
             options.CustomSchemaIds(type => type.Name);
             options.ResolveConflictingActions(apiDescriptions =>
             {
-                var first = apiDescriptions.First();
+                Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescription first = apiDescriptions.First();
                 Console.WriteLine($"⚠️ Conflict in route Swagger: {first.RelativePath}");
                 return first;
             });

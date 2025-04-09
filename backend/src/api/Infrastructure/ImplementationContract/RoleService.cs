@@ -25,7 +25,7 @@ public sealed class RoleService(
         int totalCount = await rolesQuery.CountAsync(token);
         logger.LogInformation("Total roles found: {TotalCount}", totalCount);
 
-        var result = PagedResponse<IEnumerable<GetRolesResponse>>.Create(
+        PagedResponse<IEnumerable<GetRolesResponse>> result = PagedResponse<IEnumerable<GetRolesResponse>>.Create(
             filter.PageSize,
             filter.PageNumber,
             totalCount,
