@@ -21,12 +21,8 @@ public sealed class OrderService(
 
         // Step 1: Retrieve user ID from token
         logger.LogInformation("Retrieving user ID from token...");
-        Guid? userId = accessor.GetId();
-        if (userId is null)
-        {
-            logger.LogWarning("User ID is null.");
-            return Result<CreateOrderResponse>.Failure(ResultPatternError.BadRequest("UserId cannot be null."));
-        }
+        Guid userId = accessor.GetId();
+       
 
         // Step 2: Validate the incoming request
         logger.LogInformation("Validating request...");
@@ -104,7 +100,7 @@ public sealed class OrderService(
                 Address = address,
                 CreatedBy = accessor.GetId(),
                 CreatedByIp = accessor.GetRemoteIpAddress(),
-                UserId = (Guid)userId,
+                UserId = userId,
                 NetworkId = await dbContext.Networks.Where(x => x.Name == request.FromNetwork).Select(x => x.Id)
                     .FirstOrDefaultAsync(token),
                 NetworkType = request.FromToken == Xrd
@@ -128,7 +124,7 @@ public sealed class OrderService(
             {
                 Amount = request.Amount,
                 OrderStatus = OrderStatus.InsufficientFunds,
-                UserId = (Guid)userId,
+                UserId = userId,
                 ExchangeRateId = exchangeRate.Id,
                 CreatedByIp = accessor.GetRemoteIpAddress(),
                 CreatedBy = accessor.GetId(),
@@ -170,7 +166,7 @@ public sealed class OrderService(
             logger.LogInformation("Creating new Order object for existing virtual account.");
             Order newOrder = new Order
             {
-                UserId = (Guid)userId,
+                UserId = userId,
                 CreatedBy = accessor.GetId(),
                 CreatedByIp = accessor.GetRemoteIpAddress(),
                 FromToken = request.FromToken,

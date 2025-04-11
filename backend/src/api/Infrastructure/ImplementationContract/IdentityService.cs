@@ -154,13 +154,8 @@ public sealed class IdentityService(
         token.ThrowIfCancellationRequested();
         logger.LogInformation("Starting LogoutAsync at {Time}", DateTimeOffset.UtcNow);
 
-        Guid? userId = accessor.GetId();
-        if (userId is null)
-        {
-            logger.LogWarning("Invalid user ID during logout.");
-            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
-        }
-
+        Guid userId = accessor.GetId();
+        
         logger.LogInformation("Retrieving user for logout with ID: {UserId}", userId);
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
         if (user is null)
@@ -187,12 +182,7 @@ public sealed class IdentityService(
         logger.LogInformation("Starting ChangePasswordAsync at {Time}", DateTimeOffset.UtcNow);
 
         Guid? userId = accessor.GetId();
-        if (userId is null)
-        {
-            logger.LogWarning("Invalid user ID in ChangePasswordAsync.");
-            return BaseResult.Failure(ResultPatternError.BadRequest("Invalid user ID."));
-        }
-
+        
         logger.LogInformation("Retrieving user for password change with ID: {UserId}", userId);
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
         if (user is null)
@@ -576,7 +566,7 @@ public sealed class IdentityService(
         token.ThrowIfCancellationRequested();
         logger.LogInformation("Starting DeleteAccountAsync at {Time}", DateTimeOffset.UtcNow);
 
-        Guid userId = accessor.GetId() ?? HttpAccessor.SystemId;
+        Guid userId = accessor.GetId();
         string remoteIpAddress = accessor.GetRemoteIpAddress();
         logger.LogInformation("Retrieving user with ID {UserId} for deletion.", userId);
 

@@ -60,14 +60,8 @@ public sealed class UserService(
         token.ThrowIfCancellationRequested();
         logger.LogInformation("Fetching virtual accounts for current user");
 
-        Guid? userId = accessor.GetId();
-        if (userId is null)
-        {
-            logger.LogWarning("UserId is missing in the request");
-            return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
-                ResultPatternError.BadRequest("UserId is required."));
-        }
-
+        Guid userId = accessor.GetId();
+        
         bool exists = await dbContext.Users.AnyAsync(x => x.Id == userId, token);
         if (!exists)
         {
