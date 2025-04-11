@@ -58,19 +58,16 @@ public sealed class WalletLinkedAccountService(
                     user.Id, request.WalletAddress);
                 return BaseResult.Success();
             }
-            else
-            {
-                logger.LogError(
-                    " Failed to create linked account. No changes saved. UserId: {UserId}, Wallet: {WalletAddress}",
-                    user.Id, request.WalletAddress);
-                return BaseResult.Failure(ResultPatternError.InternalServerError("Linked account not created!"));
-            }
+
+            logger.LogError(
+                " Failed to create linked account. No changes saved. UserId: {UserId}, Wallet: {WalletAddress}",
+                user.Id, request.WalletAddress);
+            return BaseResult.Failure(ResultPatternError.InternalServerError("Linked account not created!"));
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                " Exception occurred while creating linked account. Wallet: {WalletAddress}, Network: {Network}",
-                request.WalletAddress, request.Network);
+                $" Exception occurred while creating linked account. Wallet: {request.WalletAddress}, Network: {request.Network}\n,{ex.Message}");
             return BaseResult.Failure(
                 ResultPatternError.InternalServerError("Unexpected error occurred while creating the linked account."));
         }
@@ -81,5 +78,6 @@ public sealed class WalletLinkedAccountService(
         => Result<IEnumerable<GetWalletLinkedAccountDetailResponse>>.Success(
             await dbContext.WalletLinkedAccounts
                 .AsNoTracking().Include(x => x.Network)
+                .Where(x => x.UserId == accessor.GetId())
                 .Select(x => x.ToRead()).ToListAsync(token));
 }

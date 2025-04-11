@@ -4,8 +4,8 @@ public static class CustomServiceRegister
 {
     public static WebApplicationBuilder AddCustomServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddIpfs(builder.Configuration);
         builder.Services.AddScoped<Seeder>();
+        //builder.Services.AddIpfs(builder.Configuration);
         builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IOrderService, OrderService>();

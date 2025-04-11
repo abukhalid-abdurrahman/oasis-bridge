@@ -1,6 +1,7 @@
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}/auth")]
+[AllowAnonymous]
 public sealed class IdentityController(IIdentityService identityService) : V1BaseController
 {
     [HttpPost("register")]

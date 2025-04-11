@@ -1,7 +1,6 @@
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}/networks")]
-[Authorize]
 public sealed class NetworkController(INetworkService networkService) : V1BaseController
 {
     [HttpGet]

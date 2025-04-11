@@ -8,7 +8,8 @@ public static class WalletLinkedAccountMapper
         CreatedBy = accessor.GetId(),
         CreatedByIp = accessor.GetRemoteIpAddress(),
         NetworkId = networkId,
-        PublicKey = request.WalletAddress
+        PublicKey = request.WalletAddress,
+        UserId = accessor.GetId()
     };
 
     public static GetWalletLinkedAccountDetailResponse ToRead(this WalletLinkedAccount entity)

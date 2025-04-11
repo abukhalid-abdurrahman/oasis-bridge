@@ -1,6 +1,7 @@
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}")]
+[AllowAnonymous]
 public sealed class ExchangeRateController(IExchangeRateService exchangeRateService) : V1BaseController
 {
     [HttpGet("history")]

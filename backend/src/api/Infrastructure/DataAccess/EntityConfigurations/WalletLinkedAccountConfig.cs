@@ -4,7 +4,6 @@ public sealed class WalletLinkedAccountConfig : IEntityTypeConfiguration<WalletL
 {
     public void Configure(EntityTypeBuilder<WalletLinkedAccount> builder)
     {
-        builder.HasIndex(r => r.PublicKey).IsUnique();
 
     }
 }

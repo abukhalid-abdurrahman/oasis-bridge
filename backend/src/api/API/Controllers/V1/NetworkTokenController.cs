@@ -1,7 +1,6 @@
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}/network-tokens")]
-[Authorize]
 public sealed class NetworkTokenController(INetworkTokenService networkTokenService) : V1BaseController
 {
     [HttpGet]
