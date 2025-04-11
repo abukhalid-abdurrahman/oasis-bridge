@@ -1,5 +1,6 @@
 global using Solnet.Rpc;
 global using System.Text;
+global using FileStorage;
 global using RadixBridge;
 global using SolanaBridge;
 global using Domain.Common;
