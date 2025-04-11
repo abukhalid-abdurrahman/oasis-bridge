@@ -6,5 +6,6 @@ public sealed class RoleConfig : IEntityTypeConfiguration<Role>
 {
     public void Configure(EntityTypeBuilder<Role> builder)
     {
+        builder.HasIndex(r => r.Name).IsUnique();
     }
 }

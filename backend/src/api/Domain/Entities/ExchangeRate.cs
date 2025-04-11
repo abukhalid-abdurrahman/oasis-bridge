@@ -14,5 +14,5 @@ public sealed class ExchangeRate : BaseEntity
 
     public string SourceUrl { get; set; } = default!;
 
-    public ICollection<Order> Orders { get; set; } = [];
+    public ICollection<Order> Orders { get; } = [];
 }

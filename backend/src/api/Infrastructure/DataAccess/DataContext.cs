@@ -19,6 +19,7 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     public DbSet<VirtualAccount> VirtualAccounts { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<ExchangeRate> ExchangeRates { get; set; }
+    public DbSet<WalletLinkedAccount> WalletLinkedAccounts { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -8,5 +8,5 @@ public sealed class NetworkToken : BaseEntity
     public Guid NetworkId { get; set; }
     public Network Network { get; set; } = default!;
 
-    public ICollection<AccountBalance> AccountBalances { get; set; } = [];
+    public ICollection<AccountBalance> AccountBalances { get; } = [];
 }

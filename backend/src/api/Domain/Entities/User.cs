@@ -26,11 +26,12 @@ public sealed class User : BaseEntity
 
     public Guid TokenVersion { get; set; } = Guid.NewGuid();
 
-    public HashSet<UserRole> UserRoles { get; set; } = [];
-    public ICollection<UserClaim> UserClaims { get; set; } = [];
-    public ICollection<UserLogin> UserLogins { get; set; } = [];
-    public ICollection<UserToken> UserTokens { get; set; } = [];
-    public ICollection<UserVerificationCode> UserVerificationCodes { get; set; } = [];
-    public ICollection<VirtualAccount> VirtualAccounts { get; set; } = [];
-    public ICollection<Order> Orders { get; set; } = [];
+    public HashSet<UserRole> UserRoles { get; } = [];
+    public ICollection<UserClaim> UserClaims { get; } = [];
+    public ICollection<UserLogin> UserLogins { get; } = [];
+    public ICollection<UserToken> UserTokens { get; } = [];
+    public ICollection<UserVerificationCode> UserVerificationCodes { get; } = [];
+    public ICollection<VirtualAccount> VirtualAccounts { get; } = [];
+    public ICollection<Order> Orders { get; } = [];
+    public ICollection<WalletLinkedAccount> WalletLinkedAccounts { get; } = [];
 }

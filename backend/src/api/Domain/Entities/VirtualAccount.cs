@@ -14,6 +14,6 @@ public sealed class VirtualAccount : BaseEntity
     public Guid NetworkId { get; set; }
     public Network Network { get; set; } = default!;
     
-    public ICollection<AccountBalance> Balances { get; set; } = [];
+    public ICollection<AccountBalance> Balances { get;} = [];
 
 }
