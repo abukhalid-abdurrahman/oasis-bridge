@@ -56,11 +56,9 @@ public static class RadixHttpClientHelper
                 Logger.LogInformation("Deserialization successful. Returning deserialized response.");
                 return deserializedResponse;
             }
-            else
-            {
-                Logger.LogWarning("HTTP response was not successful. Status code: {StatusCode}", response.StatusCode);
-                return default;
-            }
+
+            Logger.LogWarning("HTTP response was not successful. Status code: {StatusCode}", response.StatusCode);
+            return default;
         }
         catch (Exception e)
         {
