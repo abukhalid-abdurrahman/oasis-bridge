@@ -1,3 +1,5 @@
+using BuildingBlocks.Extensions.Resources;
+
 namespace Infrastructure.ImplementationContract;
 
 public sealed class WalletLinkedAccountService(
@@ -41,7 +43,7 @@ public sealed class WalletLinkedAccountService(
 
             if (alreadyLinked)
             {
-                logger.GeneralInformation($" Wallet already linked. UserId: {user.Id}, Wallet: {request.WalletAddress}");
+                logger.WalletAlreadyLinked(user.Id, request.WalletAddress);
                 return BaseResult.Failure(ResultPatternError.AlreadyExist("Linked Account already exists"));
             }
 
@@ -53,7 +55,7 @@ public sealed class WalletLinkedAccountService(
             if (saved > 0)
             {
                 logger.GeneralInformation($" Linked account created successfully. UserId: {user.Id}, Wallet: {request.WalletAddress}");
-                logger.OperationCompleted(nameof(CreateAsync),DateTimeOffset.UtcNow);
+                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow);
                 return BaseResult.Success();
             }
 
@@ -64,7 +66,7 @@ public sealed class WalletLinkedAccountService(
         {
             logger.UnhandledError($" Exception occurred while creating linked account. Wallet: {request.WalletAddress}, Network: {request.Network}\n,{ex.Message}");
             return BaseResult.Failure(
-                ResultPatternError.InternalServerError("Unexpected error occurred while creating the linked account."));
+                ResultPatternError.InternalServerError(Messages.WalletLinkingFailed));
         }
     }
 
