@@ -26,6 +26,7 @@ global using Application.Extensions.Mappers;
 global using Application.DTOs.Role.Requests;
 global using BuildingBlocks.Extensions.Http;
 global using Microsoft.IdentityModel.Tokens;
+global using BuildingBlocks.Extensions.Log;
 global using BuildingBlocks.Extensions.Smtp;
 global using System.IdentityModel.Tokens.Jwt;
 global using Application.DTOs.Role.Responses;

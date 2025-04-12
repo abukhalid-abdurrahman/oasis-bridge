@@ -9,20 +9,19 @@ public sealed class WalletLinkedAccountService(
         CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
-        logger.LogInformation(" Starting linking wallet: {WalletAddress} for network: {Network}", request.WalletAddress,
-            request.Network);
+        logger.OperationStarted(nameof(CreateAsync), DateTimeOffset.UtcNow);
 
         try
         {
             Guid userId = accessor.GetId();
-            logger.LogDebug(" Extracted UserId: {UserId}", userId);
+            logger.GeneralInformation($" Extracted UserId: {userId}");
 
             User? user = await dbContext.Users
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId, token);
             if (user is null)
             {
-                logger.LogWarning(" User not found. UserId: {UserId}", userId);
+                logger.GeneralWarning($" User not found. UserId: {userId}");
                 return BaseResult.Failure(ResultPatternError.NotFound("User not found!"));
             }
 
@@ -31,7 +30,7 @@ public sealed class WalletLinkedAccountService(
                 .FirstOrDefaultAsync(x => x.Name == request.Network, token);
             if (network is null)
             {
-                logger.LogWarning(" Network not found. Name: {NetworkName}", request.Network);
+                logger.GeneralWarning($"Network not found. Name: {request.Network}");
                 return BaseResult.Failure(ResultPatternError.NotFound("Network not found!"));
             }
 
@@ -42,8 +41,7 @@ public sealed class WalletLinkedAccountService(
 
             if (alreadyLinked)
             {
-                logger.LogInformation(" Wallet already linked. UserId: {UserId}, Wallet: {WalletAddress}", user.Id,
-                    request.WalletAddress);
+                logger.GeneralInformation($" Wallet already linked. UserId: {user.Id}, Wallet: {request.WalletAddress}");
                 return BaseResult.Failure(ResultPatternError.AlreadyExist("Linked Account already exists"));
             }
 
@@ -54,20 +52,17 @@ public sealed class WalletLinkedAccountService(
 
             if (saved > 0)
             {
-                logger.LogInformation(" Linked account created successfully. UserId: {UserId}, Wallet: {WalletAddress}",
-                    user.Id, request.WalletAddress);
+                logger.GeneralInformation($" Linked account created successfully. UserId: {user.Id}, Wallet: {request.WalletAddress}");
+                logger.OperationCompleted(nameof(CreateAsync),DateTimeOffset.UtcNow);
                 return BaseResult.Success();
             }
 
-            logger.LogError(
-                " Failed to create linked account. No changes saved. UserId: {UserId}, Wallet: {WalletAddress}",
-                user.Id, request.WalletAddress);
+            logger.UnhandledError($" Failed to create linked account. No changes saved. UserId: {userId}, Wallet: {request.WalletAddress}");
             return BaseResult.Failure(ResultPatternError.InternalServerError("Linked account not created!"));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex,
-                $" Exception occurred while creating linked account. Wallet: {request.WalletAddress}, Network: {request.Network}\n,{ex.Message}");
+            logger.UnhandledError($" Exception occurred while creating linked account. Wallet: {request.WalletAddress}, Network: {request.Network}\n,{ex.Message}");
             return BaseResult.Failure(
                 ResultPatternError.InternalServerError("Unexpected error occurred while creating the linked account."));
         }
