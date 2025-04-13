@@ -1,23 +1,14 @@
 using System.Runtime.CompilerServices;
-using Ipfs.CoreApi;
-using Ipfs.Http;
-using Microsoft.Extensions.Options;
 
 namespace FileStorage.IntegrationTests;
 
-public sealed class IpfsFileStorageTests
+public sealed class IpfsFileStorageTests(IpfsClientFixture fixture) : IClassFixture<IpfsClientFixture>
 {
-    private static readonly IpfsClient _ipfsClient = new("http://127.0.0.1:5001/");
-    private static readonly IOptions<AddFileOptions> _options = Options.Create(new AddFileOptions()
-    {
-        Pin = false
-    });
-
     [Fact]
     public async Task IpfsFileStorage_CreateAsync_MustUploadFileToIpfsNode_Scenario()
     {
         // Arrange.
-        IpfsFileStorage fileStorage = new(_ipfsClient, _options);
+        IpfsFileStorage fileStorage = new(fixture.IpfsClient, fixture.AddFileOptions);
 
         string fileName = "image.png";
         using FileStream fileStream = File.OpenRead(fileName);
@@ -33,7 +24,7 @@ public sealed class IpfsFileStorageTests
     public async Task IpfsFileStorage_GetAsync_MustUploadAndRetrieveFileByCid_Scenario()
     {
         // Arrange.
-        IpfsFileStorage fileStorage = new(_ipfsClient, _options);
+        IpfsFileStorage fileStorage = new(fixture.IpfsClient, fixture.AddFileOptions);
 
         string fileName = "image.png";
         string downloadedFileName = "downloaded_image.png";
