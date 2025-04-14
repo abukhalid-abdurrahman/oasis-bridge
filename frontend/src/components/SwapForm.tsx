@@ -7,7 +7,7 @@ import Image from "next/image";
 import CryptoModal from "./CryptoModal";
 import StatusModal from "./StatusModal";
 import CryptoAddressModal from "./CryptoAddressModal";
-import Button from "./Button";
+// import Button from "./Button";
 
 import { useSwap } from "@/hooks/swapHooks";
 import { useExchangeRate } from "@/requests/getRequests";
@@ -15,6 +15,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { mutateOrders } from "@/requests/postRequests";
 import LoadingAlt from "./LoadingAlt";
 import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
 
 export default function SwapForm() {
   const user = useUserStore((state) => state.user);
@@ -161,9 +162,11 @@ export default function SwapForm() {
                 </p>
               )}
             </div>
-            <button
+            <Button
+              variant='empty'
+              size='lg'
               type="button"
-              className="text-lg rounded-full bg-darkGray py-2 px-4 flex justify-center gap-[7px] items-center sm:text-base xxs:py-1 hover:shadow-md transition-all"
+              className="text-lg rounded-full bg-darkGray px-4 flex justify-center gap-[7px] items-center sm:text-base xxs:py-1 hover:shadow-md transition-all"
               onClick={() => openCryptoModal("from")}
             >
               <Image
@@ -174,7 +177,7 @@ export default function SwapForm() {
                 className="sm:w-5"
               />
               {selectedFrom.token}
-            </button>
+            </Button>
           </div>
 
           {/* Swap button */}
@@ -210,7 +213,9 @@ export default function SwapForm() {
                 {...register("toAmount")}
               />
             </div>
-            <button
+            <Button
+              variant='empty'
+              size='lg'
               type="button"
               className="text-lg rounded-full bg-darkGray py-2 px-4 flex gap-[7px] justify-center items-center sm:text-base xxs:py-1 hover:shadow-md transition-all"
               onClick={() => openCryptoModal("to")}
@@ -223,7 +228,7 @@ export default function SwapForm() {
                 className="sm:w-5"
               />
               {selectedTo.token}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -248,8 +253,9 @@ export default function SwapForm() {
         </div>
 
         <Button
-          className="btn-lg"
           type="submit"
+          variant='gray'
+          size='xxl'
           onClick={() => {
             setIsOrderCompleted(false);
           }}
