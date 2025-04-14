@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ChartCandlestick, Menu, X } from "lucide-react";
-import { buttonVariants } from "./ui/button";
+import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu, X } from "lucide-react";
+import { Button, buttonVariants } from "./ui/button";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
 import MobileHeaderBtns from "./MobileHeaderBtns";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
+import Image from "next/image";
 
 export default function MobileHeader({
   signin,
@@ -17,8 +20,16 @@ export default function MobileHeader({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { user, logout, setUser } = useUserStore();
 
-  // Закрыть меню при клике вне панели
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [setUser]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -56,29 +67,50 @@ export default function MobileHeader({
           className={`absolute -left-full top-0 h-full w-4/5 bg-white text-black py-4 px-2 shadow-xl transition-all
           ${isOpen && "!left-0"}`}
         >
-          {/* <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold">Menu</h2>
-            <button onClick={() => setIsOpen(false)} aria-label="Close menu">
-              <X className="w-6 h-6" />
-            </button>
-          </div> */}
-
           <nav className="flex flex-col gap-2">
             <MobileHeaderBtns />
             <div
-              className={`${buttonVariants({ variant: "empty", size: "default" })} flex-col h-auto gap-2 !px-5 !py-3`}
+              className={`${buttonVariants({
+                variant: "empty",
+                size: "default",
+              })} flex-col h-auto gap-3 !px-5 !py-3`}
             >
               <p className="p w-full mb-2 font-semibold">Sections</p>
               <Link href="/" className="w-full flex gap-2 items-center">
                 <ArrowLeftRight size={5} strokeWidth={1} className="mr-1" />
                 Swap
               </Link>
-              <Link href="/create-nft" className="w-full flex gap-2 items-center">
+              <Link
+                href="#"
+                className="w-full flex gap-2 items-center"
+              >
                 <ChartCandlestick size={5} strokeWidth={1} className="mr-1" />
                 NFT Market
               </Link>
+              <Link
+                href={`${user ? "/create-nft" : "?signin=true"}`}
+                className="w-full flex gap-2 items-center"
+              >
+                <ChevronsUp size={5} strokeWidth={1} className="mr-1" />
+                Create NFT
+              </Link>
             </div>
           </nav>
+          {user && (
+            <Button
+              variant="gray"
+              size="default"
+              className="mt-2 !justify-between w-full"
+              onClick={() => {
+                logout();
+                localStorage.removeItem("user");
+                router.push("/");
+              }}
+            >
+              Logout
+              <Image src="/logout.svg" alt="Logout" width={20} height={20} />
+            </Button>
+          )}
         </div>
       </div>
 
