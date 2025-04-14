@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button, buttonVariants } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default function MobileHeaderBtns() {
   const router = useRouter();
@@ -36,29 +37,18 @@ export default function MobileHeaderBtns() {
         </Link>
       ) : (
         <>
-          <Link
-            href="/profile"
-            className={buttonVariants({ variant: "gray", size: "default" })}
-          >
-            <Image
-              src="/profile.svg"
-              alt={user.UserName}
-              width={21}
-              height={21}
-            />
-            {user.UserName}
+          <Link href='/profile'>
+            <div className="flex items-center gap-4 mb-5">
+              <Avatar className="w-12 h-12">
+                <AvatarImage src="/profile.svg" className="invert" />
+                <AvatarFallback className="">JJ</AvatarFallback>
+              </Avatar>
+              <div className="">
+                <p className="font-semibold text-lg">{user.UserName}</p>
+                <p className="text-textGray text-sm -mt-1">{user.Email}</p>
+              </div>
+            </div>
           </Link>
-          <Button
-            variant="gray"
-            size="icon"
-            onClick={() => {
-              logout();
-              localStorage.removeItem("user");
-              router.push("/");
-            }}
-          >
-            <Image src="/logout.svg" alt="Logout" width={24} height={24} />
-          </Button>
         </>
       )}
     </>
