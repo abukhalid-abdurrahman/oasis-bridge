@@ -1,4 +1,3 @@
-using DotNext.Resources;
 
 namespace BuildingBlocks.Extensions.Resources;
 

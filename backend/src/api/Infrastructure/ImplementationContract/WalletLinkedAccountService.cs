@@ -1,5 +1,3 @@
-using BuildingBlocks.Extensions.Resources;
-
 namespace Infrastructure.ImplementationContract;
 
 public sealed class WalletLinkedAccountService(
@@ -16,14 +14,12 @@ public sealed class WalletLinkedAccountService(
         try
         {
             Guid userId = accessor.GetId();
-            logger.GeneralInformation($" Extracted UserId: {userId}");
 
             User? user = await dbContext.Users
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId, token);
             if (user is null)
             {
-                logger.GeneralWarning($" User not found. UserId: {userId}");
                 return BaseResult.Failure(ResultPatternError.NotFound("User not found!"));
             }
 
@@ -32,7 +28,6 @@ public sealed class WalletLinkedAccountService(
                 .FirstOrDefaultAsync(x => x.Name == request.Network, token);
             if (network is null)
             {
-                logger.GeneralWarning($"Network not found. Name: {request.Network}");
                 return BaseResult.Failure(ResultPatternError.NotFound("Network not found!"));
             }
 
@@ -43,7 +38,6 @@ public sealed class WalletLinkedAccountService(
 
             if (alreadyLinked)
             {
-                logger.WalletAlreadyLinked(user.Id, request.WalletAddress);
                 return BaseResult.Failure(ResultPatternError.AlreadyExist("Linked Account already exists"));
             }
 
@@ -54,17 +48,14 @@ public sealed class WalletLinkedAccountService(
 
             if (saved > 0)
             {
-                logger.GeneralInformation($" Linked account created successfully. UserId: {user.Id}, Wallet: {request.WalletAddress}");
                 logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow);
                 return BaseResult.Success();
             }
 
-            logger.UnhandledError($" Failed to create linked account. No changes saved. UserId: {userId}, Wallet: {request.WalletAddress}");
             return BaseResult.Failure(ResultPatternError.InternalServerError("Linked account not created!"));
         }
         catch (Exception ex)
         {
-            logger.UnhandledError($" Exception occurred while creating linked account. Wallet: {request.WalletAddress}, Network: {request.Network}\n,{ex.Message}");
             return BaseResult.Failure(
                 ResultPatternError.InternalServerError(Messages.WalletLinkingFailed));
         }
