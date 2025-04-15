@@ -1,1 +1,4 @@
-WalletLinkingFailed=Unexpected error occurred while creating the linked account.
+WalletLinkedAccountFailed=Unexpected error occurred while creating the linked account.
+UserNotFound=User not found!
+NetworkNotFound=Network not found!
+WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!

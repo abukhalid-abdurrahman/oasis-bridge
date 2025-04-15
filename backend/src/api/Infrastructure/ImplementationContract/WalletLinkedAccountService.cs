@@ -8,8 +8,8 @@ public sealed class WalletLinkedAccountService(
     public async Task<BaseResult> CreateAsync(CreateWalletLinkedAccountRequest request,
         CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested();
-        logger.OperationStarted(nameof(CreateAsync), DateTimeOffset.UtcNow);
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(CreateAsync), date);
 
         try
         {
@@ -20,7 +20,8 @@ public sealed class WalletLinkedAccountService(
                 .FirstOrDefaultAsync(x => x.Id == userId, token);
             if (user is null)
             {
-                return BaseResult.Failure(ResultPatternError.NotFound("User not found!"));
+                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                return BaseResult.Failure(ResultPatternError.NotFound(Messages.UserNotFound));
             }
 
             Network? network = await dbContext.Networks
@@ -28,7 +29,8 @@ public sealed class WalletLinkedAccountService(
                 .FirstOrDefaultAsync(x => x.Name == request.Network, token);
             if (network is null)
             {
-                return BaseResult.Failure(ResultPatternError.NotFound("Network not found!"));
+                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                return BaseResult.Failure(ResultPatternError.NotFound(Messages.NetworkNotFound));
             }
 
             bool alreadyLinked = await dbContext.WalletLinkedAccounts.AnyAsync(x =>
@@ -38,7 +40,8 @@ public sealed class WalletLinkedAccountService(
 
             if (alreadyLinked)
             {
-                return BaseResult.Failure(ResultPatternError.AlreadyExist("Linked Account already exists"));
+                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                return BaseResult.Failure(ResultPatternError.AlreadyExist(Messages.WalletLinkedAccountAlreadyExist));
             }
 
             WalletLinkedAccount newLinkedAccount = request.ToEntity(network.Id, accessor);
@@ -48,16 +51,19 @@ public sealed class WalletLinkedAccountService(
 
             if (saved > 0)
             {
-                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow);
+                logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
                 return BaseResult.Success();
             }
 
-            return BaseResult.Failure(ResultPatternError.InternalServerError("Linked account not created!"));
+            logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return BaseResult.Failure(ResultPatternError.InternalServerError(Messages.WalletLinkedAccountFailed));
         }
         catch (Exception ex)
         {
+            logger.OperationException(nameof(CreateAsync), ex.Message);
+            logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return BaseResult.Failure(
-                ResultPatternError.InternalServerError(Messages.WalletLinkingFailed));
+                ResultPatternError.InternalServerError(Messages.WalletLinkedAccountFailed));
         }
     }
 
