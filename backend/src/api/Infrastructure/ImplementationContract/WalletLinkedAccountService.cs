@@ -44,9 +44,7 @@ public sealed class WalletLinkedAccountService(
                 return BaseResult.Failure(ResultPatternError.AlreadyExist(Messages.WalletLinkedAccountAlreadyExist));
             }
 
-            WalletLinkedAccount newLinkedAccount = request.ToEntity(network.Id, accessor);
-            await dbContext.WalletLinkedAccounts.AddAsync(newLinkedAccount, token);
-
+            await dbContext.WalletLinkedAccounts.AddAsync(request.ToEntity(network.Id, accessor), token);
             int saved = await dbContext.SaveChangesAsync(token);
 
             if (saved > 0)

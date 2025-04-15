@@ -8,4 +8,5 @@ public static class Messages
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
     public static string WalletLinkedAccountAlreadyExist => _resources.Get().AsString();
+    public static string ExchangeRateNotFound => _resources.Get().AsString();
 }

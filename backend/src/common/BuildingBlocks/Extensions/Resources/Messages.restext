@@ -2,3 +2,4 @@ WalletLinkedAccountFailed=Unexpected error occurred while creating the linked ac
 UserNotFound=User not found!
 NetworkNotFound=Network not found!
 WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!
+ExchangeRateNotFound=Exchange rate not found!
