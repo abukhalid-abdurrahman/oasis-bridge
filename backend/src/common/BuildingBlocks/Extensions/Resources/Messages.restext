@@ -14,6 +14,9 @@ DeleteAccountFailed=Unexpected error occurred while delete account.
 CreateNetworkFailed=Unexpected error occurred while creating network
 UpdateNetworkFailed=Unexpected error occurred while updating network
 DeleteNetworkFailed=Unexpected error occurred while deleting network
+CreateNetworkTokenFailed=Unexpected error occurred while creating network-token
+UpdateNetworkTokenFailed=Unexpected error occurred while updating network-token
+DeleteNetworkTokenFailed=Unexpected error occurred while deleting network-token
 
 ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
 ChangePasswordIncorrect=Old password is incorrect!.
@@ -21,11 +24,13 @@ ChangePasswordIncorrect=Old password is incorrect!.
 UserNotFound=User not found!.
 NetworkNotFound=Network not found!.
 ExchangeRateNotFound=Exchange rate not found!.
+NetworkTokenNotFound=NetworkToken not found!.
 
 WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!.
 UserAlreadyExist=User already exist!.
 RoleNotFound=Role not found!.
 AccountAlreadyActive=This account is already active!.
+NetworkTokenAlreadyExist=NetworkToken already exist!.
 
 LoginUserIncorrect=Incorrect login or password!.
 GenerateTokenFailed=Error generating token!.

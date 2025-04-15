@@ -80,7 +80,7 @@ public sealed class IdentityService(
                 return Result<RegisterResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
 
-            return Result<RegisterResponse>.Success(new RegisterResponse(user.Id));
+            return Result<RegisterResponse>.Success(new (user.Id));
         }
         catch (Exception ex)
         {

@@ -15,6 +15,9 @@ public static class Messages
     public static string DeleteAccountFailed => _resources.Get().AsString();
     public static string ChangePasswordUserFailed => _resources.Get().AsString();
     public static string CreateNetworkFailed => _resources.Get().AsString();
+    public static string CreateNetworkTokenFailed => _resources.Get().AsString();
+    public static string UpdateNetworkTokenFailed => _resources.Get().AsString();
+    public static string DeleteNetworkTokenFailed => _resources.Get().AsString();
     public static string UpdateNetworkFailed => _resources.Get().AsString();
     public static string DeleteNetworkFailed => _resources.Get().AsString();
     public static string SendEmailConfirmationCodeFailed => _resources.Get().AsString();
@@ -24,6 +27,7 @@ public static class Messages
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string NetworkTokenNotFound => _resources.Get().AsString();
     public static string ExchangeRateNotFound => _resources.Get().AsString();
     public static string RoleNotFound => _resources.Get().AsString();
     public static string UserAlreadyExist => _resources.Get().AsString();
@@ -47,6 +51,7 @@ public static class Messages
     public static string DeleteAccountBodyMessage => _resources.Get().AsString();
     public static string AccountAlreadyActive => _resources.Get().AsString();
     public static string NetworkAlreadyExist => _resources.Get().AsString();
+    public static string NetworkTokenAlreadyExist => _resources.Get().AsString();
     public static string ConfirmRestoreAccountInvalidOrExpiredCode => _resources.Get().AsString();
     
 }
