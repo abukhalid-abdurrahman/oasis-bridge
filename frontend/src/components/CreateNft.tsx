@@ -166,7 +166,7 @@ export default function CreateNft() {
                   control={form.control}
                   name="price"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-1/3">
                       <FormControl>
                         <Input type="number" placeholder="Price" {...field} />
                       </FormControl>
@@ -178,7 +178,7 @@ export default function CreateNft() {
                   control={form.control}
                   name="Royalty"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-1/3">
                       <FormControl>
                         <Input type="number" placeholder="Royalty" {...field} />
                       </FormControl>
@@ -186,7 +186,7 @@ export default function CreateNft() {
                     </FormItem>
                   )}
                 />
-                <div className="">
+                <div className="w-1/3">
                   <Input
                     type="number"
                     placeholder="Net amount"
