@@ -14,6 +14,9 @@ public static class Messages
     public static string RestoreAccountFailed => _resources.Get().AsString();
     public static string DeleteAccountFailed => _resources.Get().AsString();
     public static string ChangePasswordUserFailed => _resources.Get().AsString();
+    public static string CreateNetworkFailed => _resources.Get().AsString();
+    public static string UpdateNetworkFailed => _resources.Get().AsString();
+    public static string DeleteNetworkFailed => _resources.Get().AsString();
     public static string SendEmailConfirmationCodeFailed => _resources.Get().AsString();
     public static string ResetPasswordFailed => _resources.Get().AsString();
     public static string ConfirmEmailFailed => _resources.Get().AsString();
@@ -43,6 +46,7 @@ public static class Messages
     public static string DeleteAccountSubjectMessage => _resources.Get().AsString();
     public static string DeleteAccountBodyMessage => _resources.Get().AsString();
     public static string AccountAlreadyActive => _resources.Get().AsString();
+    public static string NetworkAlreadyExist => _resources.Get().AsString();
     public static string ConfirmRestoreAccountInvalidOrExpiredCode => _resources.Get().AsString();
     
 }
