@@ -92,9 +92,9 @@ export default function CreateNft() {
           onSubmit={form.handleSubmit((data) => {
             console.log(data);
           })}
-          className="flex gap-10 items-start"
+          className="flex gap-10 items-start lg:gap-5 md:flex-col-reverse"
         >
-          <div className="w-1/2">
+          <div className="w-1/2 md:w-full">
             <div className={`flex flex-col gap-2 firstStep ${secondStep ? "hidden" : "block"}`}>
               <FormField
                 control={form.control}
@@ -317,7 +317,7 @@ export default function CreateNft() {
               </Button>
             </div>
           </div>
-          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray">
+          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
             <div
               {...getRootProps()}
               className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
