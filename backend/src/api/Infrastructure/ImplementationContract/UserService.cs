@@ -1,5 +1,9 @@
 namespace Infrastructure.ImplementationContract;
 
+/// <summary>
+/// Service for managing user-related operations, such as retrieving users, updating profiles,
+/// and querying virtual accounts. Depends on application context, blockchain bridges, and logging.
+/// </summary>
 public sealed class UserService(
     DataContext dbContext,
     IHttpContextAccessor accessor,
@@ -7,11 +11,19 @@ public sealed class UserService(
     ISolanaBridge solanaBridge,
     ILogger<UserService> logger) : IUserService
 {
+    private const string Sol = "SOL";
+
+    /// <summary>
+    /// Retrieves a paginated list of users filtered by the specified criteria.
+    /// </summary>
+    /// <param name="filter">Filtering criteria (e.g., email, phone, name, etc.).</param>
+    /// <param name="token">Cancellation token for async operations.</param>
+    /// <returns>Paged response with filtered users.</returns>
     public async Task<Result<PagedResponse<IEnumerable<GetAllUserResponse>>>> GetUsersAsync(UserFilter filter,
         CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested();
-        logger.LogInformation("Fetching users with filter: {@Filter}", filter);
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetUsersAsync), date);
 
         IQueryable<GetAllUserResponse> users = dbContext.Users.AsNoTracking()
             .ApplyFilter(filter.Email, x => x.Email)
@@ -22,7 +34,6 @@ public sealed class UserService(
             .Select(x => x.ToRead());
 
         int totalCount = await users.CountAsync(token);
-        logger.LogInformation("Total users found: {TotalCount}", totalCount);
 
         PagedResponse<IEnumerable<GetAllUserResponse>> result =
             PagedResponse<IEnumerable<GetAllUserResponse>>.Create(
@@ -31,43 +42,56 @@ public sealed class UserService(
                 totalCount,
                 users.Page(filter.PageNumber, filter.PageSize));
 
+        logger.OperationCompleted(nameof(GetUsersAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         return Result<PagedResponse<IEnumerable<GetAllUserResponse>>>.Success(result);
     }
 
+    /// <summary>
+    /// Gets the public details of a user by ID.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>Public user details or not found result.</returns>
     public async Task<Result<GetUserDetailPublicResponse>> GetByIdForUser(Guid userId,
         CancellationToken token = default)
     {
-        logger.LogInformation("Fetching user details for UserId: {UserId}", userId);
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetByIdForUser), date);
 
         GetUserDetailPublicResponse? response = await dbContext.Users.AsNoTracking()
             .Where(x => x.Id == userId)
             .Select(x => x.ToReadPublicDetail())
             .FirstOrDefaultAsync(token);
 
-        if (response is not null)
-        {
-            logger.LogInformation("User details found for UserId: {UserId}", userId);
-            return Result<GetUserDetailPublicResponse>.Success(response);
-        }
+        logger.OperationCompleted(nameof(GetByIdForUser), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
 
-        logger.LogWarning("User not found for UserId: {UserId}", userId);
-        return Result<GetUserDetailPublicResponse>.Failure(ResultPatternError.NotFound());
+        return response is not null
+            ? Result<GetUserDetailPublicResponse>.Success(response)
+            : Result<GetUserDetailPublicResponse>.Failure(ResultPatternError.NotFound());
     }
 
+    /// <summary>
+    /// Retrieves virtual accounts of the currently authenticated user,
+    /// along with network and token information and current balances.
+    /// </summary>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>List of virtual account details or not found result.</returns>
     public async Task<Result<IEnumerable<GetVirtualAccountDetailResponse>>> GetVirtualAccountsAsync(
         CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested();
-        logger.LogInformation("Fetching virtual accounts for current user");
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetVirtualAccountsAsync), date);
+
 
         Guid userId = accessor.GetId();
-        
+
         bool exists = await dbContext.Users.AnyAsync(x => x.Id == userId, token);
         if (!exists)
         {
-            logger.LogWarning("User not found: {UserId}", userId);
+            logger.OperationCompleted(nameof(GetVirtualAccountsAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Failure(
-                ResultPatternError.NotFound("User not found."));
+                ResultPatternError.NotFound(Messages.UserNotFound));
         }
 
         var accounts = await (from nt in dbContext.NetworkTokens
@@ -86,7 +110,7 @@ public sealed class UserService(
 
         foreach (var account in accounts)
         {
-            decimal accountBalance = account.Token == "SOL"
+            decimal accountBalance = account.Token == Sol
                 ? (await solanaBridge.GetAccountBalanceAsync(account.Address, token)).Value
                 : (await radixBridge.GetAccountBalanceAsync(account.Address, token)).Value;
 
@@ -98,53 +122,52 @@ public sealed class UserService(
             ));
         }
 
-        logger.LogInformation("Fetched {AccountCount} virtual accounts for UserId: {UserId}", result.Count, userId);
+        logger.OperationCompleted(nameof(GetVirtualAccountsAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         return Result<IEnumerable<GetVirtualAccountDetailResponse>>.Success(result);
     }
 
+    /// <summary>
+    /// Gets the private profile details of the currently authenticated user.
+    /// </summary>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>Private user detail or not found result.</returns>
     public async Task<Result<GetUserDetailPrivateResponse>> GetByIdForSelf(CancellationToken token = default)
     {
-        logger.LogInformation("Fetching private details for the current user");
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetByIdForSelf), date);
 
-        string? userIdString = accessor.HttpContext?.User.Claims
-            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
+        Guid userId = accessor.GetId();
 
-        if (!Guid.TryParse(userIdString, out Guid userId))
-        {
-            logger.LogWarning("Invalid or missing user ID in claims");
-            return Result<GetUserDetailPrivateResponse>.Failure(ResultPatternError.NotFound());
-        }
 
         GetUserDetailPrivateResponse? response = await dbContext.Users.AsNoTracking()
             .Where(x => x.Id == userId)
             .Select(x => x.ToReadPrivateDetail())
             .FirstOrDefaultAsync(token);
 
+        logger.OperationCompleted(nameof(GetByIdForSelf), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         return response is not null
             ? Result<GetUserDetailPrivateResponse>.Success(response)
-            : Result<GetUserDetailPrivateResponse>.Failure(ResultPatternError.NotFound());
+            : Result<GetUserDetailPrivateResponse>.Failure(ResultPatternError.NotFound(Messages.UserNotFound));
     }
 
+    /// <summary>
+    /// Updates the profile information of the currently authenticated user.
+    /// Validates email, phone, and username uniqueness.
+    /// </summary>
+    /// <param name="request">Updated profile values.</param>
+    /// <param name="token">Cancellation token.</param>
     public async Task<Result<UpdateUserResponse>> UpdateProfileAsync(UpdateUserProfileRequest request,
         CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested();
-        logger.LogInformation("Starting profile update");
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(UpdateProfileAsync), date);
 
-        string? userIdString = accessor.HttpContext?.User.Claims
-            .FirstOrDefault(x => x.Type == CustomClaimTypes.Id)?.Value;
-
-        if (!Guid.TryParse(userIdString, out Guid userId))
-        {
-            logger.LogWarning("Failed to parse UserId from claims");
-            return Result<UpdateUserResponse>.Failure(ResultPatternError.NotFound("Couldn't take user ID"));
-        }
-
+        Guid userId = accessor.GetId();
         User? user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, token);
         if (user is null)
         {
-            logger.LogWarning("User not found: {UserId}", userId);
-            return Result<UpdateUserResponse>.Failure(ResultPatternError.NotFound("User not found"));
+            logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<UpdateUserResponse>.Failure(ResultPatternError.NotFound(Messages.UserNotFound));
         }
 
         if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
@@ -153,8 +176,9 @@ public sealed class UserService(
                 .AnyAsync(x => x.Email == request.Email && x.Id != userId, token);
             if (emailExists)
             {
-                logger.LogWarning("Email already exists: {Email}", request.Email);
-                return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict("Email already exists"));
+                logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict(Messages.UserEmailAlreadyExist));
             }
         }
 
@@ -164,8 +188,9 @@ public sealed class UserService(
                 .AnyAsync(x => x.PhoneNumber == request.PhoneNumber && x.Id != userId, token);
             if (phoneExists)
             {
-                logger.LogWarning("PhoneNumber already exists: {PhoneNumber}", request.PhoneNumber);
-                return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict("PhoneNumber already exists"));
+                logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict(Messages.UserPhoneAlreadyExist));
             }
         }
 
@@ -175,15 +200,28 @@ public sealed class UserService(
                 .AnyAsync(x => x.UserName == request.UserName && x.Id != userId, token);
             if (userNameExists)
             {
-                logger.LogWarning("UserName already exists: {UserName}", request.UserName);
-                return Result<UpdateUserResponse>.Failure(ResultPatternError.Conflict("UserName already exists"));
+                logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<UpdateUserResponse>.Failure(
+                    ResultPatternError.Conflict(Messages.UserUserNameAlreadyExist));
             }
         }
 
-        dbContext.Users.Update(user.ToEntity(request, accessor));
-        await dbContext.SaveChangesAsync(token);
-
-        logger.LogInformation("User profile updated successfully for UserId: {UserId}", userId);
-        return Result<UpdateUserResponse>.Success(new(userId));
+        try
+        {
+            dbContext.Users.Update(user.ToEntity(request, accessor));
+            logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<UpdateUserResponse>.Success(new(userId))
+                : Result<UpdateUserResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.UpdateUserProfileFailed));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(UpdateProfileAsync), ex.Message);
+            logger.OperationCompleted(nameof(UpdateProfileAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<UpdateUserResponse>.Failure(
+                ResultPatternError.InternalServerError(Messages.UpdateUserProfileFailed));
+        }
     }
 }

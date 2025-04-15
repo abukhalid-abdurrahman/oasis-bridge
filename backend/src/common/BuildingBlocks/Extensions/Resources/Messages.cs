@@ -7,6 +7,7 @@ public static class Messages
     public static string WalletLinkedAccountFailed => _resources.Get().AsString();
     public static string RegisterUserFailed => _resources.Get().AsString();
     public static string EmailFailed => _resources.Get().AsString();
+    public static string UpdateUserProfileFailed => _resources.Get().AsString();
     public static string ConfirmRestoreAccountFailed => _resources.Get().AsString();
     public static string LoginUserFailed => _resources.Get().AsString();
     public static string LogoutUserFailed => _resources.Get().AsString();
@@ -52,6 +53,9 @@ public static class Messages
     public static string UserAlreadyExist => _resources.Get().AsString();
     public static string RoleAlreadyExist => _resources.Get().AsString();
     public static string UserRoleAlreadyExist => _resources.Get().AsString();
+    public static string UserEmailAlreadyExist => _resources.Get().AsString();
+    public static string UserPhoneAlreadyExist => _resources.Get().AsString();
+    public static string UserUserNameAlreadyExist => _resources.Get().AsString();
     public static string WalletLinkedAccountAlreadyExist => _resources.Get().AsString();
     public static string LoginUserIncorrect => _resources.Get().AsString();
     public static string ChangePasswordIncorrect => _resources.Get().AsString();
