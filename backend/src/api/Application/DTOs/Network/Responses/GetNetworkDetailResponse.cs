@@ -20,5 +20,4 @@ public record GetNetworkDetailResponse(
     Guid Id,
     string Name,
     string? Description,
-    List<string> Tokens
-);
+    List<string> Tokens);

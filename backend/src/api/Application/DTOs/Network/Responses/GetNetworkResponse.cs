@@ -17,8 +17,7 @@ namespace Application.DTOs.Network.Responses;
 /// A list of tokens associated with the network.
 /// </param>
 public record GetNetworkResponse(
-    Guid Id,  
-    string Name,  
-    string? Description,  
-    List<string> Tokens  
-);
+    Guid Id,
+    string Name,
+    string? Description,
+    List<string> Tokens);

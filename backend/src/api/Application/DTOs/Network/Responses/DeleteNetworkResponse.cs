@@ -8,5 +8,4 @@ namespace Application.DTOs.Network.Responses;
 /// The unique identifier of the deleted network.
 /// </param>
 public record DeleteNetworkResponse(
-    Guid Id  
-);
+    Guid Id);

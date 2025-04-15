@@ -14,9 +14,7 @@ namespace Application.DTOs.Network.Requests;
 /// The type of the network, which defines its categorization or usage.
 /// </param>
 public record CreateNetworkRequest(
-    string Name,  
-    
-    string? Description,  
-    
-    NetworkType NetworkType  
+    string Name,
+    string? Description,
+    NetworkType NetworkType
 );

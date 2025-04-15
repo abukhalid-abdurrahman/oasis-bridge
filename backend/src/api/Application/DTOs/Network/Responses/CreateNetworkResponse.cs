@@ -8,5 +8,4 @@ namespace Application.DTOs.Network.Responses;
 /// The unique identifier of the newly created network.
 /// </param>
 public record CreateNetworkResponse(
-    Guid Id  
-);
+    Guid Id);

@@ -1,6 +1,5 @@
 global using Solnet.Rpc;
 global using System.Text;
-global using FileStorage;
 global using RadixBridge;
 global using SolanaBridge;
 global using Domain.Common;
@@ -19,6 +18,7 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.OpenApi.Models;
 global using Infrastructure.DataAccess;
 global using Microsoft.EntityFrameworkCore;
+global using System.Threading.RateLimiting;
 global using Microsoft.IdentityModel.Tokens;
 global using BuildingBlocks.Extensions.Http;
 global using API.Infrastructure.Middlewares;

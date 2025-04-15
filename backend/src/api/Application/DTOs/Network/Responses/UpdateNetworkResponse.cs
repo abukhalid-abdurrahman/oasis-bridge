@@ -8,5 +8,4 @@ namespace Application.DTOs.Network.Responses;
 /// The unique identifier of the updated network.
 /// </param>
 public record UpdateNetworkResponse(
-    Guid Id  
-);  
+    Guid Id);

@@ -2,26 +2,121 @@ using Role = Domain.Entities.Role;
 
 namespace Infrastructure.DataAccess;
 
+/// <summary>
+/// Main Entity Framework Core context for the application.
+///
+/// Provides DbSet properties for accessing all key entities (Users, Roles, Orders, etc.)
+/// and handles database operations like reading, writing, and updating data.
+///
+/// Applies entity configurations from the Infrastructure assembly and sets up
+/// a global filter for soft-deleted records.
+///
+/// Acts as a Unit of Work in data transactions.
+/// </summary>
 public sealed class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
 {
+    /// <summary>
+    /// Users registered in the system.
+    /// Each user can have multiple roles, tokens, logins, claims, and verification codes.
+    /// </summary>
     public DbSet<User> Users { get; set; }
+
+    /// <summary>
+    /// Relationship between users and roles.
+    /// Implements many-to-many user-role assignments.
+    /// </summary>
     public DbSet<UserRole> UserRoles { get; set; }
+
+    /// <summary>
+    /// Access and refresh tokens issued to users for authentication.
+    /// </summary>
     public DbSet<UserToken> UserTokens { get; set; }
+
+    /// <summary>
+    /// Claims attached to individual users (e.g., for custom authorization scenarios).
+    /// </summary>
     public DbSet<UserClaim> UserClaims { get; set; }
+
+    /// <summary>
+    /// External login providers associated with users (e.g., Google, Facebook).
+    /// </summary>
     public DbSet<UserLogin> UserLogins { get; set; }
+
+    /// <summary>
+    /// Verification codes sent to users for email/phone confirmation or password reset.
+    /// </summary>
     public DbSet<UserVerificationCode> UserVerificationCodes { get; set; }
+
+    /// <summary>
+    /// Roles that define access levels and permissions within the system.
+    /// </summary>
     public DbSet<Role> Roles { get; set; }
+
+    /// <summary>
+    /// Claims attached to roles (used for fine-grained permission management).
+    /// </summary>
     public DbSet<RoleClaim> RoleClaims { get; set; }
 
+    /// <summary>
+    /// Supported blockchain or payment networks (e.g., Ethereum, Visa, SWIFT).
+    /// </summary>
     public DbSet<Network> Networks { get; set; }
+
+    /// <summary>
+    /// API tokens or credentials related to networks.
+    /// </summary>
     public DbSet<NetworkToken> NetworkTokens { get; set; }
+
+    /// <summary>
+    /// Balances associated with user accounts in specific networks.
+    /// </summary>
     public DbSet<AccountBalance> AccountBalances { get; set; }
+
+    /// <summary>
+    /// Internal virtual accounts representing wallets or deposit channels for users.
+    /// </summary>
     public DbSet<VirtualAccount> VirtualAccounts { get; set; }
+
+    /// <summary>
+    /// Orders placed by users, potentially involving asset exchange or delivery.
+    /// </summary>
     public DbSet<Order> Orders { get; set; }
+
+    /// <summary>
+    /// Exchange rates between different assets, currencies, or tokens.
+    /// </summary>
     public DbSet<ExchangeRate> ExchangeRates { get; set; }
+
+    /// <summary>
+    /// External financial accounts linked to the user's wallet (e.g., bank account, card, external wallet).
+    /// </summary>
     public DbSet<WalletLinkedAccount> WalletLinkedAccounts { get; set; }
 
 
+    /// <summary>
+    /// Configures the EF Core model by applying all entity configurations and global filters.
+    ///
+    /// This method is invoked by the Entity Framework runtime when the model for a derived context is being created.
+    /// It performs two primary tasks:
+    /// 
+    /// 1. <b>ApplyConfigurationsFromAssembly</b>:
+    ///     - Scans the <c>Infrastructure</c> assembly for all classes implementing <c>IEntityTypeConfiguration&lt;TEntity&gt;</c>.
+    ///     - Automatically applies fluent configurations for entities without needing to register them one by one.
+    ///     - Ensures centralized and maintainable model configuration.
+    ///
+    /// 2. <b>FilterSoftDeletedProperties</b>:
+    ///     - Applies a global query filter to exclude entities marked as "soft-deleted".
+    ///     - Ensures soft-deleted data does not appear in query results unless explicitly requested.
+    ///
+    /// <para>
+    /// This setup promotes separation of concerns, modular configuration, and consistent handling of deleted records.
+    /// </para>
+    ///
+    /// <remarks>
+    /// Any new configuration classes should be placed in the <c>Infrastructure</c> project and implement
+    /// <c>IEntityTypeConfiguration&lt;T&gt;</c>. They will be picked up automatically during application startup.
+    /// </remarks>
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(Infrastructure).Assembly);
