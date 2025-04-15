@@ -93,7 +93,7 @@ public static class Messages
     public static string NetworkAlreadyExist => _resources.Get().AsString();
     public static string NetworkTokenAlreadyExist => _resources.Get().AsString();
     public static string ConfirmRestoreAccountInvalidOrExpiredCode => _resources.Get().AsString();
-    public static string RadixRestoreAccountIncorrectFormat => _resources.Get().AsString();
+    public static string RestoreAccountIncorrectFormat => _resources.Get().AsString();
     public static string RadixGetAddressInvalidType => _resources.Get().AsString();
     public static string SelfTransaction => _resources.Get().AsString();
     public static string InsufficientFundsInTechAccount => _resources.Get().AsString();

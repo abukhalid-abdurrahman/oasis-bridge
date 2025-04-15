@@ -100,7 +100,7 @@ public sealed class RadixBridge : IRadixBridge
             _logger.OperationCompleted(nameof(RestoreAccountAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             return Result<(PublicKey PublicKey, PrivateKey PrivateKey)>
-                .Failure(ResultPatternError.BadRequest(Messages.RadixRestoreAccountIncorrectFormat));
+                .Failure(ResultPatternError.BadRequest(Messages.RestoreAccountIncorrectFormat));
         }
 
         Mnemonic mnemonic = new(seedPhrase);
@@ -371,7 +371,7 @@ public sealed class RadixBridge : IRadixBridge
                 _logger.OperationCompleted(nameof(IBridge.RestoreAccountAsync), DateTimeOffset.UtcNow,
                     DateTimeOffset.UtcNow - date);
                 return Result<(string PublicKey, string PrivateKey)>
-                    .Failure(ResultPatternError.BadRequest(Messages.RadixRestoreAccountIncorrectFormat));
+                    .Failure(ResultPatternError.BadRequest(Messages.RestoreAccountIncorrectFormat));
             }
 
             Mnemonic mnemonic = new(seedPhrase);
