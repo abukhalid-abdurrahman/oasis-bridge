@@ -1,3 +1,5 @@
+import { ZodType } from "zod";
+
 export type searchParams = {
   signin?: string;
   signup?: string;
@@ -10,4 +12,12 @@ export interface User {
   Id: string;
   UserName: string;
   Email: string;
+}
+
+export interface TokenizationField {
+  name: string;
+  placeholder: string;
+  type: string;
+  validation: ZodType;
+  group?: number;
 }

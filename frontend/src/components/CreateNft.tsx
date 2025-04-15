@@ -13,7 +13,11 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { tokenizationFieldsBase } from "@/lib/helpers/tokenizationFields";
+import {
+  tokenizationFieldsAutomobiles,
+  tokenizationFieldsBase,
+  tokenizationFieldsRealEstate,
+} from "@/lib/helpers/tokenizationFields";
 import {
   Select,
   SelectContent,
@@ -25,17 +29,19 @@ import {
 } from "./ui/select";
 import PageTitle from "./PageTitle";
 import { useDropzone } from "react-dropzone";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
+import { TokenizationField } from "@/lib/types";
 
 export default function CreateNft() {
   const [preview, setPreview] = useState<string | null>(null);
+  const [secondStep, setSecondStep] = useState(false);
+  const [selectedAssetType, setSelectedAssetType] = useState<string>("");
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     const url = URL.createObjectURL(file);
     setPreview(url);
-    // Здесь можно также сохранить файл в состояние формы
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -46,15 +52,37 @@ export default function CreateNft() {
     multiple: false,
   });
 
+  const getFieldsByAssetType = (type: string): TokenizationField[] => {
+    switch (type) {
+      case "Automobiles":
+        return tokenizationFieldsAutomobiles;
+      case "Real Estate":
+        return tokenizationFieldsRealEstate;
+      default:
+        return [];
+    }
+  };
+
+  const allFields: any[] = [
+    ...tokenizationFieldsBase,
+    ...getFieldsByAssetType(selectedAssetType),
+  ];
+
   const FormSchema = z.object(
-    Object.fromEntries(
-      tokenizationFieldsBase.map((field) => [field.name, field.validation])
-    )
+    Object.fromEntries(allFields.map((field) => [field.name, field.validation]))
   );
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+
+  const assetType = form.watch("asset_type");
+
+  useEffect(() => {
+    if (assetType) {
+      setSelectedAssetType(assetType);
+    }
+  }, [assetType]);
 
   return (
     <>
@@ -64,168 +92,232 @@ export default function CreateNft() {
           onSubmit={form.handleSubmit((data) => {
             console.log(data);
           })}
-          className="flex gap-10 items-stretch  "
+          className="flex gap-10 items-start"
         >
-          <div className="space-y-2 w-1/2">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="assetDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="uniqueIdentifier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="uniqueIdentifier" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="network"
-              render={({ field }) => (
-                <FormItem>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Network" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Networks</SelectLabel>
-                        <SelectItem value="Solana">Solana</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-between gap-2">
+          <div className="w-1/2">
+            <div className={`flex flex-col gap-2 firstStep ${secondStep ? "hidden" : "block"}`}>
               <FormField
                 control={form.control}
-                name="price"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type="number" placeholder="Price" {...field} />
+                      <Input placeholder="Title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="Royalty"
+                name="assetDescription"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type="number" placeholder="Royalty" {...field} />
+                      <Input placeholder="Description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="">
-                <Input type="number" placeholder="Net amount" disabled={true} />
+
+              <FormField
+                control={form.control}
+                name="uniqueIdentifier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="uniqueIdentifier" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="network"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Network" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Networks</SelectLabel>
+                          <SelectItem value="Solana">Solana</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-between gap-2">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="Price" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Royalty"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="Royalty" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="">
+                  <Input
+                    type="number"
+                    placeholder="Net amount"
+                    disabled={true}
+                  />
+                </div>
               </div>
+
+              <FormField
+                control={form.control}
+                name="owner_contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="owner_contact" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="proofOfOwnershipDocumet"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">
+                      Proof of Ownership Document
+                    </FormLabel>
+                    <FormControl>
+                      <Input id="picture" type="file" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="asset_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Asset type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Asset Types</SelectLabel>
+                          {ASSET_TYPES.map((item) => (
+                            <SelectItem key={item} value={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className={`flex flex-col gap-2 secondStep ${secondStep ? "block" : "hidden"}`}>
+              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">Additional fields for {assetType}</h2>
+              {getFieldsByAssetType(selectedAssetType).map((item) => (
+                <FormField
+                  key={item.name}
+                  control={form.control}
+                  name={item.name}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder={item.placeholder} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
 
-            <FormField
-              control={form.control}
-              name="owner_contact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="owner_contact" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="proofOfOwnershipDocumet"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">
-                    Proof of Ownership Document
-                  </FormLabel>
-                  <FormControl>
-                    <Input id="picture" type="file" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="asset_type"
-              render={({ field }) => (
-                <FormItem>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Asset type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Asset Types</SelectLabel>
-                        {ASSET_TYPES.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button variant="gray" type="submit" size="xl" className="w-full">
-              Tokenize
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button
+                onClick={() => {
+                  setSecondStep(false);
+                }}
+                variant="gray"
+                type="button"
+                size="xl"
+                className={`w-full ${secondStep ? "block" : "hidden"}`}
+              >
+                Prev Step
+              </Button>
+              <Button
+                onClick={async () => {
+                  const isValid = await form.trigger([
+                    "title",
+                    "assetDescription",
+                    "uniqueIdentifier",
+                    "network",
+                    "price",
+                    "Royalty",
+                    "owner_contact",
+                  ]);
+                  if (isValid) {
+                    setSecondStep(true);
+                  }
+                }}
+                variant="gray"
+                type="button"
+                size="xl"
+                className={`w-full ${secondStep ? "hidden" : "block"}`}
+              >
+                Next Step
+              </Button>
+              <Button
+                variant="gray"
+                type="submit"
+                size="xl"
+                className={`w-full ${secondStep ? "block" : "hidden"}`}
+              >
+                Tokenize
+              </Button>
+            </div>
           </div>
-          <div className="w-1/2 rounded-2xl bg-textGray">
+          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray">
             <div
               {...getRootProps()}
               className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
