@@ -31,6 +31,8 @@ CreateOrderUnsupported=Unsupported token pair!.
 CreateOrderAmountFilter=Amount must be greater than zero.
 InvalidSolanaFormat=Invalid Solana format address.
 InvalidRadixFormat=Invalid Radix format address
+SmtpConnectionFailed=SMTP Connection failed after multiple attempts.
+
 
 ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
 ChangePasswordIncorrect=Old password is incorrect!.
