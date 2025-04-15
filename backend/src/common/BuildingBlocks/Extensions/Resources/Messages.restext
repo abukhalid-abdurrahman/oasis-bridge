@@ -12,6 +12,9 @@ RestoreAccountFailed=Unexpected error occurred while restore account.
 ConfirmRestoreAccountFailed=Unexpected error occurred while confirm restore account.
 DeleteAccountFailed=Unexpected error occurred while delete account.
 CreateNetworkFailed=Unexpected error occurred while creating network
+CreateRoleFailed=Unexpected error occurred while creating role
+UpdateRoleFailed=Unexpected error occurred while updating role
+DeleteRoleFailed=Unexpected error occurred while deleting role
 CheckBalanceFailed=Unexpected error occurred while checking balance
 UpdateNetworkFailed=Unexpected error occurred while updating network
 DeleteNetworkFailed=Unexpected error occurred while deleting network
@@ -37,6 +40,7 @@ VirtualAccountNotFound=VirtualAccount not found!.
 
 WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!.
 UserAlreadyExist=User already exist!.
+RoleAlreadyExist=Role already exist!.
 RoleNotFound=Role not found!.
 AccountAlreadyActive=This account is already active!.
 NetworkTokenAlreadyExist=NetworkToken already exist!.
