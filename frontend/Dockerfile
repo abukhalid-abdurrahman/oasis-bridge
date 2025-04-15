@@ -18,7 +18,6 @@ WORKDIR /app
 
 COPY --from=builder /app ./
 
-# Копируем скрипт для генерации env.js
 COPY src/lib/scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
