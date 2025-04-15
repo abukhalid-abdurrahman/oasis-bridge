@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import TanstackProvider from "@/providers/TanstackProvider";
-import bg from "@/../public/bg.png";
 
 const dmSans = DM_Sans({
-  weight: ["400", "600"],
+  weight: ["400", "600", '700'],
   subsets: ["latin"],
 });
 
@@ -27,7 +26,7 @@ export default function RootLayout({
         className={`${dmSans.className} antialiased sm:px-5 min-h-screen`}
       >
         <TanstackProvider>
-          <main className="main max-w-[1200px] min-h-screen mx-auto w-full">
+          <main className="main max-w-[1200px] mx-auto w-full">
             {children}
           </main>
         </TanstackProvider>
