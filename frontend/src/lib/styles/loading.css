@@ -53,7 +53,7 @@
 .loading-spinner {
   width: 70px;
   height: 70px;
-  border: 8px solid var(--background);
+  border: 8px solid var(--backgroundWebsite);
   border-right-color: transparent;
   border-radius: 50%;
   display: inline-block;
@@ -63,7 +63,7 @@
 .loading-spinner-alt {
   width: 70px;
   height: 70px;
-  border: 8px solid var(--background);
+  border: 8px solid var(--backgroundWebsite);
   border-right-color: transparent;
   border-radius: 50%;
   display: inline-block;

@@ -8,97 +8,124 @@ import { useForm } from "react-hook-form";
 import Cookies from "js-cookie";
 import { redirectOnUnauthorize, removeUser } from "@/lib/scripts/script";
 import { AxiosError } from "axios";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 export default function ChangePasswordForm() {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm();
-  const router = useRouter()
-  const setUser = useUserStore(state => state.setUser)
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const newPassword = watch("newPassword");
+  const FormSchema = z
+    .object({
+      oldPassword: z.string().min(6, {
+        message: "Password must be at least 6 characters long",
+      }),
+      newPassword: z.string().min(6, {
+        message: "Password must be at least 6 characters long",
+      }),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
 
-  const submit = mutateChangePassword()
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  const submit = mutateChangePassword();
 
   const onSubmit = (data: any) => {
     setIsLoading(true);
-    setErrorMessage('')
+    setErrorMessage("");
     submit.mutate(data, {
       onSuccess: () => {
-        removeUser(setUser, router)
+        removeUser(setUser, router);
       },
       onSettled: () => {
-        setIsLoading(false)
+        setIsLoading(false);
       },
       onError: (error: any) => {
-        setErrorMessage(error.response.data.error.message)
-      }
-    })
+        setErrorMessage(error.response.data.error.message);
+      },
+    });
   };
 
   return (
     <div className="mt-16">
       <h2 className="h2 text-white mb-6">Change Password</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[10px]">
-        {/* Old Password */}
-        <input
-          className={`input w-full ${errors.oldPassword ? "border border-red-500" : ""}`}
-          type="password"
-          placeholder="Old password"
-          {...register("oldPassword", {
-            required: "This field is required",
-          })}
-        />
-        {errors.oldPassword && <p className="text-red-500 text-sm">{errors.oldPassword.message as any}</p>}
-
-        {/* New Password */}
-        <input
-          className={`input w-full ${errors.newPassword ? "border border-red-500" : ""}`}
-          type="password"
-          placeholder="New password"
-          {...register("newPassword", {
-            required: "This field is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters long",
-            },
-          })}
-        />
-        {errors.newPassword && <p className="text-red-500 text-sm">{errors.newPassword.message as any}</p>}
-
-        {/* Confirm Password */}
-        <input
-          className={`input w-full ${errors.confirmPassword ? "border border-red-500" : ""}`}
-          type="password"
-          placeholder="Repeat new password"
-          {...register("confirmPassword", {
-            required: "This field is required",
-            validate: (value) =>
-              value === newPassword || "Passwords do not match",
-          })}
-        />
-        {errors.confirmPassword && (
-          <p className="text-red-500 text-sm">{errors.confirmPassword.message as any}</p>
-        )}
-
-        {errorMessage && (
-          <p className="p-sm text-red-500">{errorMessage}</p>
-        )}
-
-        {/* Submit Button */}
-        <button 
-          className="btn btn-lg" 
-          type="submit" 
-          disabled={isLoading || isSubmitting}
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-[10px]"
         >
-          {isLoading ? "Changing..." : "Change"}
-        </button>
-      </form>
+          <FormField
+            control={form.control}
+            name="oldPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Old password"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="newPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="New password"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Repeat new password"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {errorMessage && <p className="p-sm text-red-500">{errorMessage}</p>}
+
+          <Button variant="gray" type="submit" size="xl" className="w-full">
+            {isLoading ? "Changing..." : "Change"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

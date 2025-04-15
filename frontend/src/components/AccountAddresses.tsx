@@ -8,6 +8,7 @@ import { getUserVirtualAccountsOnServer } from "@/requests/getRequestsOnServer";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { buttonVariants } from "./ui/button";
 // import { useEffect } from "react";
 // import { redirectOnUnauthorize } from "@/lib/scripts/script";
 
@@ -43,7 +44,10 @@ export default async function AccountAddresses() {
             You don't have any virtual accounts yet. Make your first swap to
             create one.
           </p>
-          <Link href="/" className="btn btn-lg mt-5 text-center">
+          <Link
+            href="/"
+            className={buttonVariants({ variant: "gray", size: "xl" })}
+          >
             Make a Swap
           </Link>
         </div>
@@ -60,8 +64,15 @@ export default async function AccountAddresses() {
                 image={`/${address.token}.png`}
                 crypto={address.token}
               />
-              <div className="flex gap-2 bg-gray px-5 rounded-xl justify-between items-center flex-1 sm:py-1 xxs:px-3 relative">
-                <p className="p sm:absolute sm:text-textGray sm:top-1 sm:text-xs">Balance:</p>
+              <div
+                className={`${buttonVariants({
+                  variant: "empty",
+                  size: "xl",
+                })} flex gap-2 bg-gray px-5 rounded-xl justify-between items-center flex-1 sm:py-1 xxs:px-3 relative`}
+              >
+                <p className="p sm:absolute sm:text-textGray sm:top-1 sm:text-xs">
+                  Balance:
+                </p>
                 <p className="p sm:pt-3 sm:text-sm">{address.balance}</p>
               </div>
               <CopyBtn address={address.address} />

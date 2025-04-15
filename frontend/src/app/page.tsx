@@ -12,7 +12,7 @@ export default async function page({
   return (
     <>
       <Header searchParams={searchParams} />
-      <div className="">
+      <div className="max-w-[512px] mx-auto mt-36">
         <div className="mx-auto">
           <SwapForm />
         </div>

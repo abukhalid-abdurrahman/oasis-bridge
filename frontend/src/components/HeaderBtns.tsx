@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/useUserStore";
 import Link from "next/link";
-import Button from "./Button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Button, buttonVariants } from "./ui/button";
 
 export default function HeaderBtns() {
   const router = useRouter();
@@ -25,12 +25,12 @@ export default function HeaderBtns() {
   return (
     <>
       {!user ? (
-        <Link href="?signin=true" className="btn btn-sm">
+        <Link href="?signin=true" className={buttonVariants({ variant: "gray", size: "default" })}>
           Sign In
         </Link>
       ) : (
         <>
-          <Link href="/profile" className="btn btn-sm flex gap-[8px] sm:gap-[5px]">
+          <Link href="/profile" className={buttonVariants({ variant: "gray", size: "default" })}>
             <Image 
               src='/profile.svg'
               alt={user.UserName}
@@ -39,7 +39,7 @@ export default function HeaderBtns() {
             />
             {user.UserName}
           </Link>
-          <Button className="px-[10px]" onClick={() => {
+          <Button variant='gray' size='icon' onClick={() => {
             logout();
             localStorage.removeItem("user");
             router.push('/');
