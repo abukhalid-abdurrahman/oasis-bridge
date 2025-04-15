@@ -16,6 +16,9 @@ public static class Messages
     public static string ChangePasswordUserFailed => _resources.Get().AsString();
     public static string CreateNetworkFailed => _resources.Get().AsString();
     public static string CreateRoleFailed => _resources.Get().AsString();
+    public static string CreateUserRoleFailed => _resources.Get().AsString();
+    public static string UpdateUserRoleFailed => _resources.Get().AsString();
+    public static string DeleteUserRoleFailed => _resources.Get().AsString();
     public static string UpdateRoleFailed => _resources.Get().AsString();
     public static string DeleteRoleFailed => _resources.Get().AsString();
     public static string CreateNetworkTokenFailed => _resources.Get().AsString();
@@ -45,8 +48,10 @@ public static class Messages
     public static string NetworkTokenNotFound => _resources.Get().AsString();
     public static string ExchangeRateNotFound => _resources.Get().AsString();
     public static string RoleNotFound => _resources.Get().AsString();
+    public static string UserRoleNotFound => _resources.Get().AsString();
     public static string UserAlreadyExist => _resources.Get().AsString();
     public static string RoleAlreadyExist => _resources.Get().AsString();
+    public static string UserRoleAlreadyExist => _resources.Get().AsString();
     public static string WalletLinkedAccountAlreadyExist => _resources.Get().AsString();
     public static string LoginUserIncorrect => _resources.Get().AsString();
     public static string ChangePasswordIncorrect => _resources.Get().AsString();
