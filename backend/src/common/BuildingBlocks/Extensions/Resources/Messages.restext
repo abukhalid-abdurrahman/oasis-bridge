@@ -80,3 +80,12 @@ NetworkAlreadyExist=Network name already exists
 UserEmailAlreadyExist=Email already exists.
 UserPhoneAlreadyExist=PhoneNumber already exists.
 UserUserNameAlreadyExist=UserName already exists.
+
+
+RadixRestoreAccountIncorrectFormat=SeedPhrase format is invalid.
+RadixGetAddressInvalidType=Invalid address type.
+SelfTransaction=Transaction from tech account to the same account is not allowed.
+InsufficientFundsInTechAccount=Amount is too small in tech account to be included.
+InvalidAmount=Invalid amount.
+TransactionFailed=Transaction failed.
+RadixGetTransactionStatusFailed=Error in Radix GetTransactionStatus method.

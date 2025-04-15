@@ -44,7 +44,7 @@ public static class Messages
     public static string CreateOrderUnsupported => _resources.Get().AsString();
     public static string CreateOrderAmountFilter => _resources.Get().AsString();
     public static string InvalidSolanaFormat => _resources.Get().AsString();
-    public static string InvalidRadixFormat => _resources.Get().AsString();
+    public static string InvalidAddressRadixFormat => _resources.Get().AsString();
     public static string DeleteNetworkTokenFailed => _resources.Get().AsString();
     public static string UpdateNetworkFailed => _resources.Get().AsString();
     public static string DeleteNetworkFailed => _resources.Get().AsString();
@@ -93,4 +93,11 @@ public static class Messages
     public static string NetworkAlreadyExist => _resources.Get().AsString();
     public static string NetworkTokenAlreadyExist => _resources.Get().AsString();
     public static string ConfirmRestoreAccountInvalidOrExpiredCode => _resources.Get().AsString();
+    public static string RadixRestoreAccountIncorrectFormat => _resources.Get().AsString();
+    public static string RadixGetAddressInvalidType => _resources.Get().AsString();
+    public static string SelfTransaction => _resources.Get().AsString();
+    public static string InsufficientFundsInTechAccount => _resources.Get().AsString();
+    public static string InvalidAmount => _resources.Get().AsString();
+    public static string TransactionFailed => _resources.Get().AsString();
+    public static string RadixGetTransactionStatusFailed => _resources.Get().AsString();
 }

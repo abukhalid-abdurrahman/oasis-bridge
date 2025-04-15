@@ -318,7 +318,7 @@ public sealed class OrderService(
                 bool check = IsValidRadixAddress(request.DestinationAddress);
                 if (!check)
                     return Result<CreateOrderResponse>.Failure(
-                        ResultPatternError.BadRequest(Messages.InvalidRadixFormat));
+                        ResultPatternError.BadRequest(Messages.InvalidAddressRadixFormat));
             }
 
             return Result<CreateOrderResponse>.Success();
