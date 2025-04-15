@@ -75,12 +75,11 @@ public sealed class IdentityService(
             await dbContext.UserRoles.AddAsync(userRole, token);
             await dbContext.UserVerificationCodes.AddAsync(userVerificationCode, token);
 
-            int res = await dbContext.SaveChangesAsync(token);
-            if (res == 0)
-                return Result<RegisterResponse>.Failure(
+            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<RegisterResponse>.Success(new(user.Id))
+                : Result<RegisterResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
-
-            return Result<RegisterResponse>.Success(new (user.Id));
         }
         catch (Exception ex)
         {
