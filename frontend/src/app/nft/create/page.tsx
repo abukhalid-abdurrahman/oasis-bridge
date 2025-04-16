@@ -1,7 +1,7 @@
 'use server'
 
+import CreateNft from "@/components/CreateNft";
 import Header from "@/components/Header";
-import SwapForm from "@/components/SwapForm";
 import { searchParams } from "@/lib/types";
 
 export default async function page({
@@ -12,9 +12,9 @@ export default async function page({
   return (
     <>
       <Header searchParams={searchParams} />
-      <div className="max-w-[512px] mx-auto mt-36">
+      <div className="max-w-[1200px] mx-auto mt-24 md:my-10 xl:px-5 md:!px-0">
         <div className="mx-auto">
-          <SwapForm />
+          <CreateNft />
         </div>
       </div>
     </>

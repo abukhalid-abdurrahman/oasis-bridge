@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Button } from "./ui/button";
 
 interface CopyBtnProps {
   address: string;
@@ -34,13 +35,14 @@ const handleCopy = async () => {
 
   return (
     <div className="relative">
-      <button
-        className="flex justify-center gap-2 bg-gray w-[51px] h-[51px] rounded-xl items-center 
+      <Button
+        variant='empty' size='icon'
+        className="flex justify-center gap-2 bg-gray w-[48px] h-[48px] rounded-xl items-center 
         aspect-square sm:w-[46px] sm:h-[46px] hover:bg-darkGray transition-all"
         onClick={handleCopy}
       >
         <Image src="/copy.svg" alt="copy" width={22} height={22} className="xxs:w-5" />
-      </button>
+      </Button>
 
       {/* Всплывающее уведомление */}
       {copied && (

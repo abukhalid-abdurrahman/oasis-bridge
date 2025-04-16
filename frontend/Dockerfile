@@ -1,17 +1,27 @@
-# Используем официальный образ Node.js
-FROM node:22-alpine AS runner
+# Билдим как раньше
+FROM node:22-alpine AS builder
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы проекта
-COPY . .
-
-# Устанавливаем зависимости
+COPY package*.json ./
 RUN npm install --frozen-lockfile
 
-# Открываем порт
+COPY . .
+
+ENV NEXT_PUBLIC_API_URL=NEXT_PUBLIC_API_URL
+
+RUN npm run build
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+COPY --from=builder /app ./
+
+COPY src/lib/scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 3000
 
-# Запускаем билд и сервер при старте
-CMD ["sh", "-c", "npm run build && npm run start"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["npm", "start"]

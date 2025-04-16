@@ -6,25 +6,26 @@ import CopyBtn from "./CopyBtn";
 import { shortAddress } from "@/lib/scripts/script";
 import Image from "next/image";
 import { statusMessages } from "@/lib/helpers/statusMessages";
+import { Button, buttonVariants } from "./ui/button";
 
 interface StatusModalProps {
   orderId: string;
   isOpen: boolean;
   onClose: () => void;
-  isOrderCompleted: boolean
+  isOrderCompleted: boolean;
 }
 
 export default function StatusModal({
   orderId,
   isOpen,
   onClose,
-  isOrderCompleted
+  isOrderCompleted,
 }: StatusModalProps) {
   // const [isNonCompleted, setIsNonCompleted] = useState(true)
   const [address, setAddress] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
   const { data, refetch } = useVirtualAccountBalance(orderId!, !address);
-  
+
   useEffect(() => {
     if (data?.data.status === "Completed") {
       setAddress(data.data.transactionId);
@@ -34,20 +35,19 @@ export default function StatusModal({
 
   useEffect(() => {
     if (isOrderCompleted) {
-      setAddress('')
+      setAddress("");
     }
-  }, [isOrderCompleted])
+  }, [isOrderCompleted]);
 
   useEffect(() => {
     if (!orderId || address || isOrderCompleted) return;
-  
+
     const interval = setInterval(() => {
       refetch();
     }, 10000);
-  
+
     return () => clearInterval(interval);
   }, [orderId, address]);
-  
 
   useEffect(() => {
     if (!isOpen || (data && data.data.status === "Completed")) return;
@@ -60,8 +60,8 @@ export default function StatusModal({
   }, [isOpen, data]);
 
   useEffect(() => {
-    console.log(data)
-  }, [data])
+    console.log(data);
+  }, [data]);
 
   if (!isOpen) return null;
 
@@ -85,22 +85,30 @@ export default function StatusModal({
               height={100}
               className="mt-5 sm:w-20"
             />
-            <h2 className="h2 mt-5 !block">
-              Your transaction was successful
-            </h2>
+            <h2 className="h2 mt-5 !block">Your transaction was successful</h2>
             <div className="flex gap-[5px] mb-[10px] w-full mt-5">
-              <div className="flex gap-2 bg-gray py-3 px-5 rounded-xl justify-between items-center flex-1 relative">
+              <div
+                className={`${buttonVariants({
+                  variant: "empty",
+                  size: "xl",
+                })} flex gap-2 bg-gray py-3 px-5 rounded-xl justify-between items-center flex-1 relative`}
+              >
                 <p className="sm:text-sm xxs:text-xs">Your transaction ID:</p>
                 <p className="">{shortAddress(data?.data.transactionId)!}</p>
               </div>
               <CopyBtn address={address!} />
             </div>
-            <button onClick={() => {
-              onClose()
-              setAddress('')
-            }} className="btn btn-lg w-full !block">
+            <Button
+              variant="gray"
+              size="xl"
+              onClick={() => {
+                onClose();
+                setAddress("");
+              }}
+              className="w-full"
+            >
               Done
-            </button>
+            </Button>
           </>
         )}
       </div>

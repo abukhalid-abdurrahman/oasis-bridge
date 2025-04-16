@@ -42,7 +42,9 @@ public static class RadixHttpClientHelper
                 return deserializedResponse;
             }
 
+
             Logger.OperationCompleted(nameof(PostAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+
             return default;
         }
         catch (Exception e)

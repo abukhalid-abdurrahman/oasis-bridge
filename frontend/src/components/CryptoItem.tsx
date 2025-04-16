@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { buttonVariants } from "./ui/button";
 
 interface CryptoItemProps {
   image: string;
@@ -15,7 +16,7 @@ export default function CryptoItem({
 }: CryptoItemProps) {
   return (
     <div
-      className={`flex gap-2 bg-gray px-3 py-3 rounded-xl items-center sm:px-2 sm:py-2 ${className}`}
+      className={`${buttonVariants({ variant: 'empty', size: 'xl' })} flex gap-2 bg-gray px-3 py-3 rounded-xl items-center sm:px-2 sm:py-2 ${className}`}
       onClick={onClick}
     >
       <Image src={image} alt={crypto} width={27} height={27} className="sm:w-6" />
