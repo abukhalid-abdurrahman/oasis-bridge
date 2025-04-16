@@ -7,9 +7,15 @@ import Loading from "./Loading";
 export default function PhantomModal({
   onClose,
   publicKey,
+  walletDenied,
+  connectWallet,
+  setWalletDenied
 }: {
   onClose: () => void;
   publicKey: string | null;
+  walletDenied: boolean;
+  connectWallet: () => void;
+  setWalletDenied: (value: boolean) => void;
 }) {
   useEffect(() => {
     setTimeout(() => {
@@ -27,12 +33,12 @@ export default function PhantomModal({
     >
       <div
         className={`relative transition-all mt-10 mb-7 ${
-          publicKey && "mt-5 mb-0"
+          (publicKey || walletDenied) && "mt-5 mb-0"
         }`}
       >
         <Loading
           className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all ${
-            publicKey && "opacity-0"
+            (publicKey || walletDenied) && "opacity-0"
           }`}
           classNameLoading="!w-[130px] !h-[130px] !border-textGray !border-r-transparent !border-4"
         />
@@ -58,15 +64,44 @@ export default function PhantomModal({
         </>
       ) : (
         <>
-          <div className="text-center flex flex-col items-center gap-2">
-            <h3 className="h3 font-semibold">Sign to verify</h3>
-            <p className="p max-w-[90%]">
-              Don’t see your wallet? Check your other browser windows.
-            </p>
-          </div>
-          <Button variant="gray" size="xl" className="w-full" disabled={true}>
-            Connecting...
-          </Button>
+          {!walletDenied ? (
+            <>
+              <div className="text-center flex flex-col items-center gap-2">
+                <h3 className="h3 font-semibold">Sign to verify</h3>
+                <p className="p max-w-[90%]">
+                  Don’t see your wallet? Check your other browser windows.
+                </p>
+              </div>
+              <Button
+                variant="gray"
+                size="xl"
+                className="w-full"
+                disabled={true}
+              >
+                Connecting...
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="text-center flex flex-col items-center gap-2">
+                <h3 className="h3 font-semibold">Connection failed</h3>
+                <p className="p max-w-[90%]">
+                  It seems you have declined the request. Please try again.
+                </p>
+              </div>
+              <Button
+                variant="gray"
+                size="xl"
+                className="w-full"
+                onClick={() => {
+                  connectWallet();
+                  setWalletDenied(false)
+                }}
+              >
+                Retry
+              </Button>
+            </>
+          )}
         </>
       )}
     </Modal>

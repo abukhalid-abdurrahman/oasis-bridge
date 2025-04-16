@@ -10,8 +10,8 @@ declare global {
 
 export const usePhantomWallet = () => {
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
-  const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
-  const { setPublicKey: setKey } = useWalletStore()
+  const [walletDenied, setWalletDenied] = useState(false);
+  const { setPublicKey: setKey } = useWalletStore();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana?.isPhantom) {
@@ -20,6 +20,8 @@ export const usePhantomWallet = () => {
   }, []);
 
   const connectWallet = async () => {
+    setWalletDenied(false);
+
     if (!window.solana) {
       alert("Phantom is not installed");
       return;
@@ -28,11 +30,16 @@ export const usePhantomWallet = () => {
     try {
       const resp = await window.solana.connect();
       const pubKey = new PublicKey(resp.publicKey.toString());
-
+    
       setKey(pubKey.toBase58());
-
-    } catch (err) {
-      console.error("Wallet connection error:", err);
+      setWalletDenied(false);
+    } catch (err: any) {
+      if (err?.code === 4001 || err?.message?.includes("User rejected the request")) {
+        setWalletDenied(true);
+        // Не логируем ошибку — она ожидаемая
+      } else {
+        console.error("Unexpected wallet error:", err);
+      }
     }
   };
 
@@ -49,5 +56,7 @@ export const usePhantomWallet = () => {
     isPhantomInstalled,
     connectWallet,
     disconnectWallet,
+    walletDenied,
+    setWalletDenied
   };
 };
