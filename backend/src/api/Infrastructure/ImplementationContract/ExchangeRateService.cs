@@ -1,23 +1,30 @@
 namespace Infrastructure.ImplementationContract;
 
+/// <summary>
+/// Service responsible for handling operations related to exchange rates.
+/// Includes functionality to retrieve paginated lists, specific rate details,
+/// and the most recent exchange rate between two tokens.
+/// Ensures logging for operation tracking and performance diagnostics.
+/// </summary>
 public sealed class ExchangeRateService(
     DataContext dbContext,
     ILogger<ExchangeRateService> logger) : IExchangeRateService
 {
-   
     /// <summary>
-    /// Retrieves a paged list of exchange rates based on the provided filter.
+    /// Retrieves a paginated list of exchange rates based on filtering criteria.
+    /// Applies optional filters for source and destination token IDs.
     /// </summary>
+    /// <param name="filter">Filtering and pagination options.</param>
+    /// <param name="token">Cancellation token for cooperative cancellation.</param>
+    /// <returns>
+    /// A successful result with paged exchange rate data, or an error result.
+    /// </returns>
     public async Task<Result<PagedResponse<IEnumerable<GetExchangeRateResponse>>>> GetExchangeRatesAsync(
         ExchangeRateFilter filter, CancellationToken token = default)
     {
-        logger.LogInformation("Starting GetExchangeRatesAsync at {Time}", DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetExchangeRatesAsync), date);
 
-        // Build the query with applied filters
-        logger.LogInformation(
-            "Building exchange rates query with filters: FromTokenId = {FromTokenId}, ToTokenId = {ToTokenId}",
-            filter.FromTokenId, filter.ToTokenId);
         IQueryable<GetExchangeRateResponse> exchangeRatesQuery = dbContext.ExchangeRates
             .AsNoTracking()
             .ApplyFilter(filter.FromTokenId.ToString(), x => x.FromTokenId.ToString())
@@ -31,14 +38,8 @@ public sealed class ExchangeRateService(
                 x.Rate,
                 x.CreatedAt));
 
-        // Count the total number of results
-        logger.LogInformation("Counting total number of exchange rates matching filter criteria.");
         int totalCount = await exchangeRatesQuery.CountAsync(token);
-        logger.LogInformation("Total exchange rates count: {TotalCount}", totalCount);
 
-        // Build paged response
-        logger.LogInformation("Applying pagination: PageNumber = {PageNumber}, PageSize = {PageSize}",
-            filter.PageNumber, filter.PageSize);
         PagedResponse<IEnumerable<GetExchangeRateResponse>> result =
             PagedResponse<IEnumerable<GetExchangeRateResponse>>.Create(
                 filter.PageSize,
@@ -46,21 +47,26 @@ public sealed class ExchangeRateService(
                 totalCount,
                 exchangeRatesQuery.Page(filter.PageNumber, filter.PageSize));
 
-        logger.LogInformation("Finished GetExchangeRatesAsync at {Time}", DateTimeOffset.UtcNow);
+        logger.OperationCompleted(nameof(GetExchangeRatesAsync), DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow - date);
+
         return Result<PagedResponse<IEnumerable<GetExchangeRateResponse>>>.Success(result);
     }
 
     /// <summary>
     /// Retrieves detailed information about a specific exchange rate by its ID.
     /// </summary>
+    /// <param name="exchangeRateId">The unique identifier of the exchange rate.</param>
+    /// <param name="token">Cancellation token for cooperative cancellation.</param>
+    /// <returns>
+    /// A result containing exchange rate details if found, or an error result if not found.
+    /// </returns>
     public async Task<Result<GetExchangeRateDetailResponse>> GetExchangeRateDetailAsync(Guid exchangeRateId,
         CancellationToken token)
     {
-        logger.LogInformation("Starting GetExchangeRateDetailAsync for ExchangeRateId: {ExchangeRateId} at {Time}",
-            exchangeRateId, DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetExchangeRateDetailAsync), date);
 
-        // Retrieve exchange rate detail using a LINQ query
         GetExchangeRateDetailResponse? exchangeRate = await dbContext.ExchangeRates
             .AsNoTracking()
             .Where(x => x.Id == exchangeRateId)
@@ -74,32 +80,31 @@ public sealed class ExchangeRateService(
                 x.CreatedAt))
             .FirstOrDefaultAsync(token);
 
+        logger.OperationCompleted(nameof(GetExchangeRateDetailAsync),
+            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+
         if (exchangeRate is not null)
-        {
-            logger.LogInformation("Exchange rate detail retrieved successfully for ExchangeRateId: {ExchangeRateId}",
-                exchangeRateId);
             return Result<GetExchangeRateDetailResponse>.Success(exchangeRate);
-        }
-        else
-        {
-            logger.LogWarning("Exchange rate detail not found for ExchangeRateId: {ExchangeRateId}", exchangeRateId);
-            return Result<GetExchangeRateDetailResponse>.Failure(
-                ResultPatternError.NotFound("Exchange rate not found"));
-        }
+
+        return Result<GetExchangeRateDetailResponse>.Failure(
+            ResultPatternError.NotFound(Messages.ExchangeRateNotFound));
     }
 
     /// <summary>
-    /// Retrieves the most recent exchange rate details for the specified token pair.
+    /// Retrieves the most recently recorded exchange rate between two tokens,
+    /// based on their symbols.
     /// </summary>
+    /// <param name="request">Contains the symbols of the source and destination tokens.</param>
+    /// <param name="token">Cancellation token for cooperative cancellation.</param>
+    /// <returns>
+    /// A result containing the most recent exchange rate, or an error result if not found.
+    /// </returns>
     public async Task<Result<GetCurrentExchangeRateDetailResponse>> GetCurrentExchangeRateDetailAsync(
         ExchangeRateRequest request, CancellationToken token = default)
     {
-        logger.LogInformation(
-            "Starting GetCurrentExchangeRateDetailAsync for token pair {FromToken} -> {ToToken} at {Time}",
-            request.FromToken, request.ToToken, DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetCurrentExchangeRateDetailAsync), date);
 
-        // Query the latest exchange rate detail for the given token pair
         GetCurrentExchangeRateDetailResponse? exchangeRate = await dbContext.ExchangeRates
             .AsNoTracking()
             .Include(x => x.FromToken)
@@ -111,23 +116,16 @@ public sealed class ExchangeRateService(
                 x.FromToken.Symbol,
                 x.ToToken.Symbol,
                 x.Rate,
-                x.CreatedAt,
-                "Exchange rate retrieved successfully"))
+                x.CreatedAt))
             .FirstOrDefaultAsync(token);
 
+        logger.OperationCompleted(nameof(GetCurrentExchangeRateDetailAsync),
+            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+
         if (exchangeRate is not null)
-        {
-            logger.LogInformation(
-                "Current exchange rate detail retrieved successfully for token pair {FromToken} -> {ToToken}",
-                request.FromToken, request.ToToken);
             return Result<GetCurrentExchangeRateDetailResponse>.Success(exchangeRate);
-        }
-        else
-        {
-            logger.LogWarning("Current exchange rate detail not found for token pair {FromToken} -> {ToToken}",
-                request.FromToken, request.ToToken);
-            return Result<GetCurrentExchangeRateDetailResponse>.Failure(
-                ResultPatternError.NotFound("Exchange rate not found"));
-        }
+
+        return Result<GetCurrentExchangeRateDetailResponse>.Failure(
+            ResultPatternError.NotFound(Messages.ExchangeRateNotFound));
     }
 }
