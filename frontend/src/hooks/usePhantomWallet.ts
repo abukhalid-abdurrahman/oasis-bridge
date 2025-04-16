@@ -28,7 +28,6 @@ export const usePhantomWallet = () => {
     try {
       const resp = await window.solana.connect();
       const pubKey = new PublicKey(resp.publicKey.toString());
-      setPublicKey(pubKey);
 
       setKey(pubKey.toBase58());
 
@@ -40,7 +39,6 @@ export const usePhantomWallet = () => {
   const disconnectWallet = async () => {
     try {
       await window.solana.disconnect();
-      setPublicKey(null);
       setKey(null);
     } catch (err) {
       console.error("Wallet disconnection error:", err);
@@ -49,7 +47,6 @@ export const usePhantomWallet = () => {
 
   return {
     isPhantomInstalled,
-    publicKey,
     connectWallet,
     disconnectWallet,
   };
