@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "NFT Market",
 };
 
-export default function NftLayout({
+export default function NftMarketLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
