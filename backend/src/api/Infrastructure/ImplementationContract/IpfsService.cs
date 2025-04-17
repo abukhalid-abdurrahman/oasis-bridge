@@ -1,9 +1,25 @@
 namespace Infrastructure.ImplementationContract;
 
+/// <summary>
+/// Concrete implementation of <see cref="IIpfsService"/> for handling IPFS file operations.
+/// Utilizes a decentralized file storage provider to upload and retrieve files,
+/// and includes structured logging for observability.
+/// </summary>
 public sealed class IpfsService(
     ILogger<IpfsService> logger,
     IDecentralizedFileStorage fileStorage) : IIpfsService
 {
+    /// <summary>
+    /// Uploads a file to the IPFS network.
+    /// Performs validations, uploads the file via <see cref="IDecentralizedFileStorage"/>,
+    /// and returns the resulting CID and accessible IPFS URL.
+    /// </summary>
+    /// <param name="request">The file upload request, containing file data and metadata.</param>
+    /// <param name="token">Optional cancellation token.</param>
+    /// <returns>
+    /// A <see cref="Result{T}"/> wrapping <see cref="FileUploadResponse"/> with the file's CID and URL on success,
+    /// or an appropriate error on failure.
+    /// </returns>
     public async Task<Result<FileUploadResponse>> UploadFileAsync(FileUploadRequest request,
         CancellationToken token = default)
     {
@@ -36,6 +52,15 @@ public sealed class IpfsService(
         }
     }
 
+    /// <summary>
+    /// Retrieves a file from the IPFS network using its CID.
+    /// Validates the CID format, fetches the file in chunks, and returns it as a byte array.
+    /// </summary>
+    /// <param name="cid">The unique content identifier of the file.</param>
+    /// <param name="token">Optional cancellation token.</param>
+    /// <returns>
+    /// A <see cref="Result{T}"/> wrapping the file as a byte array, or an error if not found or invalid.
+    /// </returns>
     public async Task<Result<byte[]>> GetFileAsync(string cid, CancellationToken token = default)
     {
         DateTimeOffset started = DateTimeOffset.UtcNow;
