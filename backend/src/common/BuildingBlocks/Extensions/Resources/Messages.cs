@@ -100,4 +100,7 @@ public static class Messages
     public static string InvalidAmount => _resources.Get().AsString();
     public static string TransactionFailed => _resources.Get().AsString();
     public static string RadixGetTransactionStatusFailed => _resources.Get().AsString();
+    public static string IpfsUploadEmptyFile => _resources.Get().AsString();
+    public static string IpfsInvalidTypeFile => _resources.Get().AsString();
+    public static string IpfsSuccessMessageFile => _resources.Get().AsString();
 }

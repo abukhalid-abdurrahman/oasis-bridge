@@ -92,4 +92,7 @@ public sealed record ResultPatternError
     /// <returns>A <see cref="ResultPatternError"/> representing a server error.</returns>
     public static ResultPatternError InternalServerError(string? message = "Internal server error!")
         => new(500, message, ErrorType.InternalServerError);
+
+    public static ResultPatternError UnsupportedMediaType(string? message = "Unsupported Media Type!")
+        => new(415, message, ErrorType.UnsupportedMediaType);
 }

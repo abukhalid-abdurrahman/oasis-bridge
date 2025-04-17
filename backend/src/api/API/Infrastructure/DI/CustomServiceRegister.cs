@@ -27,6 +27,9 @@ public static class CustomServiceRegister
         // Registering order-related services.
         builder.Services.AddScoped<IOrderService, OrderService>();
 
+        // Register ipfs-services
+        builder.Services.AddScoped<IIpfsService, IpfsService>();
+
         // Registering network-related services.
         builder.Services.AddScoped<INetworkService, NetworkService>();
 
