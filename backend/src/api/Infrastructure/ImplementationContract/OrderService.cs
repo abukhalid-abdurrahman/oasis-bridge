@@ -2,6 +2,16 @@ using NetworkType = RadixBridge.Enums.NetworkType;
 
 namespace Infrastructure.ImplementationContract;
 
+/// <summary>
+/// The <see cref="OrderService"/> class provides functionality for creating orders
+/// involving cryptocurrency transactions across two networks (Radix and Solana). It
+/// manages the creation of virtual accounts, validation of requests, and processing of
+/// transactions, including exchange rates, account balances, and transaction statuses.
+/// The class interacts with the database to store order details and utilizes bridges 
+/// (RadixBridge, SolanaBridge) for transferring assets between networks. It ensures 
+/// that the process complies with security and network requirements while maintaining 
+/// robust logging and error handling to track the status of operations.
+/// </summary>
 public sealed class OrderService(
     DataContext dbContext,
     IHttpContextAccessor accessor,
@@ -13,73 +23,64 @@ public sealed class OrderService(
     private const string Sol = "SOL";
     private const string Xrd = "XRD";
 
+    /// <summary>
+    /// Creates a new order for a user, including the validation of the request, 
+    /// creation of necessary virtual accounts, and initiating withdrawal and deposit 
+    /// transactions across the networks. The method ensures proper exchange rate 
+    /// application, transaction verification, and manages error handling at each step.
+    /// </summary>
+    /// <param name="request">The request object containing order details.</param>
+    /// <param name="token">Cancellation token to support cancellation of the operation.</param>
+    /// <returns>A <see cref="Result{CreateOrderResponse}"/> object indicating the success 
+    /// or failure of the order creation process, along with appropriate error messages.</returns>
     public async Task<Result<CreateOrderResponse>> CreateOrderAsync(CreateOrderRequest request,
         CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested();
-        logger.LogInformation("Starting CreateOrderAsync at {Time}", DateTimeOffset.UtcNow);
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(CreateOrderAsync), date);
 
-        // Step 1: Retrieve user ID from token
-        logger.LogInformation("Retrieving user ID from token...");
-        Guid? userId = accessor.GetId();
-        if (userId is null)
-        {
-            logger.LogWarning("User ID is null.");
-            return Result<CreateOrderResponse>.Failure(ResultPatternError.BadRequest("UserId cannot be null."));
-        }
+        Guid userId = accessor.GetId();
 
-        // Step 2: Validate the incoming request
-        logger.LogInformation("Validating request...");
         Result<CreateOrderResponse> validationRequest = await ValidateRequestAsync(userId, request, token);
         if (!validationRequest.IsSuccess)
         {
-            logger.LogWarning("Request validation failed: {Error}", validationRequest.Error.Message);
+            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return validationRequest;
         }
 
-        // Step 3: Define bridges for withdrawal and deposit based on token pair
-        logger.LogInformation("Determining which bridge to use for withdrawal and deposit...");
         IBridge withdrawBridge = request.FromToken == Xrd ? radixBridge : solanaBridge;
         IBridge depositBridge = request.FromToken == Xrd ? solanaBridge : radixBridge;
 
-        // Step 4: Retrieve the latest exchange rate for the token pair
-        logger.LogInformation("Retrieving exchange rate for {FromToken} to {ToToken}...", request.FromToken,
-            request.ToToken);
         ExchangeRate exchangeRate = await dbContext.ExchangeRates.AsNoTracking()
             .Include(x => x.FromToken)
             .Include(x => x.ToToken)
             .Where(x => x.FromToken.Symbol == request.FromToken && x.ToToken.Symbol == request.ToToken)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(token) ?? new();
-        decimal convertedAmount = exchangeRate.Rate * request.Amount;
-        logger.LogInformation("Exchange rate retrieved. Rate: {Rate}, Converted amount: {ConvertedAmount}",
-            exchangeRate.Rate, convertedAmount);
 
-        // Step 5: Retrieve virtual account for the user in the given network
-        logger.LogInformation("Checking if virtual account exists for user {UserId} on network {Network}...",
-            userId, request.FromNetwork);
+        decimal convertedAmount = exchangeRate.Rate * request.Amount;
+
+
         VirtualAccount? virtualAccount = await dbContext.VirtualAccounts
             .AsNoTracking()
             .Include(x => x.Network)
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Network.Name == request.FromNetwork, token);
 
-        // Step 6: If no virtual account exists, create one
         if (virtualAccount is null)
         {
-            logger.LogInformation("Virtual account not found. Creating new virtual account...");
             Result<(string publicKey, string privateKey, string seedPhrase)> resultCreateAccount =
                 await withdrawBridge.CreateAccountAsync(token);
             if (!resultCreateAccount.IsSuccess)
             {
-                logger.LogError("Failed to create virtual account: {Error}", resultCreateAccount.Error.Message);
+                logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
                 return Result<CreateOrderResponse>.Failure(resultCreateAccount.Error);
             }
 
-            logger.LogInformation("Virtual account created. Determining account address...");
             string address = resultCreateAccount.Value.publicKey;
             if (request.FromToken == Xrd)
             {
-                logger.LogInformation("Retrieving address for Radix account...");
                 Result<string> resultGetAddress = radixBridge.GetAddressAsync(
                     new PrivateKey(Encoders.Hex.DecodeData(resultCreateAccount.Value.privateKey), Curve.ED25519)
                         .PublicKey(),
@@ -87,15 +88,14 @@ public sealed class OrderService(
                     radixOp.NetworkId == 0x01 ? NetworkType.Main : NetworkType.Test);
                 if (!resultGetAddress.IsSuccess)
                 {
-                    logger.LogError("Failed to retrieve account address: {Error}", resultGetAddress.Error.Message);
+                    logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                        DateTimeOffset.UtcNow - date);
                     return Result<CreateOrderResponse>.Failure(resultGetAddress.Error);
                 }
 
                 address = resultGetAddress.Value!;
-                logger.LogInformation("Retrieved Radix account address: {Address}", address);
             }
 
-            logger.LogInformation("Creating new VirtualAccount object...");
             VirtualAccount newVirtualAccount = new()
             {
                 PublicKey = resultCreateAccount.Value.publicKey,
@@ -104,7 +104,7 @@ public sealed class OrderService(
                 Address = address,
                 CreatedBy = accessor.GetId(),
                 CreatedByIp = accessor.GetRemoteIpAddress(),
-                UserId = (Guid)userId,
+                UserId = userId,
                 NetworkId = await dbContext.Networks.Where(x => x.Name == request.FromNetwork).Select(x => x.Id)
                     .FirstOrDefaultAsync(token),
                 NetworkType = request.FromToken == Xrd
@@ -112,23 +112,21 @@ public sealed class OrderService(
                     : Domain.Enums.NetworkType.Solana
             };
 
-            logger.LogInformation("Adding new virtual account to the database...");
             await dbContext.VirtualAccounts.AddAsync(newVirtualAccount, token);
             int createResult = await dbContext.SaveChangesAsync(token);
             if (createResult == 0)
             {
-                logger.LogError("Failed to save new virtual account to the database.");
+                logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.InternalServerError("Couldn't create virtual account."));
+                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
             }
 
-            // Create a new order linked to this new virtual account
-            logger.LogInformation("Creating new order for new virtual account...");
             Order newOrder = new()
             {
                 Amount = request.Amount,
                 OrderStatus = OrderStatus.InsufficientFunds,
-                UserId = (Guid)userId,
+                UserId = userId,
                 ExchangeRateId = exchangeRate.Id,
                 CreatedByIp = accessor.GetRemoteIpAddress(),
                 CreatedBy = accessor.GetId(),
@@ -139,38 +137,31 @@ public sealed class OrderService(
                 DestinationAddress = request.DestinationAddress,
             };
 
-            logger.LogInformation("Adding new order to the database...");
             await dbContext.Orders.AddAsync(newOrder, token);
-            int orderResult = await dbContext.SaveChangesAsync(token);
-            logger.LogInformation("Order saved in database? {Result}", orderResult != 0);
-            return orderResult != 0
-                ? Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id,
-                    "Successfully order created"))
+
+            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<CreateOrderResponse>.Success(new(newOrder.Id, Messages.CreateOrderSuccess))
                 : Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.InternalServerError("Error in creating order"));
+                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
         }
 
-        // Step 7: If virtual account exists, process the order based on token pair
-        logger.LogInformation("Virtual account exists. Processing order for existing account.");
         if (request is { FromToken: Xrd, ToToken: Sol } or { FromToken: Sol, ToToken: Xrd })
         {
-            logger.LogInformation("Retrieving balance for virtual account {Address}", virtualAccount.Address);
             Result<decimal> balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
             if (!balance.IsSuccess)
             {
-                logger.LogError("Failed to retrieve balance: {Error}", balance.Error.Message);
+                logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
                 return Result<CreateOrderResponse>.Failure(balance.Error);
             }
 
-            logger.LogInformation("Balance retrieved: {Balance} SOL", balance.Value);
-
-            logger.LogInformation("Checking if balance is sufficient for transaction...");
             bool isTransactional = balance.Value > request.Amount;
 
-            logger.LogInformation("Creating new Order object for existing virtual account.");
             Order newOrder = new Order
             {
-                UserId = (Guid)userId,
+                UserId = userId,
                 CreatedBy = accessor.GetId(),
                 CreatedByIp = accessor.GetRemoteIpAddress(),
                 FromToken = request.FromToken,
@@ -183,49 +174,44 @@ public sealed class OrderService(
                 OrderStatus = OrderStatus.InsufficientFunds,
             };
 
-            // If balance is sufficient, proceed with executing withdrawal and deposit transactions
             if (isTransactional)
             {
-                logger.LogInformation("Balance is sufficient. Initiating transaction execution.");
                 Result<TransactionResponse> withdrawTrRs = default!;
                 Result<TransactionResponse> depositTrRs = default!;
                 Result<TransactionResponse> abortTrRs;
                 try
                 {
-                    logger.LogInformation("Executing withdrawal transaction for amount {Amount}", request.Amount);
                     withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
                         virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
                     {
-                        logger.LogError("Withdrawal transaction failed: {Error}", withdrawTrRs.Error.Message);
+                        logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                            DateTimeOffset.UtcNow - date);
                         return Result<CreateOrderResponse>.Failure(withdrawTrRs.Error);
                     }
 
-                    logger.LogInformation("Executing deposit transaction with converted amount {ConvertedAmount}",
-                        convertedAmount);
                     depositTrRs = await depositBridge.DepositAsync(convertedAmount, request.DestinationAddress);
                     if (!depositTrRs.IsSuccess)
                     {
-                        logger.LogWarning("Deposit transaction failed, attempting to abort withdrawal...");
                         abortTrRs = await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
                         if (!abortTrRs.IsSuccess)
                         {
-                            logger.LogError("Abort withdrawal failed: {Error}", abortTrRs.Error.Message);
+                            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                                DateTimeOffset.UtcNow - date);
                             return Result<CreateOrderResponse>.Failure(abortTrRs.Error);
                         }
 
-                        logger.LogWarning("Returning deposit transaction error: {Error}",
-                            depositTrRs.Error.Message);
+                        logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                            DateTimeOffset.UtcNow - date);
                         return Result<CreateOrderResponse>.Failure(depositTrRs.Error);
                     }
 
-                    logger.LogInformation("Retrieving transaction status for deposit transaction...");
                     Result<BridgeTransactionStatus> transactionStatus =
                         await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
                     if (!transactionStatus.IsSuccess)
                     {
-                        logger.LogError("Failed to retrieve transaction status: {Error}",
-                            transactionStatus.Error.Message);
+                        logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                            DateTimeOffset.UtcNow - date);
                         return Result<CreateOrderResponse>.Failure(transactionStatus.Error);
                     }
 
@@ -240,228 +226,212 @@ public sealed class OrderService(
                         BridgeTransactionStatus.InsufficientFundsForFee => OrderStatus.InsufficientFundsForFee,
                         _ => OrderStatus.NotFound
                     };
-                    logger.LogInformation("Transaction status interpreted as: {Status}", orderStatus);
 
                     newOrder.OrderStatus = orderStatus;
                     newOrder.TransactionHash = depositTrRs.Value?.TransactionId;
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Exception during transaction execution.");
+                    logger.OperationException(nameof(CreateOrderAsync), e.Message);
                     if (withdrawTrRs.IsSuccess && (depositTrRs is null || !depositTrRs.IsSuccess))
                     {
-                        logger.LogInformation(
-                            "Attempting to abort withdrawal due to failure in deposit transaction.");
                         abortTrRs = await withdrawBridge.DepositAsync(request.Amount, virtualAccount.Address);
                         if (!abortTrRs.IsSuccess)
                         {
-                            logger.LogError("Abort withdrawal failed: {Error}", abortTrRs.Error.Message);
+                            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                                DateTimeOffset.UtcNow - date);
                             return Result<CreateOrderResponse>.Failure(abortTrRs.Error);
                         }
                     }
 
-                    logger.LogError("Returning error due to exception: {Error}", e.Message);
+                    logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                        DateTimeOffset.UtcNow - date);
                     return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
                 }
             }
 
-            logger.LogInformation("Saving new order to the database for existing virtual account.");
             await dbContext.Orders.AddAsync(newOrder, token);
+            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             int res = await dbContext.SaveChangesAsync(token);
-            logger.LogInformation("Database save result: {Result}", res);
             return res != 0
                 ? Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id, "Order created"))
                 : Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.InternalServerError("Could not create order"));
+                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
         }
 
-        logger.LogInformation("Unsupported token pair. Exiting CreateOrderAsync.");
-        return Result<CreateOrderResponse>.Failure(ResultPatternError.BadRequest("Unsupported token pair"));
+        logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow - date);
+        return Result<CreateOrderResponse>.Failure(ResultPatternError.BadRequest(Messages.CreateOrderUnsupported));
     }
 
-    // Validates the incoming CreateOrderRequest
+    /// <summary>
+    /// Validates the details of the incoming order request by checking the user ID, 
+    /// network validity, token symbols, and destination address format. 
+    /// Ensures the provided amount is greater than zero and that the networks and 
+    /// tokens involved are available in the database.
+    /// </summary>
+    /// <param name="userId">The user ID for the account creating the order.</param>
+    /// <param name="request">The order request to validate.</param>
+    /// <param name="token">Cancellation token to support cancellation of the operation.</param>
+    /// <returns>A <see cref="Result{CreateOrderResponse}"/> object indicating whether 
+    /// the validation was successful, or containing error details.</returns>
     private async Task<Result<CreateOrderResponse>> ValidateRequestAsync(Guid? userId, CreateOrderRequest request,
         CancellationToken token)
     {
         try
         {
-            logger.LogInformation("Starting ValidateRequestAsync at {Time}", DateTimeOffset.UtcNow);
-            token.ThrowIfCancellationRequested();
-
             if (!await dbContext.Users.AnyAsync(x => x.Id == userId, token))
-            {
-                logger.LogWarning("User with ID {UserId} not found.", userId);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.NotFound($"User with Id: {userId} not found"));
-            }
+                    ResultPatternError.NotFound(Messages.UserNotFound));
 
             if (!await dbContext.Networks.AnyAsync(x => x.Name == request.FromNetwork, token))
-            {
-                logger.LogWarning("Network with Name {Network} not found.", request.FromNetwork);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.NotFound($"Network with Name: {request.FromNetwork} not found"));
-            }
+                    ResultPatternError.NotFound(Messages.NetworkNotFound));
 
             if (!await dbContext.Networks.AnyAsync(x => x.Name == request.ToNetwork, token))
-            {
-                logger.LogWarning("Network with Name {Network} not found.", request.ToNetwork);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.NotFound($"Network with Name: {request.ToNetwork} not found"));
-            }
+                    ResultPatternError.NotFound(Messages.NetworkNotFound));
 
             if (!await dbContext.NetworkTokens.AnyAsync(x => x.Symbol == request.FromToken, token))
-            {
-                logger.LogWarning("Token with Symbol {Token} not found.", request.FromToken);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.NotFound($"Token with Symbol: {request.FromToken} not found"));
-            }
+                    ResultPatternError.NotFound(Messages.NetworkTokenNotFound));
 
             if (!await dbContext.NetworkTokens.AnyAsync(x => x.Symbol == request.ToToken, token))
-            {
-                logger.LogWarning("Token with Symbol {Token} not found.", request.ToToken);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.NotFound($"Token with Symbol: {request.ToToken} not found"));
-            }
+                    ResultPatternError.NotFound(Messages.NetworkTokenNotFound));
+
 
             if (request.Amount <= 0)
-            {
-                logger.LogWarning("Invalid amount: {Amount}. Must be greater than zero.", request.Amount);
                 return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.BadRequest("Amount must be greater than zero."));
-            }
+                    ResultPatternError.BadRequest(Messages.CreateOrderAmountFilter));
 
-            // Validate destination address format based on network
             if (request.FromToken == Xrd)
             {
-                logger.LogInformation("Validating destination address as Solana address.");
                 bool check = IsValidSolanaAddress(request.DestinationAddress);
                 if (!check)
-                {
-                    logger.LogWarning("Invalid Solana address format: {Address}", request.DestinationAddress);
                     return Result<CreateOrderResponse>.Failure(
-                        ResultPatternError.BadRequest("Invalid Solana format address"));
-                }
+                        ResultPatternError.BadRequest(Messages.InvalidSolanaFormat));
             }
             else
             {
-                logger.LogInformation("Validating destination address as Radix address.");
                 bool check = IsValidRadixAddress(request.DestinationAddress);
                 if (!check)
-                {
-                    logger.LogWarning("Invalid Radix address format: {Address}", request.DestinationAddress);
                     return Result<CreateOrderResponse>.Failure(
-                        ResultPatternError.BadRequest("Invalid Radix format address"));
-                }
+                        ResultPatternError.BadRequest(Messages.InvalidAddressRadixFormat));
             }
 
-            logger.LogInformation("Validation completed successfully at {Time}", DateTimeOffset.UtcNow);
             return Result<CreateOrderResponse>.Success();
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Exception in ValidateRequestAsync: {Message}", e.Message);
+            logger.OperationException(nameof(ValidateRequestAsync), e.Message);
             return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
         }
     }
 
-    // Checks the balance and processes the order if funds are sufficient
+    /// <summary>
+    /// Checks the balance of a user's virtual account, validates the order status, 
+    /// and performs necessary actions based on the current state of the order. 
+    /// This includes handling different order statuses (Completed, Pending, Expired, etc.), 
+    /// ensuring sufficient funds for transactions, and processing funds transfers between networks.
+    /// </summary>
+    /// <param name="orderId">The unique identifier for the order.</param>
+    /// <param name="token">Cancellation token for task cancellation (default is none).</param>
+    /// <returns>A result containing the check balance response or an error message.</returns>
     public async Task<Result<CheckBalanceResponse>> CheckBalanceAsync(Guid orderId,
         CancellationToken token = default)
     {
-        logger.LogInformation("Starting CheckBalanceAsync for order {OrderId} at {Time}", orderId,
-            DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(CheckBalanceAsync), date);
+
 
         Order? order = await dbContext.Orders.FirstOrDefaultAsync(x => x.Id == orderId, token);
         if (order is null)
         {
-            logger.LogWarning("Order with ID {OrderId} not found.", orderId);
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return Result<CheckBalanceResponse>.Failure(
-                ResultPatternError.NotFound($"Order with Id: {orderId} not found"));
+                ResultPatternError.NotFound(Messages.OrderNotFound));
         }
 
-        logger.LogInformation("Determining withdrawal and deposit bridges based on token pair.");
         IBridge withdrawBridge = order.FromToken == Xrd ? radixBridge : solanaBridge;
         IBridge depositBridge = order.FromToken == Xrd ? solanaBridge : radixBridge;
 
-        logger.LogInformation("Retrieving virtual account for user {UserId} on network {Network}", order.UserId,
-            order.FromNetwork);
+
         VirtualAccount? virtualAccount = await dbContext.VirtualAccounts
             .AsNoTracking()
             .Include(x => x.Network)
-            .FirstOrDefaultAsync(x => x.UserId == order.UserId && x.Network.Name == order.FromNetwork, token);
+            .FirstOrDefaultAsync(x
+                => x.UserId == order.UserId && x.Network.Name == order.FromNetwork, token);
         if (virtualAccount is null)
         {
-            logger.LogWarning("Virtual account not found for user {UserId}.", order.UserId);
-            return Result<CheckBalanceResponse>.Failure(ResultPatternError.NotFound("Virtual account not found"));
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<CheckBalanceResponse>.Failure(ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
         }
 
-        logger.LogInformation("Retrieving exchange rate for order {OrderId}", order.Id);
         ExchangeRate exchangeRate =
             await dbContext.ExchangeRates.FirstOrDefaultAsync(x => x.Id == order.ExchangeRateId, token) ?? new();
         decimal convertedAmount = exchangeRate.Rate * order.Amount;
-        logger.LogInformation("Exchange rate: {Rate}, Converted amount: {ConvertedAmount}", exchangeRate.Rate,
-            convertedAmount);
 
-        logger.LogInformation("Retrieving balance for virtual account at address {Address}",
-            virtualAccount.Address);
         Result<decimal> balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
         if (!balance.IsSuccess)
         {
-            logger.LogError("Failed to retrieve balance: {Error}", balance.Error.Message);
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return Result<CheckBalanceResponse>.Failure(balance.Error);
         }
 
-        // If order already completed, simply return the balance information.
         if (order.OrderStatus == OrderStatus.Completed)
         {
-            logger.LogInformation("Order {OrderId} already completed.", order.Id);
-            return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<CheckBalanceResponse>.Success(new(
                 order.Id,
                 order.FromNetwork,
                 order.FromToken,
                 balance.Value,
                 0,
                 order.OrderStatus.ToString(),
-                "Order is already completed.",
+                Messages.OrderAlreadyCompleted,
                 order.TransactionHash));
         }
 
-        // Check if the order has expired (more than 10 minutes since creation)
         bool isExpired = (DateTimeOffset.UtcNow - order.CreatedAt).TotalMinutes > 10;
         if (isExpired)
         {
             int res = 1;
             if (order.OrderStatus != OrderStatus.Expired)
             {
-                logger.LogInformation("Order {OrderId} has expired. Cancelling order...", order.Id);
                 order.OrderStatus = OrderStatus.Expired;
                 res = await dbContext.SaveChangesAsync(token);
             }
 
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return res != 0
-                ? Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
+                ? Result<CheckBalanceResponse>.Success(new(
                     order.Id,
                     order.FromNetwork,
                     order.FromToken,
                     balance.Value,
                     order.Amount,
                     OrderStatus.Expired.ToString(),
-                    "Order is canceled.",
+                    Messages.OrderCanceled,
                     order.TransactionHash))
                 : Result<CheckBalanceResponse>.Failure(
-                    ResultPatternError.InternalServerError("Data about transaction not updated"));
+                    ResultPatternError.InternalServerError(Messages.CheckBalanceFailed));
         }
 
         if (order.OrderStatus == OrderStatus.Pending)
         {
-            logger.LogInformation("Retrieving transaction status for deposit transaction...");
             Result<BridgeTransactionStatus> transactionStatus =
                 await depositBridge.GetTransactionStatusAsync(order.TransactionHash!, token);
             if (!transactionStatus.IsSuccess)
             {
-                logger.LogError("Failed to retrieve transaction status: {Error}",
-                    transactionStatus.Error.Message);
+                logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
                 return Result<CheckBalanceResponse>.Failure(transactionStatus.Error);
             }
 
@@ -476,88 +446,80 @@ public sealed class OrderService(
                 BridgeTransactionStatus.InsufficientFundsForFee => OrderStatus.InsufficientFundsForFee,
                 _ => OrderStatus.NotFound
             };
-            logger.LogInformation("Transaction status interpreted as: {Status}", orderStatus);
 
             order.OrderStatus = orderStatus;
             await dbContext.SaveChangesAsync(token);
 
-            return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<CheckBalanceResponse>.Success(new(
                 order.Id,
                 order.FromNetwork,
                 order.FromToken,
                 balance.Value,
                 order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
                 order.OrderStatus.ToString(),
-                order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
+                order.OrderStatus == OrderStatus.Completed ? Messages.OrderAlreadyCompleted : "",
                 order.TransactionHash));
         }
 
-        // If balance is insufficient to cover the order amount
         if (balance.Value <= order.Amount && order.OrderStatus != OrderStatus.Completed &&
             order.OrderStatus != OrderStatus.Canceled && order.OrderStatus != OrderStatus.Expired &&
             order.OrderStatus != OrderStatus.Pending)
         {
-            logger.LogInformation("Insufficient funds for order {OrderId}. Balance: {Balance}, Required: {Amount}",
-                order.Id, balance.Value, order.Amount);
-            return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<CheckBalanceResponse>.Success(new(
                 order.Id,
                 order.FromNetwork,
                 order.FromToken,
                 balance.Value,
                 order.Amount,
                 order.OrderStatus.ToString(),
-                "Insufficient funds. Waiting for replenishment or insufficient funds to cover transaction fees.",
+                Messages.OrderInsufficientFunds,
                 order.TransactionHash));
         }
 
-        // Otherwise, if balance is sufficient, process the transaction
         if (balance.Value > order.Amount && order.OrderStatus != OrderStatus.Canceled &&
             order.OrderStatus != OrderStatus.Completed && order.OrderStatus != OrderStatus.Expired &&
             order.OrderStatus != OrderStatus.Pending)
         {
-            logger.LogInformation(
-                "Sufficient funds detected for order {OrderId}. Initiating transaction processing...", order.Id);
-
             Result<TransactionResponse> withdrawTrRs = default!;
             Result<TransactionResponse> depositTrRs = default!;
             Result<TransactionResponse> abortTrRs;
             try
             {
-                logger.LogInformation("Executing withdrawal transaction for order {OrderId}...", order.Id);
                 withdrawTrRs = await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address,
                     virtualAccount.PrivateKey);
                 if (!withdrawTrRs.IsSuccess)
                 {
-                    logger.LogError("Withdrawal transaction failed: {Error}", withdrawTrRs.Error.Message);
+                    logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                        DateTimeOffset.UtcNow - date);
                     return Result<CheckBalanceResponse>.Failure(withdrawTrRs.Error);
                 }
 
-                logger.LogInformation(
-                    "Executing deposit transaction for order {OrderId} with converted amount {ConvertedAmount}...",
-                    order.Id, convertedAmount);
                 depositTrRs = await depositBridge.DepositAsync(convertedAmount, order.DestinationAddress);
                 if (!depositTrRs.IsSuccess)
                 {
-                    logger.LogWarning(
-                        "Deposit transaction failed, initiating abort withdrawal for order {OrderId}...", order.Id);
                     abortTrRs = await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
                     if (!abortTrRs.IsSuccess)
                     {
-                        logger.LogError("Abort withdrawal failed: {Error}", abortTrRs.Error.Message);
+                        logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                            DateTimeOffset.UtcNow - date);
                         return Result<CheckBalanceResponse>.Failure(abortTrRs.Error);
                     }
 
-                    logger.LogWarning("Deposit transaction failed. Returning error.");
+                    logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                        DateTimeOffset.UtcNow - date);
                     return Result<CheckBalanceResponse>.Failure(depositTrRs.Error);
                 }
 
-                logger.LogInformation("Retrieving transaction status for deposit transaction...");
                 Result<BridgeTransactionStatus> transactionStatus =
                     await depositBridge.GetTransactionStatusAsync(depositTrRs.Value?.TransactionId!, token);
                 if (!transactionStatus.IsSuccess)
                 {
-                    logger.LogError("Failed to retrieve transaction status: {Error}",
-                        transactionStatus.Error.Message);
+                    logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                        DateTimeOffset.UtcNow - date);
                     return Result<CheckBalanceResponse>.Failure(transactionStatus.Error);
                 }
 
@@ -572,37 +534,40 @@ public sealed class OrderService(
                     BridgeTransactionStatus.InsufficientFundsForFee => OrderStatus.InsufficientFundsForFee,
                     _ => OrderStatus.NotFound
                 };
-                logger.LogInformation("Transaction status for order {OrderId} determined as: {Status}", order.Id,
-                    orderStatus);
-
                 order.OrderStatus = orderStatus;
                 order.TransactionHash = depositTrRs.Value?.TransactionId;
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Exception occurred during transaction processing for order {OrderId}",
-                    order.Id);
+                logger.OperationException(nameof(CheckBalanceAsync), e.Message);
                 if (withdrawTrRs.IsSuccess && (depositTrRs is null || !depositTrRs.IsSuccess))
                 {
-                    logger.LogInformation("Attempting to abort withdrawal due to exception for order {OrderId}...",
-                        order.Id);
                     abortTrRs = await withdrawBridge.DepositAsync(order.Amount, virtualAccount.Address);
                     if (!abortTrRs.IsSuccess)
                     {
-                        logger.LogError("Abort withdrawal failed: {Error}", abortTrRs.Error.Message);
+                        logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                            DateTimeOffset.UtcNow - date);
                         return Result<CheckBalanceResponse>.Failure(abortTrRs.Error);
                     }
                 }
 
+                logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
                 return Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
             }
 
-            logger.LogInformation("Saving updated order status to database for order {OrderId}...", order.Id);
             await dbContext.SaveChangesAsync(token);
-            logger.LogInformation("Database save result for order {OrderId}: ", order.Id);
 
             Result<decimal> nowBalance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
-            if (!nowBalance.IsSuccess) return Result<CheckBalanceResponse>.Failure(nowBalance.Error);
+            if (!nowBalance.IsSuccess)
+            {
+                logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<CheckBalanceResponse>.Failure(nowBalance.Error);
+            }
+
+            logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
                 order.Id,
                 order.FromNetwork,
@@ -610,12 +575,12 @@ public sealed class OrderService(
                 nowBalance.Value,
                 order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
                 order.OrderStatus.ToString(),
-                order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
+                order.OrderStatus == OrderStatus.Completed ? Messages.OrderAlreadyCompleted : "",
                 order.TransactionHash));
         }
 
-        // Final fallback response if none of the above conditions are met
-        logger.LogInformation("Returning default CheckBalanceResponse for order {OrderId}", order.Id);
+        logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow - date);
         return Result<CheckBalanceResponse>.Success(new CheckBalanceResponse(
             order.Id,
             order.FromNetwork,
@@ -623,14 +588,27 @@ public sealed class OrderService(
             balance.Value,
             order.OrderStatus != OrderStatus.Completed ? order.Amount : 0,
             order.OrderStatus.ToString(),
-            order.OrderStatus == OrderStatus.Completed ? "Order is already completed." : "",
+            order.OrderStatus == OrderStatus.Completed ? Messages.OrderAlreadyCompleted : "",
             order.TransactionHash));
     }
 
 
+    /// <summary>
+    /// Validates if a given Solana address is correctly formatted. 
+    /// A valid Solana address must be 44 characters long and only contain alphanumeric characters.
+    /// </summary>
+    /// <param name="address">The Solana address to validate.</param>
+    /// <returns>Returns true if the address is valid, otherwise false.</returns>
     private bool IsValidSolanaAddress(string address)
         => address.Length == 44 && address.All(char.IsLetterOrDigit);
 
+    /// <summary>
+    /// Validates if a given Radix address starts with the correct prefix "account_tdx_". 
+    /// This ensures that the address follows the expected format for Radix accounts.
+    /// </summary>
+    /// <param name="address">The Radix address to validate.</param>
+    /// <returns>Returns true if the address starts with "account_tdx_", otherwise false.</returns>
     private bool IsValidRadixAddress(string address)
         => address.StartsWith("account_tdx_");
+
 }

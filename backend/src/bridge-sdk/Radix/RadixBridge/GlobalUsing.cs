@@ -14,6 +14,7 @@ global using NBitcoin.DataEncoders;
 global using Microsoft.Extensions.Logging;
 global using RadixBridge.DTOs.Transaction;
 global using System.Security.Cryptography;
+global using BuildingBlocks.Extensions.Logger;
 global using RadixBridge.DTOs.GetAccountBalance;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using RadixBridge.DTOs.GetConstructionMetadata;

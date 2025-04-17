@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 namespace Common.Extensions;
 
 public static class ConfigurationExtensions
@@ -17,7 +15,8 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidOperationException($"Configuration value for '{key}' is required and was not found or empty.");
+            throw new InvalidOperationException(
+                $"Configuration value for '{key}' is required and was not found or empty.");
 
         return value;
     }
@@ -35,7 +34,8 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (!int.TryParse(value, out int result))
-            throw new InvalidOperationException($"Configuration value for '{key}' must be a valid integer. Found: '{value}'.");
+            throw new InvalidOperationException(
+                $"Configuration value for '{key}' must be a valid integer. Found: '{value}'.");
 
         return result;
     }
@@ -53,7 +53,8 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (!bool.TryParse(value, out bool result))
-            throw new InvalidOperationException($"Configuration value for '{key}' must be a valid boolean. Found: '{value}'.");
+            throw new InvalidOperationException(
+                $"Configuration value for '{key}' must be a valid boolean. Found: '{value}'.");
 
         return result;
     }

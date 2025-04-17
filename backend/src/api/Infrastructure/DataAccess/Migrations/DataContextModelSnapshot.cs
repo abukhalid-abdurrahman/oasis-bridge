@@ -970,6 +970,70 @@ namespace Infrastructure.DataAccess.Migrations
                     b.ToTable("VirtualAccounts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.WalletLinkedAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeletedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("UpdatedByIp")
+                        .HasColumnType("text[]");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NetworkId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WalletLinkedAccounts");
+                });
+
             modelBuilder.Entity("Domain.Entities.AccountBalance", b =>
                 {
                     b.HasOne("Domain.Entities.NetworkToken", "NetworkToken")
@@ -1131,6 +1195,25 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.WalletLinkedAccount", b =>
+                {
+                    b.HasOne("Domain.Entities.Network", "Network")
+                        .WithMany("WalletLinkedAccounts")
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("WalletLinkedAccounts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Network");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.ExchangeRate", b =>
                 {
                     b.Navigation("Orders");
@@ -1141,6 +1224,8 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("NetworkTokens");
 
                     b.Navigation("VirtualAccounts");
+
+                    b.Navigation("WalletLinkedAccounts");
                 });
 
             modelBuilder.Entity("Domain.Entities.NetworkToken", b =>
@@ -1170,6 +1255,8 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("UserVerificationCodes");
 
                     b.Navigation("VirtualAccounts");
+
+                    b.Navigation("WalletLinkedAccounts");
                 });
 
             modelBuilder.Entity("Domain.Entities.VirtualAccount", b =>

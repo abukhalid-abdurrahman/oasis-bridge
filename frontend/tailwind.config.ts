@@ -10,6 +10,7 @@ export default {
   theme: {
   	extend: {
   		colors: {
+				backgroundWebsite: 'var(--backgroundWebsite)',
   			background: 'hsl(var(--background))',
   			gray: 'var(--gray)',
   			darkGray: 'var(--dark-gray)',

@@ -31,6 +31,7 @@ global using System.IdentityModel.Tokens.Jwt;
 global using Application.DTOs.Role.Responses;
 global using Application.DTOs.User.Responses;
 global using Application.DTOs.Order.Requests;
+global using BuildingBlocks.Extensions.Logger;
 global using Application.DTOs.Order.Responses;
 global using Application.DTOs.Network.Requests;
 global using Application.Extensions.Algorithms;
@@ -40,6 +41,7 @@ global using Application.DTOs.Network.Responses;
 global using Application.DTOs.Account.Responses;
 global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.UserRole.Responses;
+global using BuildingBlocks.Extensions.Resources;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Application.DTOs.NetworkToken.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
@@ -48,7 +50,8 @@ global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
 global using Application.DTOs.VirtualAccount.Responses;
+global using Application.DTOs.WalletLinkedAccount.Requests;
+global using Application.DTOs.WalletLinkedAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 

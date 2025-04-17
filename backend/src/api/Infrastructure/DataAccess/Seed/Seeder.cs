@@ -3,6 +3,22 @@ using Role = Domain.Entities.Role;
 
 namespace Infrastructure.DataAccess.Seed;
 
+/// <summary>
+/// Handles initial data seeding for the application.
+///
+/// This class populates the database with essential entities such as:
+/// - Roles (e.g., Admin, User)
+/// - Users and their Role mappings
+/// - Supported Blockchain Networks and Tokens
+///
+/// The seeding is idempotent: it checks for existing records before inserting,
+/// ensuring safe and repeatable execution.
+///
+/// Useful for system bootstrapping, testing, and CI/CD automation.
+///
+/// Note: Uses predefined seed data from <see cref="SeedData"/> and <see cref="BridgeSeedData"/>.
+/// </summary>
+
 public class Seeder(DataContext dbContext)
 {
     public async Task InitialAsync()
