@@ -1,30 +1,30 @@
 "use client";
 
 import { chartExample } from "@/lib/helpers/chartExample";
-import { AreaSeries, createChart } from "lightweight-charts";
+import { AreaSeries, createChart, LineStyle } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 
-export default function Chart() {
+export default function Chart({ className }: { className?: string }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const chart = createChart(chartContainerRef.current!, {
-      width: 750,
-      height: 400,
       layout: {
         attributionLogo: false,
         background: {
           type: "solid" as any,
-          color: "#131722",
+          color: "transparent",
         },
         textColor: "#d1d4dc",
       },
       grid: {
         vertLines: {
-          color: "rgba(42, 46, 57, 0)",
+          color: "rgba(255, 255, 255, 0.15)",
+          style: LineStyle.LargeDashed,
         },
         horzLines: {
-          color: "rgba(42, 46, 57, 0.6)",
+          color: "rgba(255, 255, 255, 0.15)",
+          style: LineStyle.LargeDashed
         },
       },
     });
@@ -43,9 +43,11 @@ export default function Chart() {
   }, []);
 
   return (
-    <div
-      className="bg-[#131722] w-[780px] h-[430px] flex justify-center items-center rounded-2xl"
-      ref={chartContainerRef}
-    />
+    <div className={`overflow-hidden px-2 rounded-2xl ${className}`}>
+      <div
+        className="w-full h-full flex justify-center items-center lg:h-96"
+        ref={chartContainerRef}
+      />
+    </div>
   );
 }
