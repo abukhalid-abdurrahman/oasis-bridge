@@ -7,6 +7,10 @@ export const shortAddress = (address: string) => {
   }
 };
 
+export const shortDescription = (description: string) => {
+  return `${description.slice(0, 30)}...`;
+};
+
 export const parseJwt = (token: string) => {
   if (!token) {
     return;

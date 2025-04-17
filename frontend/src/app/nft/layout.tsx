@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create NFT",
+  title: "NFT Market",
 };
 
-export default function CreateNftLayout({
+export default function NftLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

@@ -23,10 +23,10 @@ export default function RootLayout({
     <html lang="en">
       <body
         style={{ backgroundImage: `url(/bg3.png)`, backgroundSize: "cover" }}
-        className={`${dmSans.className} antialiased md:!px-5 min-h-screen`}
+        className={`${dmSans.className} antialiased min-h-screen`}
       >
         <TanstackProvider>
-          <main className="main max-w-[1200px] mx-auto w-full">
+          <main className="main w-full">
             {children}
           </main>
         </TanstackProvider>

@@ -28,7 +28,7 @@ export default async function Header({
               <Link href="/">Swap</Link>
             </li>
             <li className="">
-              <Link href="#">NFT Market</Link>
+              <Link href="/nft">NFT Market</Link>
             </li>
           </ul>
         </div>
