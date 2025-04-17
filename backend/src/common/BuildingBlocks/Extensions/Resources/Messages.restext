@@ -95,3 +95,5 @@ RadixGetTransactionStatusFailed=Error in Radix GetTransactionStatus method.
 IpfsUploadEmptyFile=The file is not provided or is empty.
 IpfsInvalidTypeFile=Invalid file type.
 IpfsSuccessMessageFile=File successfully uploaded.
+IpfsFileNotFound=File not found.
+IpfsInvalidFormatCid=Ipfs invalid-format cid

@@ -35,4 +35,48 @@ public sealed class IpfsService(
             return Result<FileUploadResponse>.Failure(ResultPatternError.InternalServerError(ex.Message));
         }
     }
+
+    public async Task<Result<byte[]>> GetFileAsync(string cid, CancellationToken token = default)
+    {
+        DateTimeOffset started = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetFileAsync), started);
+
+        try
+        {
+            if (!IpfsValidator.IsValidCidV0(cid))
+                return Result<byte[]>.Failure(ResultPatternError.BadRequest(Messages.IpfsInvalidFormatCid));
+
+            IAsyncEnumerable<ReadOnlyMemory<byte>> fileChunks = fileStorage.GetAsync(cid, token: token);
+
+            await using MemoryStream memoryStream = new();
+
+            await foreach (ReadOnlyMemory<byte> chunk in fileChunks)
+            {
+                await memoryStream.WriteAsync(chunk, token);
+            }
+
+            if (memoryStream.Length == 0)
+                return Result<byte[]>.Failure(ResultPatternError.NotFound(Messages.IpfsFileNotFound));
+
+            byte[] resultBytes = memoryStream.ToArray();
+
+            logger.OperationCompleted(nameof(GetFileAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - started);
+            return Result<byte[]>.Success(resultBytes);
+        }
+        catch (FileNotFoundException fnfEx)
+        {
+            logger.OperationException(nameof(GetFileAsync), fnfEx.Message);
+            return Result<byte[]>.Failure(ResultPatternError.NotFound(fnfEx.Message));
+        }
+        catch (IOException ioEx)
+        {
+            logger.OperationException(nameof(GetFileAsync), ioEx.Message);
+            return Result<byte[]>.Failure(ResultPatternError.InternalServerError(ioEx.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetFileAsync), ex.Message);
+            return Result<byte[]>.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
 }

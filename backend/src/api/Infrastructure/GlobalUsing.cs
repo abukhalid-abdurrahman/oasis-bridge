@@ -11,6 +11,7 @@ global using Domain.Constants;
 global using Common.Contracts;
 global using RadixBridge.Enums;
 global using System.Reflection;
+global using Common.Validations;
 global using RadixEngineToolkit;
 global using Application.Filters;
 global using Application.Contracts;

@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace API.Infrastructure.DI;
 
 /// <summary>
@@ -58,6 +56,7 @@ public static class RegisterServices
                 );
             });
 
+        builder.Services.Configure<FormOptions>(options => { options.MultipartBodyLengthLimit = 2073741824; });
 
         return builder;
     }
