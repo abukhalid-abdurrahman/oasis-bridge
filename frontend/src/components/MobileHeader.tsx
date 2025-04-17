@@ -83,7 +83,7 @@ export default function MobileHeader({
                 Swap
               </Link>
               <Link
-                href="#"
+                href="/nft"
                 className="w-full flex gap-2 items-center"
               >
                 <ChartCandlestick size={5} strokeWidth={1} className="mr-1" />
