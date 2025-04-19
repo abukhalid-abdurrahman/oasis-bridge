@@ -13,9 +13,9 @@ public static class RegisterMiddlewares
         app.UseHttpLogging();
         //app.UseHttpsRedirection();
         app.UseExceptionHandler("/error");
+        app.UseResponseCaching();
         app.UseResponseCompression();
         //app.UseRateLimiter();
-
         app.UseCors("AllowAll");
 
         app.UseRouting();

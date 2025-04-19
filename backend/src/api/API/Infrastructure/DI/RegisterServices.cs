@@ -27,6 +27,8 @@ public static class RegisterServices
         builder.AddCorsService();
         // Register Ipfs services
         builder.AddIpfsService();
+        // Register cache-settings
+        builder.AddCacheService();
         // Register email-related services
         builder.AddEmailService();
         // Register bridge-specific services (likely for specific business logic)

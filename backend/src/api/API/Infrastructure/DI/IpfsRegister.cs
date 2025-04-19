@@ -18,14 +18,10 @@ public static class IpfsRegister
     {
         // Registering IPFS services using application configuration.
         builder.Services.AddIpfs(builder.Configuration);
-        
-        // Register image-optimizer services
-        builder.Services.AddScoped<IImageOptimizer, ImageOptimizer>();
 
         // Register ipfs-services
         builder.Services.AddScoped<IIpfsService, IpfsService>();
-
-        // Returning the builder for method chaining.
+        
         return builder;
     }
 }

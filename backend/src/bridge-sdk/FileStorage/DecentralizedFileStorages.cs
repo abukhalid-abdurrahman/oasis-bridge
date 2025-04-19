@@ -1,4 +1,4 @@
-using Common.Extensions;
+using BuildingBlocks.Extensions;
 using Ipfs.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

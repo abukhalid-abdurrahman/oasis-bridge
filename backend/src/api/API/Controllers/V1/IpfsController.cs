@@ -6,7 +6,7 @@ namespace API.Controllers.V1;
 /// </summary>
 [Route($"{ApiAddress.Base}/files")]
 [AllowAnonymous]
-public sealed class IpfsController(IIpfsService service, IImageOptimizer imageOptimizer) : V1BaseController
+public sealed class IpfsController(IIpfsService service, IConfiguration config) : V1BaseController
 {
     /// <summary>
     /// Uploads a file to the IPFS network.
@@ -30,12 +30,14 @@ public sealed class IpfsController(IIpfsService service, IImageOptimizer imageOp
     [HttpGet("full/{cid:required}")]
     public async Task<IActionResult> GetAsync(string cid, CancellationToken token)
     {
+        const string contentType = "application/octet-stream";
+
         Result<byte[]> result = await service.GetFileAsync(cid, token);
 
         if (!result.IsSuccess)
             return result.ToActionResult();
 
-        return File(result.Value!, "application/octet-stream", cid);
+        return File(result.Value!, contentType, cid);
     }
 
     /// <summary>
@@ -47,6 +49,7 @@ public sealed class IpfsController(IIpfsService service, IImageOptimizer imageOp
     /// <param name="token">Cancellation token to cancel the operation if needed.</param>
     /// <returns>Compressed WebP image with cache headers or an error message.</returns>
     [HttpGet("nft-logo/{fileId:required}/optimized")]
+    [ResponseCache(CacheProfileName = CacheProfileNames.OptimizedNftLogoCache)]
     public async Task<IActionResult> GetOptimizedNftLogoAsync(string fileId, CancellationToken token)
     {
         Result<byte[]> result = await service.GetFileAsync(fileId, token);
@@ -54,20 +57,19 @@ public sealed class IpfsController(IIpfsService service, IImageOptimizer imageOp
         if (!result.IsSuccess)
             return result.ToActionResult();
 
+        const string contentType = "image/webp";
+        const string quality = "imageOptimizer:quality";
+
         try
         {
-            byte[] optimizedImage = await imageOptimizer.OptimizeImageAsync(result.Value!);
-
-            string contentType = "image/webp";
-
-            // Cache image for 1 week (604800 seconds)
-            Response.Headers["Cache-Control"] = "public, max-age=604800";
+            byte[] optimizedImage =
+                await ImageOptimizer.OptimizeImageAsync(result.Value!, config.GetRequiredInt(quality));
 
             return File(optimizedImage, contentType);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 }
