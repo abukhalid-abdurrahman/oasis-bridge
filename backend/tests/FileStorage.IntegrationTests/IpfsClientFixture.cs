@@ -1,5 +1,4 @@
-using Common.Extensions;
-using Ipfs.CoreApi;
+using BuildingBlocks.Extensions;
 using Ipfs.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -8,7 +7,7 @@ namespace FileStorage.IntegrationTests;
 
 public sealed class IpfsClientFixture
 {
-    public IOptions<AddFileOptions> AddFileOptions { get; private set; }
+    public IOptions<IpfsOptions> AddFileOptions { get; private set; }
     public IpfsClient IpfsClient { get; private set; }
     public string Url { get; private set; }
 
@@ -21,7 +20,7 @@ public sealed class IpfsClientFixture
 
         Url = configuration.GetRequiredString("IpfsSettings:Url");
 
-        AddFileOptions = Options.Create(new AddFileOptions()
+        AddFileOptions = Options.Create(new IpfsOptions()
         {
             Pin = false
         });

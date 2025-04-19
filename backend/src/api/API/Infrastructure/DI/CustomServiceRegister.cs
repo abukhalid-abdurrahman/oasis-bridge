@@ -26,10 +26,10 @@ public static class CustomServiceRegister
 
         // Registering order-related services.
         builder.Services.AddScoped<IOrderService, OrderService>();
-
+        
         // Registering network-related services.
         builder.Services.AddScoped<INetworkService, NetworkService>();
-
+    
         // Registering identity-related services (authentication, registration, etc.).
         builder.Services.AddScoped<IIdentityService, IdentityService>();
 

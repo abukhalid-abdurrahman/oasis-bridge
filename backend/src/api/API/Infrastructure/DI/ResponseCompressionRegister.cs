@@ -24,6 +24,16 @@ public static class ResponseCompressionRegister
             options.Providers.Add<BrotliCompressionProvider>();
             options.Providers.Add<GzipCompressionProvider>();
         });
+
+        builder.Services.Configure<BrotliCompressionProviderOptions>(o =>
+        {
+            o.Level = CompressionLevel.Fastest;
+        });
+
+        builder.Services.Configure<GzipCompressionProviderOptions>(o =>
+        {
+            o.Level = CompressionLevel.Fastest;
+        });
         return builder;
     }
 }

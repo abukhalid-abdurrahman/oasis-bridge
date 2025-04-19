@@ -36,5 +36,6 @@ public enum ErrorType
     /// <summary>
     /// An unexpected internal server error occurred (HTTP 500).
     /// </summary>
-    InternalServerError
+    InternalServerError,
+    UnsupportedMediaType
 }

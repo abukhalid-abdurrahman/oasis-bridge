@@ -1,4 +1,4 @@
-namespace Common.Extensions;
+namespace BuildingBlocks.Extensions;
 
 public static class ConfigurationExtensions
 {

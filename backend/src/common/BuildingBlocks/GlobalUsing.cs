@@ -1,5 +1,6 @@
 global using System;
 global using MimeKit;
+global using System.Net;
 global using MimeKit.Text;
 global using MailKit.Net.Smtp;
 global using System.Resources;
@@ -7,4 +8,5 @@ global using DotNext.Resources;
 global using System.Threading.Tasks;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Configuration;
 global using BuildingBlocks.Extensions.ResultPattern;

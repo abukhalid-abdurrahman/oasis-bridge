@@ -1,5 +1,4 @@
-using Common.Extensions;
-using Ipfs.CoreApi;
+using BuildingBlocks.Extensions;
 using Ipfs.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +13,7 @@ public static class DecentralizedFileStorages
     private const string Pin = "ipfsOptions:pin";
     private const string ChunkSize = "ipfsOptions:chunkSize";
     private const string NodeUrl = "ipfsOptions:url";
+    private const string GatewayUrl = "ipfsOptions:gatewayUrl";
 
     /// <summary>
     /// Registers IPFS file storage implementation and its dependencies.
@@ -30,8 +30,9 @@ public static class DecentralizedFileStorages
         bool pin = configuration.GetRequiredBool(Pin);
         int chunkSize = configuration.GetRequiredInt(ChunkSize);
         string nodeUrl = configuration.GetRequiredString(NodeUrl);
+        string gatewayUrl = configuration.GetRequiredString(GatewayUrl);
 
-        ConfigureIpfsFileStorage(services, pin, chunkSize, nodeUrl);
+        ConfigureIpfsFileStorage(services, pin, chunkSize, nodeUrl,gatewayUrl);
         return services;
     }
 
@@ -42,15 +43,17 @@ public static class DecentralizedFileStorages
     /// <param name="pin">Whether to pin files when adding to IPFS.</param>
     /// <param name="chunkSize">The buffer size used when reading files from IPFS.</param>
     /// <param name="url">The URL of the IPFS node.</param>
-    private static void ConfigureIpfsFileStorage(IServiceCollection services, bool pin, int chunkSize, string url)
+    /// <param name="gatewayUrl"></param>
+    private static void ConfigureIpfsFileStorage(IServiceCollection services, bool pin, int chunkSize, string url,string gatewayUrl)
     {
-        services.Configure<AddFileOptions>(options =>
+        services.Configure<IpfsOptions>(options =>
         {
             options.Pin = pin;
             options.ChunkSize = chunkSize;
+            options.GatewayUrl = gatewayUrl;
         });
 
-        services.AddScoped<IpfsClient>(client =>
+        services.AddScoped<IpfsClient>(_ =>
             new()
             {
                 ApiUri = new Uri(url, UriKind.Absolute),
