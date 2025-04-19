@@ -28,7 +28,7 @@ public static class ResultExtensions
             ErrorType.AlreadyExist => new ConflictObjectResult(apiResponse),
             ErrorType.NotFound => new NotFoundObjectResult(apiResponse),
             ErrorType.BadRequest => new BadRequestObjectResult(apiResponse),
-            ErrorType.UnsupportedMediaType=>new UnsupportedMediaTypeResult(),
+            ErrorType.UnsupportedMediaType => new UnsupportedMediaTypeResult(),
             ErrorType.None => new OkObjectResult(apiResponse),
             _ => new ObjectResult(apiResponse) { StatusCode = 500 }
         };

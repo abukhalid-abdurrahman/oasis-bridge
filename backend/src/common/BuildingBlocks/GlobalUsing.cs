@@ -1,5 +1,6 @@
 global using System;
 global using MimeKit;
+global using System.Net;
 global using MimeKit.Text;
 global using MailKit.Net.Smtp;
 global using System.Resources;
