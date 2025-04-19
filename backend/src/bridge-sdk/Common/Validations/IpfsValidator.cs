@@ -1,14 +1,12 @@
 namespace Common.Validations;
 
-public static class IpfsValidator
+public static partial class IpfsValidator
 {
-    private static readonly Regex CidV0Regex = new("^Qm[1-9A-HJ-NP-Za-km-z]{44}$", RegexOptions.Compiled);
+    [GeneratedRegex("^Qm[1-9A-HJ-NP-Za-km-z]{44}$")]
+    private static partial Regex CidV0Regex();
 
     public static bool IsValidCidV0(string cid)
     {
-        if (string.IsNullOrWhiteSpace(cid))
-            return false;
-
-        return CidV0Regex.IsMatch(cid);
+        return CidV0Regex().IsMatch(cid);
     }
 }
