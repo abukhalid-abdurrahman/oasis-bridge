@@ -22,6 +22,7 @@ global using Infrastructure.DataAccess;
 global using Microsoft.AspNetCore.Http;
 global using Infrastructure.Extensions;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
 global using Microsoft.EntityFrameworkCore;
 global using Application.DTOs.File.Requests;
 global using Application.DTOs.User.Requests;

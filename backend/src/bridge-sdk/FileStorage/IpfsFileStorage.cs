@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using Ipfs;
-using Ipfs.CoreApi;
 using Ipfs.Http;
 using Microsoft.Extensions.Options;
 
@@ -10,7 +9,7 @@ namespace FileStorage;
 /// <summary>
 ///     Provides an implementation of decentralized file storage using the IPFS protocol.
 /// </summary>
-public sealed class IpfsFileStorage(IpfsClient ipfsClient, IOptions<AddFileOptions> fileOptions) : IDecentralizedFileStorage
+public sealed class IpfsFileStorage(IpfsClient ipfsClient, IOptions<IpfsOptions> fileOptions) : IDecentralizedFileStorage
 {
     /// <inheritdoc />
     public async Task<string> CreateAsync(Stream inputStream, string fileName, CancellationToken token = default)

@@ -7,7 +7,8 @@ namespace Infrastructure.ImplementationContract;
 /// </summary>
 public sealed class IpfsService(
     ILogger<IpfsService> logger,
-    IDecentralizedFileStorage fileStorage) : IIpfsService
+    IDecentralizedFileStorage fileStorage,
+    IOptionsMonitor<IpfsOptions> options) : IIpfsService
 {
     /// <summary>
     /// Uploads a file to the IPFS network.
@@ -37,7 +38,7 @@ public sealed class IpfsService(
         {
             await using Stream stream = request.File.OpenReadStream();
             string fileHash = await fileStorage.CreateAsync(stream, request.File.FileName, token);
-            string fileUrl = $"https://ipfs.io/ipfs/{fileHash}";
+            string fileUrl = options.CurrentValue.GatewayUrl + fileHash;
 
             logger.OperationCompleted(nameof(UploadFileAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return Result<FileUploadResponse>.Success(
