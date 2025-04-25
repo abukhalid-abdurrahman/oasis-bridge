@@ -69,8 +69,12 @@ public sealed class SolanaNftMinting(
                         Networks.Solana));
             }
 
+            if (tx.ErrorData.Error.Type == TransactionErrorType.AccountNotFound)
+                return Result<NftMintingResponse>.Failure(
+                    ResultPatternError.BadRequest(Messages.AccountNotFound));
+
             return Result<NftMintingResponse>.Failure(
-                ResultPatternError.InternalServerError(Messages.SolanaNftMintingFailed));
+                ResultPatternError.InternalServerError(tx.Reason));
         }
         catch (Exception ex)
         {

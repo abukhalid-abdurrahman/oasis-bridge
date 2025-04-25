@@ -313,7 +313,7 @@ public sealed class OrderService(
                     return Result<CreateOrderResponse>.Failure(
                         ResultPatternError.BadRequest(Messages.InvalidSolanaFormat));
             }
-            else
+            else if(request.FromToken == Sol)
             {
                 bool check = IsValidRadixAddress(request.DestinationAddress);
                 if (!check)

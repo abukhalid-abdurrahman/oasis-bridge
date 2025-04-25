@@ -72,16 +72,18 @@ public sealed class RwaTokenService(
 
         try
         {
-            GetRwaTokenDetailResponse? network = await dbContext.RwaTokens
+            GetRwaTokenDetailResponse? rwaToken = await dbContext.RwaTokens
                 .AsNoTracking()
+                .Include(x=>x.VirtualAccount)
+                .ThenInclude(x=>x.Network)
                 .Where(x => x.Id == id)
                 .Select(x => x.ToReadDetail()).FirstOrDefaultAsync(token);
 
             logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
 
-            return network is not null
-                ? Result<GetRwaTokenDetailResponse>.Success(network)
+            return rwaToken is not null
+                ? Result<GetRwaTokenDetailResponse>.Success(rwaToken)
                 : Result<GetRwaTokenDetailResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
         }
         catch (Exception ex)
