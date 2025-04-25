@@ -17,6 +17,7 @@ public static class RegisterServices
     /// <returns>The WebApplicationBuilder instance with services registered.</returns>
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
     {
+        builder.AddNftService();
         // Register database-related services
         builder.AddDbService();
         // Register JWT authentication services

@@ -1,0 +1,24 @@
+namespace Application.DTOs.RwaToken.Responses;
+
+public record GetRwaTokenDetailResponse(
+    Guid TokenId,
+    string Title,
+    string AssetDescription,
+    string ProofOfOwnershipDocument,
+    string UniqueIdentifier,
+    int Royalty,
+    decimal Price,
+    string Network,
+    string Image,
+    string OwnerContact,
+    NftAssetType AssetType,
+    GeoLocation? Geolocation,
+    DateOnly ValuationDate,
+    NftPropertyType PropertyType,
+    double Area,
+    int ConstructionYear,
+    string Metadata,
+    string MintAccount,
+    string TransactionHash,
+    long Version
+);

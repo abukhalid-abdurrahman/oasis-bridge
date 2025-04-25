@@ -1,0 +1,155 @@
+namespace Infrastructure.ImplementationContract;
+
+public sealed class RwaTokenService(
+    DataContext dbContext,
+    ILogger<RwaTokenService> logger,
+    IHttpContextAccessor accessor,
+    ISolanaNftMinting solanaNftMinting //I will use the pattern factory
+    ) : IRwaTokenService
+{
+    public async Task<Result<PagedResponse<IEnumerable<GetRwaTokensResponse>>>>
+        GetAllAsync(RwaTokenFilter filter, CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetAllAsync), date);
+
+        try
+        {
+            IQueryable<RwaToken> query = dbContext.RwaTokens.AsNoTracking();
+            if (filter.AssetType is not null)
+                query = query.Where(x => x.AssetType == filter.AssetType);
+            if (filter.PriceMin is not null)
+                query = query.Where(x => x.Price >= filter.PriceMin);
+            if (filter.PriceMax is not null)
+                query = query.Where(x => x.Price <= filter.PriceMax);
+            if (filter.SortBy is not null)
+            {
+                query = filter.SortBy switch
+                {
+                    SortBy.Price => query.OrderBy(x => x.Price),
+                    SortBy.CreatedAt => query.OrderByDescending(x => x.CreatedAt),
+                    _ => query
+                };
+            }
+
+            if (filter.SortOrder is not null)
+            {
+                query = filter.SortOrder switch
+                {
+                    SortOrder.Asc => query.OrderBy(x => x),
+                    SortOrder.Desc => query.OrderByDescending(x => x),
+                    _ => query
+                };
+            }
+
+            int totalCount = await query.CountAsync(token);
+
+            PagedResponse<IEnumerable<GetRwaTokensResponse>> pagedResult =
+                PagedResponse<IEnumerable<GetRwaTokensResponse>>.Create(
+                    filter.PageSize,
+                    filter.PageNumber,
+                    totalCount,
+                    query.Page(filter.PageNumber, filter.PageSize)
+                        .Select(x => x.ToRead()).ToList());
+
+            logger.OperationCompleted(nameof(GetAllAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokensResponse>>>.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetAllAsync), ex.Message);
+            logger.OperationCompleted(nameof(GetAllAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokensResponse>>>
+                .Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+
+    public async Task<Result<GetRwaTokenDetailResponse>>
+        GetDetailAsync(Guid id, CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetDetailAsync), date);
+
+        try
+        {
+            GetRwaTokenDetailResponse? network = await dbContext.RwaTokens
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => x.ToReadDetail()).FirstOrDefaultAsync(token);
+
+            logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+
+            return network is not null
+                ? Result<GetRwaTokenDetailResponse>.Success(network)
+                : Result<GetRwaTokenDetailResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetDetailAsync), ex.Message);
+            logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<GetRwaTokenDetailResponse>
+                .Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+
+    public async Task<Result<CreateRwaTokenResponse>>
+        CreateAsync(CreateRwaTokenRequest request, CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(CreateAsync), date);
+
+        try
+        {
+            dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            Guid userId = accessor.GetId();
+
+            User? existingUser = await dbContext.Users.FirstOrDefaultAsync(x
+                => x.Id == userId, token);
+            if (existingUser is null)
+                return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.UserNotFound));
+
+            Network? existingNetwork =
+                await dbContext.Networks.FirstOrDefaultAsync(x => x.Name == request.Network, token);
+            if (existingNetwork is null)
+                return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.NetworkNotFound));
+
+            Guid? vaId = await (from u in dbContext.Users
+                    join va in dbContext.VirtualAccounts on u.Id equals va.UserId
+                    join n in dbContext.Networks on va.NetworkId equals n.Id
+                    where u.Id == userId && n.Name == request.Network
+                    select va.Id
+                ).FirstOrDefaultAsync(token);
+            if (vaId is null)
+                return Result<CreateRwaTokenResponse>.Failure(
+                    ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
+
+            Common.DTOs.Nft nft = new()
+            {
+                Name = request.Title,
+                Royality = request.Royalty.ToString(),
+                Symbol = request.UniqueIdentifier,
+                Url = request.ProofOfOwnershipDocument,
+                Description = request.AssetDescription,
+                ImageUrl = request.Image
+            };
+            Result<NftMintingResponse> mintingResult = await solanaNftMinting.MintAsync(nft, token);
+            if (!mintingResult.IsSuccess)
+                return Result<CreateRwaTokenResponse>.Failure(mintingResult.Error);
+
+            RwaToken newRwaToken = request.ToEntity(accessor, mintingResult.Value!, (Guid)vaId);
+            await dbContext.RwaTokens.AddAsync(newRwaToken, token);
+
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<CreateRwaTokenResponse>.Success(newRwaToken.ToReadResponse())
+                : Result<CreateRwaTokenResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.CreateRwaTokenFailed));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(CreateAsync), ex.Message);
+            logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+}

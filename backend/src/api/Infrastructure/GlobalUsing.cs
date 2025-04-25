@@ -7,6 +7,7 @@ global using SolanaBridge;
 global using Domain.Enums;
 global using Domain.Common;
 global using Domain.Entities;
+global using SolanaBridge.Nft;
 global using Domain.Constants;
 global using Common.Contracts;
 global using RadixBridge.Enums;
@@ -45,6 +46,8 @@ global using Microsoft.Extensions.Configuration;
 global using Application.DTOs.Network.Responses;
 global using Application.DTOs.Account.Responses;
 global using Application.DTOs.UserRole.Requests;
+global using Application.DTOs.RwaToken.Requests;
+global using Application.DTOs.RwaToken.Responses;
 global using Application.DTOs.UserRole.Responses;
 global using BuildingBlocks.Extensions.Resources;
 global using Microsoft.EntityFrameworkCore.Query;
@@ -60,3 +63,4 @@ global using Application.DTOs.WalletLinkedAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+ 

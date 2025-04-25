@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Nft;
 
 /// <summary>
 ///     Contract for serializing off-chain NFT metadata into a format
@@ -13,5 +13,5 @@ public interface INftMetadataSerializer
     /// <param name="nft">The NFT object with base metadata.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>URI of the uploaded file or an error.</returns>
-    Task<Result<string>> SerializeAsync(Nft nft, CancellationToken token = default);
+    Task<Result<string>> SerializeAsync(DTOs.Nft nft, CancellationToken token = default);
 }

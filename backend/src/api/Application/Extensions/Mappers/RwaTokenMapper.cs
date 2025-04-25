@@ -1,0 +1,82 @@
+namespace Application.Extensions.Mappers;
+
+public static class RwaTokenMapper
+{
+    public static GetRwaTokensResponse ToRead(this RwaToken entity)
+        => new(
+            entity.Id,
+            entity.Title,
+            entity.Price,
+            entity.AssetType,
+            entity.Geolocation,
+            entity.Image,
+            entity.Version);
+
+    public static CreateRwaTokenResponse ToReadResponse(this RwaToken entity)
+        => new(
+            entity.Id,
+            entity.Title,
+            entity.Price,
+            entity.MintAccountType.ToString(),
+            entity.Royalty,
+            entity.OwnerContact,
+            entity.Metadata,
+            entity.MintAccount,
+            entity.TransactionHash,
+            entity.Version);
+
+
+    public static GetRwaTokenDetailResponse ToReadDetail(this RwaToken entity)
+        => new(
+            entity.Id,
+            entity.Title,
+            entity.AssetDescription,
+            entity.ProofOfOwnershipDocument,
+            entity.UniqueIdentifier,
+            entity.Royalty,
+            entity.Price,
+            entity.VirtualAccount.Network.Name,
+            entity.Image,
+            entity.OwnerContact,
+            entity.AssetType,
+            entity.Geolocation,
+            entity.ValuationDate,
+            entity.PropertyType,
+            entity.Area,
+            entity.ConstructionYear,
+            entity.Metadata,
+            entity.MintAccount,
+            entity.TransactionHash,
+            entity.Version);
+
+    public static RwaToken ToEntity(this CreateRwaTokenRequest request, IHttpContextAccessor accessor,
+        NftMintingResponse minting, Guid vaId)
+    {
+        return new()
+        {
+            Area = request.Area,
+            ValuationDate = request.ValuationDate,
+            PropertyType = request.PropertyType,
+            Geolocation = request.Geolocation,
+            Image = request.Image,
+            AssetType = request.AssetType,
+            Metadata = minting.Metadata,
+            AssetDescription = request.AssetDescription,
+            ConstructionYear = request.ConstructionYear,
+            Price = request.Price,
+            MintAccount = minting.MintAccount,
+            Royalty = request.Royalty,
+            TransactionHash = minting.TransactionHash,
+            OwnerContact = request.OwnerContact,
+            UniqueIdentifier = request.UniqueIdentifier,
+            ProofOfOwnershipDocument = request.ProofOfOwnershipDocument,
+            Title = request.Title,
+            CreatedBy = accessor.GetId(),
+            CreatedByIp = accessor.GetRemoteIpAddress(),
+            MintAccountType = request.Network == Networks.Solana
+                ? NetworkType.Solana
+                : NetworkType.Radix,
+            VirtualAccountId = vaId
+        };
+    }
+}

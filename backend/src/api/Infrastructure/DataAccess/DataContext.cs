@@ -92,6 +92,11 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     /// </summary>
     public DbSet<WalletLinkedAccount> WalletLinkedAccounts { get; set; }
 
+    /// <summary>
+    /// Real World Assets Tokens 
+    /// </summary>
+    public DbSet<RwaToken> RwaTokens { get; set; }
+
 
     /// <summary>
     /// Configures the EF Core model by applying all entity configurations and global filters.

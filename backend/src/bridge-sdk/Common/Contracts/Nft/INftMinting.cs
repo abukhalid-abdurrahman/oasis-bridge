@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Nft;
 
 /// <summary>
 ///     Contract for minting and retrieving on-chain metadata for NFTs.
@@ -6,7 +6,7 @@ namespace Common.Contracts;
 /// <remarks>
 ///     This separates the business logic of minting from the specifics of the network (e.g., Solana, Radix).
 /// </remarks>
-public interface INFTMinting
+public interface INftMinting
 {
     /// <summary>
     ///     Initiates the minting process for an NFT.
@@ -23,7 +23,7 @@ public interface INFTMinting
     ///     A result containing the transaction ID or an error message in case of failure.
     ///     The success value typically contains the mint address or transaction ID.
     /// </returns>
-    Task<Result<string>> MintAsync(Nft nft, CancellationToken token = default);
+    Task<Result<NftMintingResponse>> MintAsync(DTOs.Nft nft, CancellationToken token = default);
 
     /// <summary>
     ///     Retrieves on-chain metadata for an NFT by its address.
@@ -41,5 +41,5 @@ public interface INFTMinting
     ///     A result containing the NFT metadata if found, or an error message if retrieval fails.
     ///     The success value includes the full metadata of the NFT, such as name, symbol, and URL.
     /// </returns>
-    Task<Result<Nft>> GetMetadataAsync(string nftAddress, CancellationToken token = default);
+    Task<Result<DTOs.Nft>> GetMetadataAsync(string nftAddress, CancellationToken token = default);
 }
