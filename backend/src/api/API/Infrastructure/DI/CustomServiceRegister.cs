@@ -26,10 +26,10 @@ public static class CustomServiceRegister
 
         // Registering order-related services.
         builder.Services.AddScoped<IOrderService, OrderService>();
-        
+
         // Registering network-related services.
         builder.Services.AddScoped<INetworkService, NetworkService>();
-    
+
         // Registering identity-related services (authentication, registration, etc.).
         builder.Services.AddScoped<IIdentityService, IdentityService>();
 
@@ -45,7 +45,8 @@ public static class CustomServiceRegister
         // Registering wallet and linked account services for managing wallets and associated accounts.
         builder.Services.AddScoped<IWalletLinkedAccountService, WalletLinkedAccountService>();
 
-        // Returning the builder for chaining.
+        builder.Services.AddScoped<IRwaTokenService, RwaTokenService>();
+
         return builder;
     }
 }

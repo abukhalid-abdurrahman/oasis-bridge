@@ -65,4 +65,6 @@ public sealed class VirtualAccount : BaseEntity
     /// This represents the amount of each token held by the account on the network.
     /// </summary>
     public ICollection<AccountBalance> Balances { get; } = [];
+
+    public ICollection<RwaToken> RwaTokens { get; set; } = [];
 }

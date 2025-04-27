@@ -1,6 +1,6 @@
 namespace Common.DTOs;
 
-public sealed record class Nft
+public sealed record  Nft
 {
     public required string Name { get; init; }
     public required string Symbol { get; init; }

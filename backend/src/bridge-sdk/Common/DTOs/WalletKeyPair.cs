@@ -7,4 +7,5 @@ public sealed record WalletKeyPair
 {
     public required byte[] PrivateKey { get; init; }
     public required byte[] PublicKey { get; init; }
+    public required byte[] SeedPhrease { get; init; }
 }

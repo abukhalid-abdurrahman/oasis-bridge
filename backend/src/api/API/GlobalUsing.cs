@@ -38,6 +38,7 @@ global using Microsoft.AspNetCore.HttpLogging;
 global using Application.DTOs.Network.Requests;
 global using API.Infrastructure.ApiConventions;
 global using Application.DTOs.Account.Requests;
+global using Application.DTOs.RwaToken.Requests;
 global using Application.DTOs.UserRole.Requests;
 global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.Authorization;

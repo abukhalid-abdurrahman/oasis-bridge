@@ -27,6 +27,7 @@ public static class Messages
     public static string LoginUserFailed => _resources.Get().AsString();
     public static string LogoutUserFailed => _resources.Get().AsString();
     public static string GenerateTokenFailed => _resources.Get().AsString();
+    public static string SolanaNftMintingFailed => _resources.Get().AsString();
     public static string RestoreAccountFailed => _resources.Get().AsString();
     public static string DeleteAccountFailed => _resources.Get().AsString();
     public static string ChangePasswordUserFailed => _resources.Get().AsString();
@@ -46,6 +47,7 @@ public static class Messages
     public static string InvalidSolanaFormat => _resources.Get().AsString();
     public static string InvalidAddressRadixFormat => _resources.Get().AsString();
     public static string DeleteNetworkTokenFailed => _resources.Get().AsString();
+    public static string CreateRwaTokenFailed => _resources.Get().AsString();
     public static string UpdateNetworkFailed => _resources.Get().AsString();
     public static string DeleteNetworkFailed => _resources.Get().AsString();
     public static string SendEmailConfirmationCodeFailed => _resources.Get().AsString();
@@ -56,7 +58,10 @@ public static class Messages
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
+    public static string RwaTokenNotFound => _resources.Get().AsString();
+    public static string AccountNotFound => _resources.Get().AsString();
     public static string OrderInsufficientFunds => _resources.Get().AsString();
     public static string VirtualAccountNotFound => _resources.Get().AsString();
     public static string OrderAlreadyCompleted => _resources.Get().AsString();
