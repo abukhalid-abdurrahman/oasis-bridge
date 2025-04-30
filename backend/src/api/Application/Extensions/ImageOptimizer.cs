@@ -20,7 +20,7 @@ public static class ImageOptimizer
     /// </returns>
     public static async Task<byte[]> OptimizeImageAsync(byte[] imageData, int quality)
     {
-        using var image = Image.Load(imageData);
+        using Image image = Image.Load(imageData);
 
         WebpEncoder webpOptions = new()
         {
