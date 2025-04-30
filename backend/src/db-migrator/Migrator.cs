@@ -1,61 +1,24 @@
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-using BuildingBlocks.Extensions.Logger;
-
 namespace db_migrator;
 
-public static class Migrator
+public class Migrator
 {
-    private static readonly ILogger Logger = LoggerFactory.Create(_ => { })
-        .CreateLogger(nameof(Migrator));
-
-    public static void Migrate()
+    public static async Task MigrateAsync(IHost host, CancellationToken cancellationToken = default)
     {
+        ILogger logger = host.Services.GetRequiredService<ILogger<Migrator>>();
         DateTimeOffset date = DateTimeOffset.UtcNow;
-        Logger.OperationStarted(nameof(Migrate), date);
+        logger.OperationStarted(nameof(MigrateAsync), date);
 
-        const string commandMigrate = "ef database update -p ./Infrastructure/ -s ./API/";
         try
         {
-            string currentDir = Directory.GetCurrentDirectory();
-            string rootDir = Path.GetFullPath(Path.Combine(currentDir, ".."));
-            string apiProjectDir = Path.Combine(rootDir, "api");
-
-            ProcessStartInfo processInfo = new()
-            {
-                FileName = "dotnet",
-                Arguments = commandMigrate,
-                WorkingDirectory = apiProjectDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using Process? process = Process.Start(processInfo);
-            process!.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data != null) Console.WriteLine(e.Data);
-            };
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data != null) Console.Error.WriteLine("Error:" + e.Data);
-            };
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            process.WaitForExit();
-
-            Logger.OperationCompleted(nameof(Migrate), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-            if (process.ExitCode == 0)
-               Logger.LogInformation("Database updated successfully.");
-            else
-                Logger.LogCritical($" Database update failed with code {process.ExitCode}");
+            using IServiceScope scope = host.Services.CreateScope();
+            DataContext db = scope.ServiceProvider.GetRequiredService<DataContext>();
+            await db.Database.MigrateAsync(cancellationToken);
+            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         }
         catch (Exception ex)
         {
-            Logger.OperationException(nameof(Migrate), ex.Message);
-            Logger.OperationCompleted(nameof(Migrate), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            logger.OperationException(nameof(MigrateAsync), ex.ToString());
+            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         }
     }
 }
