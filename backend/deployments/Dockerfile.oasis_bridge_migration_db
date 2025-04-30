@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+
+WORKDIR /app
+COPY . ./
+
+RUN dotnet restore backend/src/db-migrator/db-migrator.csproj
+
+RUN dotnet publish backend/src/db-migrator/db-migrator.csproj -c Release -o /out --no-restore
+
+FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS runtime
+
+WORKDIR /app
+
+RUN apk update && \
+    apk add --no-cache curl icu-libs && \
+    rm -rf /var/cache/apk/*
+
+COPY --from=build /out ./
+
+ENTRYPOINT ["dotnet", "db-migrator.dll"]
