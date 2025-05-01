@@ -7,6 +7,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import Image from "next/image";
 import { shortAddress } from "@/lib/scripts/script";
 import { set } from "zod";
+import { mutateWallet } from "@/requests/postRequests";
 
 export default function PhantomConnect({ className }: { className?: string }) {
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +19,8 @@ export default function PhantomConnect({ className }: { className?: string }) {
     setWalletDenied,
   } = usePhantomWallet();
   const { publicKey } = useWalletStore();
+
+  const submit = mutateWallet()
 
   return (
     <div>
@@ -37,7 +40,7 @@ export default function PhantomConnect({ className }: { className?: string }) {
                 className="mr-2"
               />
               <span className="group-hover:hidden md:group-hover:inline">
-                {shortAddress(publicKey)}
+                {shortAddress(publicKey as any)}
               </span>
               <span className="hidden group-hover:inline md:group-hover:hidden">
                 Disconnect
@@ -57,7 +60,7 @@ export default function PhantomConnect({ className }: { className?: string }) {
             className={className}
             variant="gray"
             onClick={() => {
-              connectWallet();
+              connectWallet(publicKey!);
               setShowModal(true);
             }}
           >
@@ -66,6 +69,7 @@ export default function PhantomConnect({ className }: { className?: string }) {
         ))}
       {showModal && (
         <PhantomModal
+          submit={submit}
           setWalletDenied={setWalletDenied}
           connectWallet={connectWallet}
           walletDenied={walletDenied}

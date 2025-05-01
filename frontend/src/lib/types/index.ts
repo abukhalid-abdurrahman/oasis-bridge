@@ -1,3 +1,4 @@
+import { PublicKey } from "@solana/web3.js";
 import { ZodType } from "zod";
 
 export type searchParams = {
@@ -20,4 +21,9 @@ export interface TokenizationField {
   type: string;
   validation: ZodType;
   group?: number;
+}
+
+export type PostWallet = {
+  walletAddress: PublicKey,
+  network: string
 }

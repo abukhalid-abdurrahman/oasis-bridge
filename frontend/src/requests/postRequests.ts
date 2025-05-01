@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axiosInstance"
 import { API } from "@/lib/constants"
+import { PostWallet } from "@/lib/types"
 import { useMutation } from "@tanstack/react-query"
 import axios from "axios"
 
@@ -83,6 +84,20 @@ const postOrders = async (req: any) => {
 export const mutateOrders = () => {
   return useMutation({
     mutationFn: (req: any) => postOrders(req),
+    onSuccess: () => console.log('Success'),
+    onError: (error) => console.log('Error', error)
+  })
+}
+
+// Post for linking wallet address
+const postWallet = async (req: any) => {
+  const res = await axiosInstance.post(`/linked-accounts`, req)
+  return res.data
+}
+
+export const mutateWallet = () => {
+  return useMutation({
+    mutationFn: (req: PostWallet) => postWallet(req),
     onSuccess: () => console.log('Success'),
     onError: (error) => console.log('Error', error)
   })

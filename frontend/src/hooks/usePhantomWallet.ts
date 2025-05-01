@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { useWalletStore } from "@/store/useWalletStore";
+import { UseMutateFunction } from "@tanstack/react-query";
+import { PostWallet } from "@/lib/types";
+import { mutateWallet } from "@/requests/postRequests";
 
 declare global {
   interface Window {
@@ -12,6 +15,7 @@ export const usePhantomWallet = () => {
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
   const [walletDenied, setWalletDenied] = useState(false);
   const { setPublicKey: setKey } = useWalletStore();
+  const submit = mutateWallet()
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana?.isPhantom) {
@@ -19,7 +23,7 @@ export const usePhantomWallet = () => {
     }
   }, []);
 
-  const connectWallet = async () => {
+  const connectWallet = async (pubKey: string | null) => {
     setWalletDenied(false);
 
     if (!window.solana) {
@@ -31,12 +35,21 @@ export const usePhantomWallet = () => {
       const resp = await window.solana.connect();
       const pubKey = new PublicKey(resp.publicKey.toString());
     
-      setKey(pubKey.toBase58());
-      setWalletDenied(false);
+      submit.mutate({
+        walletAddress: pubKey,
+        network: 'Solana'
+      }, {
+        onSuccess: () => {
+          setKey(pubKey.toBase58());
+          setWalletDenied(false);
+        },
+        onError: () => {
+          setWalletDenied(true);
+        }
+      })
     } catch (err: any) {
       if (err?.code === 4001 || err?.message?.includes("User rejected the request")) {
         setWalletDenied(true);
-        // Не логируем ошибку — она ожидаемая
       } else {
         console.error("Unexpected wallet error:", err);
       }

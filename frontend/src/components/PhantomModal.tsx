@@ -3,19 +3,23 @@ import Modal from "./Modal";
 import { Button } from "./ui/button";
 import { useEffect } from "react";
 import Loading from "./Loading";
+import { UseMutateFunction, UseMutationResult } from "@tanstack/react-query";
+import { PublicKey } from "@solana/web3.js";
 
 export default function PhantomModal({
   onClose,
   publicKey,
   walletDenied,
   connectWallet,
-  setWalletDenied
+  setWalletDenied,
+  submit
 }: {
   onClose: () => void;
   publicKey: string | null;
   walletDenied: boolean;
-  connectWallet: () => void;
+  connectWallet: (publicKey: string | null) => void;
   setWalletDenied: (value: boolean) => void;
+  submit: UseMutationResult<any, Error, any, unknown>
 }) {
   useEffect(() => {
     setTimeout(() => {
@@ -33,7 +37,7 @@ export default function PhantomModal({
     >
       <div
         className={`relative transition-all mt-10 mb-7 ${
-          (publicKey || walletDenied) && "mt-5 mb-0"
+          (publicKey || walletDenied) && "!mt-5 !mb-0"
         }`}
       >
         <Loading
@@ -94,7 +98,7 @@ export default function PhantomModal({
                 size="xl"
                 className="w-full"
                 onClick={() => {
-                  connectWallet();
+                  connectWallet(publicKey);
                   setWalletDenied(false)
                 }}
               >
