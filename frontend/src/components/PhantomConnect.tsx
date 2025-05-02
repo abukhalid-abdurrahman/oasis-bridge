@@ -1,28 +1,20 @@
 "use client";
 import { usePhantomWallet } from "@/hooks/usePhantomWallet";
 import { Button } from "./ui/button";
-import PhantomModal from "./PhantomModal";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useWalletStore } from "@/store/useWalletStore";
 import Image from "next/image";
 import { shortAddress } from "@/lib/scripts/script";
-import { set } from "zod";
-import { mutateWallet } from "@/requests/postRequests";
 import { useUserStore } from "@/store/useUserStore";
+import WalletSelector from "./WalletSelector";
 
 export default function PhantomConnect({ className }: { className?: string }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showWalletSelector, setShowWalletSelector] = useState(false);
   const {
-    connectWallet,
     disconnectWallet,
-    walletDenied,
-    setWalletDenied,
-    errorMessage,
   } = usePhantomWallet();
   const { publicKey } = useWalletStore();
   const { user } = useUserStore();
-
-  const submit = mutateWallet();
 
   if (user) {
     return (
@@ -62,21 +54,16 @@ export default function PhantomConnect({ className }: { className?: string }) {
             className={className}
             variant="gray"
             onClick={() => {
-              connectWallet(publicKey!);
-              setShowModal(true);
+              setShowWalletSelector(true);
             }}
           >
-            Connect Phantom
+            Connect wallet
           </Button>
         )}
-        {showModal && (
-          <PhantomModal
-            errorMessage={errorMessage}
-            setWalletDenied={setWalletDenied}
-            connectWallet={connectWallet}
-            walletDenied={walletDenied}
-            publicKey={publicKey}
-            onClose={() => setShowModal(false)}
+        {showWalletSelector && (
+          <WalletSelector
+            showWalletSelector={showWalletSelector}
+            setShowWalletSelector={setShowWalletSelector}
           />
         )}
       </div>

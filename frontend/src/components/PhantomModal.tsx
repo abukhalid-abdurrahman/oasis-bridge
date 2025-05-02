@@ -8,7 +8,7 @@ type PhantomModalProps = {
   onClose: () => void;
   publicKey: string | null;
   walletDenied: boolean;
-  connectWallet: (publicKey: string | null) => void;
+  connectPhantomWallet: (publicKey: string | null) => void;
   setWalletDenied: (value: boolean) => void;
   errorMessage: string;
 };
@@ -17,7 +17,7 @@ export default function PhantomModal({
   onClose,
   publicKey,
   walletDenied,
-  connectWallet,
+  connectPhantomWallet,
   setWalletDenied,
   errorMessage,
 }: PhantomModalProps) {
@@ -51,11 +51,11 @@ export default function PhantomModal({
 
     return {
       title: "Connection failed",
-      description: errorMessage,
+      description: errorMessage || 'Something went wrong',
       buttonText: "Retry",
       buttonDisabled: false,
       onClick: () => {
-        connectWallet(publicKey);
+        connectPhantomWallet(publicKey);
         setWalletDenied(false);
       },
     };

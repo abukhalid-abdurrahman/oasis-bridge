@@ -26,7 +26,7 @@ export const usePhantomWallet = () => {
     }
   }, []);
 
-  const connectWallet = async (pubKey: string | null) => {
+  const connectPhantomWallet = async (pubKey: string | null) => {
     setErrorMessage("");
     setWalletDenied(false);
 
@@ -82,7 +82,7 @@ export const usePhantomWallet = () => {
 
   return {
     isPhantomInstalled,
-    connectWallet,
+    connectPhantomWallet,
     disconnectWallet,
     walletDenied,
     setWalletDenied,
