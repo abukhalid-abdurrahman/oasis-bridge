@@ -15,7 +15,7 @@ declare global {
 export const usePhantomWallet = () => {
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
   const [walletDenied, setWalletDenied] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState("");
   const { setPublicKey: setKey } = useWalletStore();
   const { user } = useUserStore();
   const submit = mutateWallet();
@@ -27,11 +27,11 @@ export const usePhantomWallet = () => {
   }, []);
 
   const connectWallet = async (pubKey: string | null) => {
-    setErrorMessage('')
+    setErrorMessage("");
     setWalletDenied(false);
 
     if (!window.solana) {
-      setErrorMessage('Phantom is not installed.')
+      setErrorMessage("Phantom is not installed.");
       setIsPhantomInstalled(false);
       return;
     }
@@ -40,35 +40,32 @@ export const usePhantomWallet = () => {
       const resp = await window.solana.connect();
       const pubKey = new PublicKey(resp.publicKey.toString());
 
-      if (user) {
-        submit.mutate(
-          {
-            walletAddress: pubKey,
-            network: "Solana",
+      submit.mutate(
+        {
+          walletAddress: pubKey,
+          network: "Solana",
+        },
+        {
+          onSuccess: () => {
+            setKey(pubKey.toBase58());
+            setWalletDenied(false);
           },
-          {
-            onSuccess: () => {
-              setKey(pubKey.toBase58());
-              setWalletDenied(false);
-            },
-            onError: () => {
-              setWalletDenied(true);
-            },
-          }
-        );
-      } else {
-        setKey(pubKey.toBase58());
-        setWalletDenied(false);
-      }
+          onError: () => {
+            setWalletDenied(true);
+          },
+        }
+      );
     } catch (err: any) {
       if (
         err?.code === 4001 ||
         err?.message?.includes("User rejected the request")
       ) {
-        setErrorMessage('It seems you have declined the request. Please try again.')
+        setErrorMessage(
+          "It seems you have declined the request. Please try again."
+        );
         setWalletDenied(true);
       } else {
-        setErrorMessage('Unexpected wallet error. Please try again later.')
+        setErrorMessage("Unexpected wallet error. Please try again later.");
         console.error("Unexpected wallet error:", err);
       }
     }
@@ -89,6 +86,6 @@ export const usePhantomWallet = () => {
     disconnectWallet,
     walletDenied,
     setWalletDenied,
-    errorMessage
+    errorMessage,
   };
 };
