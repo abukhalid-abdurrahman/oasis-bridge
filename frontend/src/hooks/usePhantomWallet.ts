@@ -4,6 +4,7 @@ import { useWalletStore } from "@/store/useWalletStore";
 import { UseMutateFunction } from "@tanstack/react-query";
 import { PostWallet } from "@/lib/types";
 import { mutateWallet } from "@/requests/postRequests";
+import { useUserStore } from "@/store/useUserStore";
 
 declare global {
   interface Window {
@@ -14,8 +15,10 @@ declare global {
 export const usePhantomWallet = () => {
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
   const [walletDenied, setWalletDenied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('')
   const { setPublicKey: setKey } = useWalletStore();
-  const submit = mutateWallet()
+  const { user } = useUserStore();
+  const submit = mutateWallet();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana?.isPhantom) {
@@ -24,33 +27,48 @@ export const usePhantomWallet = () => {
   }, []);
 
   const connectWallet = async (pubKey: string | null) => {
+    setErrorMessage('')
     setWalletDenied(false);
 
     if (!window.solana) {
-      alert("Phantom is not installed");
+      setErrorMessage('Phantom is not installed.')
+      setIsPhantomInstalled(false);
       return;
     }
 
     try {
       const resp = await window.solana.connect();
       const pubKey = new PublicKey(resp.publicKey.toString());
-    
-      submit.mutate({
-        walletAddress: pubKey,
-        network: 'Solana'
-      }, {
-        onSuccess: () => {
-          setKey(pubKey.toBase58());
-          setWalletDenied(false);
-        },
-        onError: () => {
-          setWalletDenied(true);
-        }
-      })
+
+      if (user) {
+        submit.mutate(
+          {
+            walletAddress: pubKey,
+            network: "Solana",
+          },
+          {
+            onSuccess: () => {
+              setKey(pubKey.toBase58());
+              setWalletDenied(false);
+            },
+            onError: () => {
+              setWalletDenied(true);
+            },
+          }
+        );
+      } else {
+        setKey(pubKey.toBase58());
+        setWalletDenied(false);
+      }
     } catch (err: any) {
-      if (err?.code === 4001 || err?.message?.includes("User rejected the request")) {
+      if (
+        err?.code === 4001 ||
+        err?.message?.includes("User rejected the request")
+      ) {
+        setErrorMessage('It seems you have declined the request. Please try again.')
         setWalletDenied(true);
       } else {
+        setErrorMessage('Unexpected wallet error. Please try again later.')
         console.error("Unexpected wallet error:", err);
       }
     }
@@ -70,6 +88,7 @@ export const usePhantomWallet = () => {
     connectWallet,
     disconnectWallet,
     walletDenied,
-    setWalletDenied
+    setWalletDenied,
+    errorMessage
   };
 };
