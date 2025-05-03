@@ -1,20 +1,17 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /app
 COPY / ./
+RUN dotnet restore /app/backend/src/api/API/API.csproj &&\
+    dotnet publish /app/backend/src/api/API/API.csproj -c Release -o /out --no-restore
 
-RUN dotnet restore &&\
-    dotnet publish /app/src/api/API/API.csproj -c Release -o /out --no-restore
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
 
-RUN apt-get update &&\
-    apt-get install -y curl &&\
-    rm -rf /var/lib/apt/lists/*
-
+RUN apk -U upgrade &&\
+    apk add --no-cache curl icu-libs &&\
+    rm -rf /var/cache/apk/*
+    
 COPY --from=build /out ./
-
+    
 ENV ASPNETCORE_URLS=http://+:80
-
 ENTRYPOINT ["dotnet", "API.dll"]
