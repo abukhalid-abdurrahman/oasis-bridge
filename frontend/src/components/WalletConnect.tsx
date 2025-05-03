@@ -1,28 +1,25 @@
 "use client";
 import { usePhantomWallet } from "@/hooks/usePhantomWallet";
 import { Button } from "./ui/button";
-import PhantomModal from "./PhantomModal";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useWalletStore } from "@/store/useWalletStore";
 import Image from "next/image";
 import { shortAddress } from "@/lib/scripts/script";
-import { set } from "zod";
+import { useUserStore } from "@/store/useUserStore";
+import WalletSelector from "./WalletSelector";
 
-export default function PhantomConnect({ className }: { className?: string }) {
-  const [showModal, setShowModal] = useState(false);
+export default function WalletConnect({ className }: { className?: string }) {
+  const [showWalletSelector, setShowWalletSelector] = useState(false);
   const {
-    connectWallet,
     disconnectWallet,
-    isPhantomInstalled,
-    walletDenied,
-    setWalletDenied,
   } = usePhantomWallet();
   const { publicKey } = useWalletStore();
+  const { user } = useUserStore();
 
-  return (
-    <div>
-      {isPhantomInstalled &&
-        (publicKey ? (
+  if (user) {
+    return (
+      <div>
+        {publicKey ? (
           <div className="flex gap-2">
             <Button
               className={`group relative ${className}`}
@@ -37,7 +34,7 @@ export default function PhantomConnect({ className }: { className?: string }) {
                 className="mr-2"
               />
               <span className="group-hover:hidden md:group-hover:inline">
-                {shortAddress(publicKey)}
+                {shortAddress(publicKey as any)}
               </span>
               <span className="hidden group-hover:inline md:group-hover:hidden">
                 Disconnect
@@ -57,22 +54,19 @@ export default function PhantomConnect({ className }: { className?: string }) {
             className={className}
             variant="gray"
             onClick={() => {
-              connectWallet();
-              setShowModal(true);
+              setShowWalletSelector(true);
             }}
           >
-            Connect Phantom
+            Connect wallet
           </Button>
-        ))}
-      {showModal && (
-        <PhantomModal
-          setWalletDenied={setWalletDenied}
-          connectWallet={connectWallet}
-          walletDenied={walletDenied}
-          publicKey={publicKey}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-    </div>
-  );
+        )}
+        {showWalletSelector && (
+          <WalletSelector
+            showWalletSelector={showWalletSelector}
+            setShowWalletSelector={setShowWalletSelector}
+          />
+        )}
+      </div>
+    );
+  }
 }

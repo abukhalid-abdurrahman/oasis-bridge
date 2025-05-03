@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { useWalletStore } from "@/store/useWalletStore";
+import { mutateWallet } from "@/requests/postRequests";
+import { useUserStore } from "@/store/useUserStore";
 
 declare global {
   interface Window {
@@ -11,7 +13,10 @@ declare global {
 export const usePhantomWallet = () => {
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
   const [walletDenied, setWalletDenied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { setPublicKey: setKey } = useWalletStore();
+  const { user } = useUserStore();
+  const submit = mutateWallet();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana?.isPhantom) {
@@ -19,28 +24,49 @@ export const usePhantomWallet = () => {
     }
   }, []);
 
-  const connectWallet = async () => {
+  const connectPhantomWallet = (pubKey: string | null) => {
+    setErrorMessage("");
     setWalletDenied(false);
 
     if (!window.solana) {
-      alert("Phantom is not installed");
+      setErrorMessage("Phantom is not installed.");
+      setIsPhantomInstalled(false);
       return;
     }
 
-    try {
-      const resp = await window.solana.connect();
-      const pubKey = new PublicKey(resp.publicKey.toString());
-    
-      setKey(pubKey.toBase58());
-      setWalletDenied(false);
-    } catch (err: any) {
-      if (err?.code === 4001 || err?.message?.includes("User rejected the request")) {
-        setWalletDenied(true);
-        // Не логируем ошибку — она ожидаемая
-      } else {
-        console.error("Unexpected wallet error:", err);
-      }
-    }
+    window.solana
+      .connect()
+      .then((resp: any) => {
+        const pubKey = new PublicKey(resp.publicKey.toString());
+
+        return submit.mutateAsync({
+          walletAddress: pubKey,
+          network: "Solana",
+        }).then(() => {
+          setKey(pubKey.toBase58());
+          setWalletDenied(false);
+        }).catch((error: any) => {
+          if (error?.response?.data?.error?.errorType === "AlreadyExist") {
+            setKey(pubKey.toBase58());
+            setWalletDenied(false);
+          } else {
+            setWalletDenied(true);
+            setErrorMessage("Failed to connect wallet.");
+          }
+        });
+      })
+      .catch((err: any) => {
+        if (
+          err?.code === 4001 ||
+          err?.message?.includes("User rejected the request")
+        ) {
+          setErrorMessage("It seems you have declined the request. Please try again.");
+          setWalletDenied(true);
+        } else {
+          setErrorMessage("Unexpected wallet error. Please try again later.");
+          console.error("Unexpected wallet error:", err);
+        }
+      });
   };
 
   const disconnectWallet = async () => {
@@ -54,9 +80,10 @@ export const usePhantomWallet = () => {
 
   return {
     isPhantomInstalled,
-    connectWallet,
+    connectPhantomWallet,
     disconnectWallet,
     walletDenied,
-    setWalletDenied
+    setWalletDenied,
+    errorMessage,
   };
 };

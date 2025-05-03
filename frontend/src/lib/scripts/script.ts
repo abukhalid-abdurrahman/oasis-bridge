@@ -1,3 +1,4 @@
+import { PublicKey } from "@solana/web3.js";
 import Cookies from "js-cookie";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
