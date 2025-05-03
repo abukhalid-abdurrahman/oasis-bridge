@@ -6,7 +6,12 @@ RUN dotnet restore /app/backend/src/api/API/API.csproj &&\
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
-RUN apk update && apk add --no-cache curl
+
+RUN apk -U upgrade &&\
+    apk add --no-cache curl icu-libs &&\
+    rm -rf /var/cache/apk/*
+    
 COPY --from=build /out ./
+    
 ENV ASPNETCORE_URLS=http://+:80
 ENTRYPOINT ["dotnet", "API.dll"]
