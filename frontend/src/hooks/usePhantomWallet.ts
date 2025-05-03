@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { useWalletStore } from "@/store/useWalletStore";
-import { UseMutateFunction } from "@tanstack/react-query";
-import { PostWallet } from "@/lib/types";
 import { mutateWallet } from "@/requests/postRequests";
 import { useUserStore } from "@/store/useUserStore";
 
@@ -26,7 +24,7 @@ export const usePhantomWallet = () => {
     }
   }, []);
 
-  const connectPhantomWallet = async (pubKey: string | null) => {
+  const connectPhantomWallet = (pubKey: string | null) => {
     setErrorMessage("");
     setWalletDenied(false);
 
@@ -36,39 +34,41 @@ export const usePhantomWallet = () => {
       return;
     }
 
-    try {
-      const resp = await window.solana.connect();
-      const pubKey = new PublicKey(resp.publicKey.toString());
+    window.solana
+      .connect()
+      .then((resp: any) => {
+        const pubKey = new PublicKey(resp.publicKey.toString());
 
-      submit.mutate(
-        {
+        return submit.mutateAsync({
           walletAddress: pubKey,
           network: "Solana",
-        },
-        {
-          onSuccess: () => {
+        }).then(() => {
+          setKey(pubKey.toBase58());
+          setWalletDenied(false);
+        }).catch((error: any) => {
+          if (error?.response?.data?.error?.errorType === "AlreadyExist") {
             setKey(pubKey.toBase58());
             setWalletDenied(false);
-          },
-          onError: () => {
+          } else {
             setWalletDenied(true);
-          },
+            setErrorMessage("Failed to connect wallet.");
+          }
+        });
+      })
+      .catch((err: any) => {
+        if (
+          err?.code === 4001 ||
+          err?.message?.includes("User rejected the request")
+        ) {
+          setErrorMessage("It seems you have declined the request. Please try again.");
+          setWalletDenied(true);
+        } else if (err.error.errorType === 'AlreadyExist') {
+          
+        } else {
+          setErrorMessage("Unexpected wallet error. Please try again later.");
+          console.error("Unexpected wallet error:", err);
         }
-      );
-    } catch (err: any) {
-      if (
-        err?.code === 4001 ||
-        err?.message?.includes("User rejected the request")
-      ) {
-        setErrorMessage(
-          "It seems you have declined the request. Please try again."
-        );
-        setWalletDenied(true);
-      } else {
-        setErrorMessage("Unexpected wallet error. Please try again later.");
-        console.error("Unexpected wallet error:", err);
-      }
-    }
+      });
   };
 
   const disconnectWallet = async () => {

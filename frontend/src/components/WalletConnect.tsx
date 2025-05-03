@@ -8,7 +8,7 @@ import { shortAddress } from "@/lib/scripts/script";
 import { useUserStore } from "@/store/useUserStore";
 import WalletSelector from "./WalletSelector";
 
-export default function PhantomConnect({ className }: { className?: string }) {
+export default function WalletConnect({ className }: { className?: string }) {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const {
     disconnectWallet,
