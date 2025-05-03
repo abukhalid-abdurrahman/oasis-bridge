@@ -10,7 +10,7 @@ import MobileHeaderBtns from "./MobileHeaderBtns";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import Image from "next/image";
-import PhantomConnect from "./PhantomConnect";
+import WalletConnect from "./WalletConnect";
 
 export default function MobileHeader({
   signin,
@@ -70,7 +70,7 @@ export default function MobileHeader({
         >
           <nav className="flex flex-col gap-2">
             <MobileHeaderBtns />
-            <PhantomConnect className="w-full !justify-start" />
+            <WalletConnect className="w-full !justify-start" />
             <div
               className={`${buttonVariants({
                 variant: "empty",

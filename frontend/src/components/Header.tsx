@@ -7,7 +7,7 @@ import { searchParams } from "@/lib/types";
 import HeaderBtns from "./HeaderBtns";
 import { buttonVariants } from "./ui/button";
 import MobileHeader from "./MobileHeader";
-import PhantomConnect from "./PhantomConnect";
+import WalletConnect from "./WalletConnect";
 
 export default async function Header({
   searchParams,
@@ -33,7 +33,7 @@ export default async function Header({
           </ul>
         </div>
         <div className="flex gap-5 sm:gap-2">
-          <PhantomConnect />
+          <WalletConnect />
           {/* <Link
             className={buttonVariants({ variant: "gray", size: "default" })}
             href="/create-nft"
