@@ -14,6 +14,7 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import {
+  getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
   tokenizationFieldsBase,
   tokenizationFieldsRealEstate,
@@ -29,13 +30,13 @@ import {
 } from "./ui/select";
 import PageTitle from "./PageTitle";
 import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 
 export default function CreateNft() {
   const [preview, setPreview] = useState<string | null>(null);
-  const [secondStep, setSecondStep] = useState(false);
+  const [isSecondStep, setIsSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -72,8 +73,11 @@ export default function CreateNft() {
     Object.fromEntries(allFields.map((field) => [field.name, field.validation]))
   );
 
+  const defaultValues = getDefaultValuesFromFields(allFields);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues,
   });
 
   const assetType = form.watch("asset_type");
@@ -86,16 +90,44 @@ export default function CreateNft() {
 
   return (
     <>
-      <PageTitle title="Create your own NFT" />
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit((data) => {
             console.log(data);
           })}
-          className="flex gap-10 items-start lg:gap-5 md:flex-col-reverse"
+          className="flex gap-20 items-start lg:gap-5 md:flex-col"
         >
+          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
+            <div
+              {...getRootProps()}
+              className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
+            >
+              <input {...getInputProps()} />
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="mx-auto max-h-64 rounded-md object-contain"
+                />
+              ) : (
+                <div className="flex flex-col gap-3 justify-center">
+                  <h2 className="h1">NFT Image</h2>
+                  {isDragActive ? (
+                    <p className="text-gray-500">Drop the files here ...</p>
+                  ) : (
+                    <p>Drag & drop an image here, or click to select one</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
           <div className="w-1/2 md:w-full">
-            <div className={`flex flex-col gap-2 firstStep ${secondStep ? "hidden" : "block"}`}>
+            <PageTitle title="Create your own NFT" />
+            <div
+              className={`flex flex-col gap-2 firstStep ${
+                isSecondStep ? "hidden" : "block"
+              }`}
+            >
               <FormField
                 control={form.control}
                 name="title"
@@ -176,7 +208,7 @@ export default function CreateNft() {
                 />
                 <FormField
                   control={form.control}
-                  name="Royalty"
+                  name="royalty"
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
@@ -210,7 +242,7 @@ export default function CreateNft() {
 
               <FormField
                 control={form.control}
-                name="proofOfOwnershipDocumet"
+                name="proofOfOwnershipDocument"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">
@@ -229,10 +261,7 @@ export default function CreateNft() {
                 name="asset_type"
                 render={({ field }) => (
                   <FormItem>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Asset type" />
@@ -254,13 +283,20 @@ export default function CreateNft() {
                 )}
               />
             </div>
-            <div className={`flex flex-col gap-2 secondStep ${secondStep ? "block" : "hidden"}`}>
-              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">Additional fields for {assetType}</h2>
+            <div
+              className={`flex flex-col gap-2 isSecondStep ${
+                isSecondStep ? "block" : "hidden"
+              }`}
+            >
+              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">
+                Additional fields for {assetType}
+              </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
                 <FormField
                   key={item.name}
                   control={form.control}
                   name={item.name}
+                  defaultValue={item.defaultValue}
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
@@ -276,12 +312,12 @@ export default function CreateNft() {
             <div className="flex gap-2 mt-2">
               <Button
                 onClick={() => {
-                  setSecondStep(false);
+                  setIsSecondStep(false);
                 }}
                 variant="gray"
                 type="button"
                 size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
+                className={`w-full ${isSecondStep ? "block" : "hidden"}`}
               >
                 Prev Step
               </Button>
@@ -293,17 +329,17 @@ export default function CreateNft() {
                     "uniqueIdentifier",
                     "network",
                     "price",
-                    "Royalty",
-                    "owner_contact",
+                    "royalty",
+                    "ownerContact",
                   ]);
                   if (isValid) {
-                    setSecondStep(true);
+                    setIsSecondStep(true);
                   }
                 }}
                 variant="gray"
                 type="button"
                 size="xl"
-                className={`w-full ${secondStep ? "hidden" : "block"}`}
+                className={`w-full ${isSecondStep ? "hidden" : "block"}`}
               >
                 Next Step
               </Button>
@@ -311,34 +347,10 @@ export default function CreateNft() {
                 variant="gray"
                 type="submit"
                 size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
+                className={`w-full ${isSecondStep ? "block" : "hidden"}`}
               >
                 Tokenize
               </Button>
-            </div>
-          </div>
-          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
-            <div
-              {...getRootProps()}
-              className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
-            >
-              <input {...getInputProps()} />
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mx-auto max-h-64 rounded-md object-contain"
-                />
-              ) : (
-                <div className="flex flex-col gap-3 justify-center">
-                  <h2 className="h1">NFT Image</h2>
-                  {isDragActive ? (
-                    <p className="text-gray-500">Drop the files here ...</p>
-                  ) : (
-                    <p>Drag & drop an image here, or click to select one</p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </form>

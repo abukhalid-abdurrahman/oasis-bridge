@@ -1,5 +1,9 @@
-import { z } from "zod";
-import { ACCEPTED_DOCUMENT_TYPES, ASSET_TYPES, MAX_FILE_SIZE } from "../constants";
+import { z, ZodObject, ZodTypeAny } from "zod";
+import {
+  ACCEPTED_DOCUMENT_TYPES,
+  ASSET_TYPES,
+  MAX_FILE_SIZE,
+} from "../constants";
 import { TokenizationField } from "../types";
 
 export const tokenizationFieldsBase: TokenizationField[] = [
@@ -16,16 +20,15 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     validation: z.string().min(1, { message: "Description is required" }),
   },
   {
-    name: "proofOfOwnershipDocumet",
+    name: "proofOfOwnershipDocument",
     placeholder: "Proof of ownership document",
     type: "file",
-    validation: z
-      .any()
-      // .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
-      // .refine(
-      //   (file) => ACCEPTED_DOCUMENT_TYPES.includes(file?.type),
-      //   "Only .jpg, .jpeg, .png and .webp .pdf formats are supported."
-      // ),
+    validation: z.any(),
+    // .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
+    // .refine(
+    //   (file) => ACCEPTED_DOCUMENT_TYPES.includes(file?.type),
+    //   "Only .jpg, .jpeg, .png and .webp .pdf formats are supported."
+    // ),
   },
   {
     name: "uniqueIdentifier",
@@ -49,16 +52,16 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "price",
     placeholder: "Price",
     type: "number",
-    validation: z.coerce.number().min(1, { message: "Royalty is required" }),
+    validation: z.coerce.number().min(1, { message: "Price is required" }),
   },
   {
-    name: "owner_contact",
+    name: "ownerContact",
     placeholder: "Owner contact",
     type: "string",
-    validation: z.string().min(1, { message: "Royalty is required" }),
+    validation: z.string().min(1, { message: "Owner contact is required" }),
   },
   {
-    name: "asset_type",
+    name: "assetType",
     placeholder: "AssetType",
     type: "string",
     validation: z.enum([...ASSET_TYPES]),
@@ -71,26 +74,30 @@ export const tokenizationFieldsAutomobiles: TokenizationField[] = [
     placeholder: "VIN/Serial Number",
     type: "string",
     validation: z.string().min(1, { message: "VIN/Serial Number is required" }),
+    defaultValue: "",
   },
   {
     name: "geolocation",
     placeholder: "Geolocation",
     type: "string",
     validation: z.string().min(1, { message: "Geolocation is required" }),
+    defaultValue: "",
   },
   {
     name: "manufacture_year",
     placeholder: "Manufacture Year",
     type: "string",
     validation: z.string().min(1, { message: "Manufacture Year is required" }),
+    defaultValue: "",
   },
   {
     name: "insurance_status",
     placeholder: "Insurance Status",
     type: "string",
     validation: z.string().min(1, { message: "Insurance Status is required" }),
+    defaultValue: "",
   },
-]
+];
 
 export const tokenizationFieldsRealEstate: TokenizationField[] = [
   {
@@ -98,35 +105,61 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     placeholder: "Asset Location (Geolocation / Country)",
     type: "string",
     validation: z.string().min(1, { message: "Asset Location is required" }),
+    defaultValue: "",
   },
   {
-    name: "valuation_date",
+    name: "valuationDate",
     placeholder: "Valuation Date",
     type: "string",
     validation: z.string().min(1, { message: "Valuation Date is required" }),
+    defaultValue: "",
   },
   {
     name: "area",
     placeholder: "Area",
     type: "string",
     validation: z.string().min(1, { message: "Area is required" }),
+    defaultValue: "",
   },
   {
-    name: "property_type",
+    name: "propertyType",
     placeholder: "Property Type",
     type: "string",
     validation: z.string().min(1, { message: "Property Type is required" }),
+    defaultValue: "",
   },
   {
-    name: "construction_year",
+    name: "constructionYear",
     placeholder: "Construction Year",
     type: "string",
     validation: z.string().min(1, { message: "Construction Year is required" }),
+    defaultValue: "",
   },
   {
     name: "insurance_status",
     placeholder: "Insurance Status",
     type: "string",
     validation: z.string().min(1, { message: "Insurance Status is required" }),
+    defaultValue: "",
   },
-]
+];
+
+export const getZodSchemaFromFields = (
+  fields: TokenizationField[]
+): ZodObject<any> => {
+  const shape: Record<string, ZodTypeAny> = {};
+  fields.forEach((field) => {
+    shape[field.name] = field.validation;
+  });
+  return z.object(shape);
+};
+
+export const getDefaultValuesFromFields = (
+  fields: TokenizationField[]
+): Record<string, any> => {
+  const values: Record<string, any> = {};
+  fields.forEach((field) => {
+    values[field.name] = "";
+  });
+  return values;
+};
