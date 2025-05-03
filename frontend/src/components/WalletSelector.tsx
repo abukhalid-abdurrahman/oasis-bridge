@@ -50,7 +50,7 @@ export default function WalletSelector({
               <p className="p">{wallet.walletName}</p>
             </div>
             <div className="">
-              <p className="text:sm opacity-50">Detected</p>
+              <p className="text:sm opacity-50">{wallet.detectingFn()}</p>
             </div>
           </div>
         ))}
