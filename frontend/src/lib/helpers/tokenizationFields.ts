@@ -80,7 +80,7 @@ export const tokenizationFieldsAutomobiles: TokenizationField[] = [
     name: "geolocation",
     placeholder: "Geolocation",
     type: "string",
-    validation: z.string().min(1, { message: "Geolocation is required" }),
+    validation: z.any(),
     defaultValue: "",
   },
   {
@@ -104,7 +104,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "geolocation",
     placeholder: "Asset Location (Geolocation / Country)",
     type: "string",
-    validation: z.string().min(1, { message: "Asset Location is required" }),
+    validation: z.any(),
     defaultValue: "",
   },
   {
@@ -117,8 +117,8 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
   {
     name: "area",
     placeholder: "Area",
-    type: "string",
-    validation: z.string().min(1, { message: "Area is required" }),
+    type: "number",
+    validation: z.coerce.number().min(1, { message: "Area is required" }),
     defaultValue: "",
   },
   {
@@ -131,8 +131,8 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
   {
     name: "constructionYear",
     placeholder: "Construction Year",
-    type: "string",
-    validation: z.string().min(1, { message: "Construction Year is required" }),
+    type: "number",
+    validation: z.coerce.number().min(1, { message: "Construction year is required" }),
     defaultValue: "",
   },
   {

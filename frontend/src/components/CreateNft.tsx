@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import {
   getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
@@ -30,14 +30,24 @@ import {
 } from "./ui/select";
 import PageTitle from "./PageTitle";
 import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
+import dynamic from "next/dynamic";
+
+const LocationPickerModal = dynamic(() => import("./LocationPickerModal"), {
+  ssr: false,
+});
 
 export default function CreateNft() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isSecondStep, setIsSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -80,7 +90,16 @@ export default function CreateNft() {
     defaultValues,
   });
 
-  const assetType = form.watch("asset_type");
+  const assetType = form.watch("assetType");
+
+  useEffect(() => {
+    if (coords) {
+      form.setValue("geolocation", {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
+    }
+  }, [coords]);
 
   useEffect(() => {
     if (assetType) {
@@ -229,7 +248,7 @@ export default function CreateNft() {
 
               <FormField
                 control={form.control}
-                name="owner_contact"
+                name="ownerContact"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -258,7 +277,7 @@ export default function CreateNft() {
 
               <FormField
                 control={form.control}
-                name="asset_type"
+                name="assetType"
                 render={({ field }) => (
                   <FormItem>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -292,20 +311,35 @@ export default function CreateNft() {
                 Additional fields for {assetType}
               </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <FormField
-                  key={item.name}
-                  control={form.control}
-                  name={item.name}
-                  defaultValue={item.defaultValue}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder={item.placeholder} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                <div key={item.name}>
+                  {item.name === "geolocation" ? (
+                    <Input
+                      onClick={() => {
+                        setIsMapOpen(true)
+                      }}
+                      placeholder={item.placeholder}
+                      value={
+                        coords ? coords.latitude + " " + coords.longitude : ""
+                      }
+                      onChange={() => {}}
+                      className="cursor-pointer"
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name={item.name}
+                      defaultValue={item.defaultValue}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder={item.placeholder} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
+                </div>
               ))}
             </div>
 
@@ -355,6 +389,22 @@ export default function CreateNft() {
           </div>
         </form>
       </Form>
+      <Button
+        onClick={() => {
+          setIsMapOpen(true);
+        }}
+      >
+        Open the map
+      </Button>
+      {isMapOpen && (
+        <LocationPickerModal
+          onSelect={(newCoords) => {
+            setCoords(newCoords);
+            // setIsMapOpen(false);
+          }}
+          setIsOpen={setIsMapOpen}
+        />
+      )}
     </>
   );
 }
