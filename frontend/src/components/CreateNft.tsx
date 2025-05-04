@@ -389,13 +389,6 @@ export default function CreateNft() {
           </div>
         </form>
       </Form>
-      <Button
-        onClick={() => {
-          setIsMapOpen(true);
-        }}
-      >
-        Open the map
-      </Button>
       {isMapOpen && (
         <LocationPickerModal
           onSelect={(newCoords) => {
