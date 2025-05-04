@@ -34,6 +34,8 @@ import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import dynamic from "next/dynamic";
+import { mutateRwaToken } from "@/requests/postRequests";
+import { uploadFile } from "@/lib/scripts/script";
 
 const LocationPickerModal = dynamic(() => import("./LocationPickerModal"), {
   ssr: false,
@@ -49,25 +51,11 @@ export default function CreateNft() {
   } | null>(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [],
-    },
-    multiple: false,
-  });
-
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
       case "Automobiles":
         return tokenizationFieldsAutomobiles;
-      case "Real Estate":
+      case "RealEstate":
         return tokenizationFieldsRealEstate;
       default:
         return [];
@@ -92,6 +80,34 @@ export default function CreateNft() {
 
   const assetType = form.watch("assetType");
 
+  const submit = mutateRwaToken();
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    submit.mutate(data, {
+      onSuccess: (res) => {
+        console.log(res);
+      },
+    });
+  };
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      setPreview(URL.createObjectURL(file));
+
+      const uploadedUrl = await uploadFile(file);
+      form.setValue("image", uploadedUrl);
+    },
+    [form]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [],
+    },
+    multiple: false,
+  });
+
   useEffect(() => {
     if (coords) {
       form.setValue("geolocation", {
@@ -111,9 +127,7 @@ export default function CreateNft() {
     <>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) => {
-            console.log(data);
-          })}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="flex gap-20 items-start lg:gap-5 md:flex-col"
         >
           <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
@@ -179,7 +193,7 @@ export default function CreateNft() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="uniqueIdentifier" {...field} />
+                      <Input placeholder="Unique identifier" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -252,7 +266,7 @@ export default function CreateNft() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="owner_contact" {...field} />
+                      <Input placeholder="Owner contact" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -268,7 +282,16 @@ export default function CreateNft() {
                       Proof of Ownership Document
                     </FormLabel>
                     <FormControl>
-                      <Input id="picture" type="file" {...field} />
+                      <Input
+                        type="file"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const uploadedUrl = await uploadFile(file);
+                            field.onChange(uploadedUrl);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -290,7 +313,10 @@ export default function CreateNft() {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem key={item} value={item}>
+                            <SelectItem
+                              key={item}
+                              value={item.replace(/\s/g, "")}
+                            >
                               {item}
                             </SelectItem>
                           ))}
@@ -311,35 +337,36 @@ export default function CreateNft() {
                 Additional fields for {assetType}
               </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <div key={item.name}>
-                  {item.name === "geolocation" ? (
-                    <Input
-                      onClick={() => {
-                        setIsMapOpen(true)
-                      }}
-                      placeholder={item.placeholder}
-                      value={
-                        coords ? coords.latitude + " " + coords.longitude : ""
-                      }
-                      onChange={() => {}}
-                      className="cursor-pointer"
-                    />
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name={item.name}
-                      defaultValue={item.defaultValue}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input placeholder={item.placeholder} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <FormField
+                  key={item.name}
+                  control={form.control}
+                  name={item.name}
+                  defaultValue={item.defaultValue}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        {item.name === "geolocation" ? (
+                          <Input
+                            onClick={() => {
+                              setIsMapOpen(true);
+                            }}
+                            placeholder={item.placeholder}
+                            value={
+                              coords
+                                ? coords.latitude + " " + coords.longitude
+                                : ""
+                            }
+                            onChange={() => {}}
+                            className="cursor-pointer"
+                          />
+                        ) : (
+                          <Input placeholder={item.placeholder} {...field} />
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
+                />
               ))}
             </div>
 
@@ -365,6 +392,8 @@ export default function CreateNft() {
                     "price",
                     "royalty",
                     "ownerContact",
+                    "image",
+                    "proofOfOwnershipDocument",
                   ]);
                   if (isValid) {
                     setIsSecondStep(true);

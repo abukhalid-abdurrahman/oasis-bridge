@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axiosInstance"
+import axiosInstanceForFiles from "@/lib/axiosInstanceForFiles"
 import { API } from "@/lib/constants"
 import { PostWallet } from "@/lib/types"
 import { useMutation } from "@tanstack/react-query"
@@ -89,6 +90,17 @@ export const mutateOrders = () => {
   })
 }
 
+
+// Post for a file uploading
+export const postFiles = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await axiosInstanceForFiles.post(`/files/upload`, formData);
+  return res.data;
+};
+
+
 // Post for linking wallet address
 const postWallet = async (req: any) => {
   const res = await axiosInstance.post(`/linked-accounts`, req)
@@ -99,6 +111,20 @@ export const mutateWallet = () => {
   return useMutation({
     mutationFn: (req: PostWallet) => postWallet(req),
     onSuccess: () => console.log('Success'),
+    onError: (error) => console.log('Error', error)
+  })
+}
+
+// Post Rwa token to tokenize it
+const postRwaToken = async(req: any) => {
+  const res = await axiosInstance.post(`/rwa/tokenize`)
+  return res.data
+}
+
+export const mutateRwaToken = () => {
+  return useMutation({
+    mutationFn: (req: any) => postRwaToken(req),
+    onSuccess: () => console.log('success'),
     onError: (error) => console.log('Error', error)
   })
 }

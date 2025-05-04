@@ -1,3 +1,4 @@
+import { postFiles } from "@/requests/postRequests";
 import { PublicKey } from "@solana/web3.js";
 import Cookies from "js-cookie";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -39,5 +40,15 @@ export const redirectOnUnauthorize = (
     setUser(null);
     Cookies.remove("oasisToken");
     router.push("/?signin=true");
+  }
+};
+
+export const uploadFile = async (file: File): Promise<string> => {
+  try {
+    const res = await postFiles(file);
+    return res.data.data.fileUrl;
+  } catch (error) {
+    console.error("Upload failed", error);
+    return 'File upload failed';
   }
 };

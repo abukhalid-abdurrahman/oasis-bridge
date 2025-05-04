@@ -8,6 +8,12 @@ import { TokenizationField } from "../types";
 
 export const tokenizationFieldsBase: TokenizationField[] = [
   {
+    name: 'image',
+    placeholder: 'Image',
+    type: 'string',
+    validation: z.string().url()
+  },
+  {
     name: "title",
     placeholder: "Title",
     type: "string",
@@ -23,7 +29,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "proofOfOwnershipDocument",
     placeholder: "Proof of ownership document",
     type: "file",
-    validation: z.any(),
+    validation: z.string().url(),
     // .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
     // .refine(
     //   (file) => ACCEPTED_DOCUMENT_TYPES.includes(file?.type),
@@ -64,7 +70,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "assetType",
     placeholder: "AssetType",
     type: "string",
-    validation: z.enum([...ASSET_TYPES]),
+    validation: z.enum(ASSET_TYPES.map(asset => asset.replace(/\s/g,'')) as [string, ...string[]]),
   },
 ];
 
@@ -135,13 +141,13 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     validation: z.coerce.number().min(1, { message: "Construction year is required" }),
     defaultValue: "",
   },
-  {
-    name: "insurance_status",
-    placeholder: "Insurance Status",
-    type: "string",
-    validation: z.string().min(1, { message: "Insurance Status is required" }),
-    defaultValue: "",
-  },
+  // {
+  //   name: "insurance_status",
+  //   placeholder: "Insurance Status",
+  //   type: "string",
+  //   validation: z.string().min(1, { message: "Insurance Status is required" }),
+  //   defaultValue: "",
+  // },
 ];
 
 export const getZodSchemaFromFields = (
