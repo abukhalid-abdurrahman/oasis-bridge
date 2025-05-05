@@ -5,7 +5,7 @@ public sealed class RwaTokenService(
     ILogger<RwaTokenService> logger,
     IHttpContextAccessor accessor,
     ISolanaNftMinting solanaNftMinting //I will use the pattern factory
-    ) : IRwaTokenService
+) : IRwaTokenService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetRwaTokensResponse>>>>
         GetAllAsync(RwaTokenFilter filter, CancellationToken token = default)
@@ -74,8 +74,8 @@ public sealed class RwaTokenService(
         {
             GetRwaTokenDetailResponse? rwaToken = await dbContext.RwaTokens
                 .AsNoTracking()
-                .Include(x=>x.VirtualAccount)
-                .ThenInclude(x=>x.Network)
+                .Include(x => x.VirtualAccount)
+                .ThenInclude(x => x.Network)
                 .Where(x => x.Id == id)
                 .Select(x => x.ToReadDetail()).FirstOrDefaultAsync(token);
 
@@ -106,14 +106,14 @@ public sealed class RwaTokenService(
             dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             Guid userId = accessor.GetId();
 
-            User? existingUser = await dbContext.Users.FirstOrDefaultAsync(x
+            bool existingUser = await dbContext.Users.AnyAsync(x
                 => x.Id == userId, token);
-            if (existingUser is null)
+            if (!existingUser)
                 return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.UserNotFound));
 
-            Network? existingNetwork =
-                await dbContext.Networks.FirstOrDefaultAsync(x => x.Name == request.Network, token);
-            if (existingNetwork is null)
+            bool existingNetwork =
+                await dbContext.Networks.AnyAsync(x => x.Name == request.Network, token);
+            if (!existingNetwork)
                 return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.NetworkNotFound));
 
             Guid? vaId = await (from u in dbContext.Users
