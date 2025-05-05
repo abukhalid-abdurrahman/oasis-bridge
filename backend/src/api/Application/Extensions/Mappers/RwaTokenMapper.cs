@@ -8,6 +8,7 @@ public static class RwaTokenMapper
             entity.Title,
             entity.Price,
             entity.AssetType,
+            entity.InsuranceStatus,
             entity.Geolocation,
             entity.Image,
             entity.Version);
@@ -39,6 +40,7 @@ public static class RwaTokenMapper
             entity.Image,
             entity.OwnerContact,
             entity.AssetType,
+            entity.InsuranceStatus,
             entity.Geolocation,
             entity.ValuationDate,
             entity.PropertyType,
@@ -60,6 +62,7 @@ public static class RwaTokenMapper
             Geolocation = request.Geolocation,
             Image = request.Image,
             AssetType = request.AssetType,
+            InsuranceStatus = request.InsuranceStatus,
             Metadata = minting.Metadata,
             AssetDescription = request.AssetDescription,
             ConstructionYear = request.ConstructionYear,
