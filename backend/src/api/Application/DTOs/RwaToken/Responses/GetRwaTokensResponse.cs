@@ -5,6 +5,7 @@ public readonly record struct GetRwaTokensResponse(
     string Title,
     decimal Price,
     NftAssetType AssetType,
+    InsuranceStatus InsuranceStatus,
     GeoLocation? Geolocation,
     string Image,
     long Version

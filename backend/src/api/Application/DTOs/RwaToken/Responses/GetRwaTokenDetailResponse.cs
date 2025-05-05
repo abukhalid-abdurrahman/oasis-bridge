@@ -12,6 +12,7 @@ public record GetRwaTokenDetailResponse(
     string Image,
     string OwnerContact,
     NftAssetType AssetType,
+    InsuranceStatus InsuranceStatus,
     GeoLocation? Geolocation,
     DateOnly ValuationDate,
     NftPropertyType PropertyType,
