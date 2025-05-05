@@ -103,7 +103,6 @@ public sealed class RwaTokenService(
 
         try
         {
-            dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             Guid userId = accessor.GetId();
 
             bool existingUser = await dbContext.Users.AnyAsync(x
