@@ -36,6 +36,8 @@ SolanaNftMintingFailed=Minting failed
 CreateRwaTokenFailed=Failed in process creating RwaToken.
 UpdateRwaTokenFailed=Failed in process updating RwaToken.
 
+InvalidAddressRadixFormat=Invalid address Radix format.
+
 ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
 ChangePasswordIncorrect=Old password is incorrect!.
 

@@ -50,7 +50,7 @@ public sealed class SolanaNftManager(
                 tokenStandard: TokenStandard.NonFungible,
                 metaData: metadata,
                 isMasterEdition: true,
-                isMutable: true
+                isMutable: false
             );
 
             if (tx.WasSuccessful)
