@@ -48,6 +48,7 @@ WalletNotFound=Wallet not found!.
 VirtualAccountNotFound=VirtualAccount not found!.
 RwaTokenNotFound= RwaToken not found!.
 AccountNotFound=Account not found. Ensure the account is initialized and funded before minting.
+NftLengthRequirement = UniqueIdentifier must be between 1 and 10 characters long (inclusive).
 
 WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!.
 UserAlreadyExist=User already exist!.

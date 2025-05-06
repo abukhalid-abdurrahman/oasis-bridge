@@ -4,7 +4,7 @@ public sealed class RwaTokenService(
     DataContext dbContext,
     ILogger<RwaTokenService> logger,
     IHttpContextAccessor accessor,
-    ISolanaNftMinting solanaNftMinting //I will use the pattern factory
+    ISolanaNftManager solanaNftManager //I will use the pattern factory
 ) : IRwaTokenService
 {
     public async Task<Result<PagedResponse<IEnumerable<GetRwaTokensResponse>>>>
@@ -103,6 +103,10 @@ public sealed class RwaTokenService(
 
         try
         {
+            if (request.UniqueIdentifier.Length == 0 && request.UniqueIdentifier.Length > 10)
+                return Result<CreateRwaTokenResponse>.Failure(
+                    ResultPatternError.BadRequest(Messages.NftLengthRequirement));
+            
             Guid userId = accessor.GetId();
 
             bool existingUser = await dbContext.Users.AnyAsync(x
@@ -134,7 +138,7 @@ public sealed class RwaTokenService(
                 Description = request.AssetDescription,
                 ImageUrl = request.Image
             };
-            Result<NftMintingResponse> mintingResult = await solanaNftMinting.MintAsync(nft, token);
+            Result<NftMintingResponse> mintingResult = await solanaNftManager.MintAsync(nft, token);
             if (!mintingResult.IsSuccess)
                 return Result<CreateRwaTokenResponse>.Failure(mintingResult.Error);
 

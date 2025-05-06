@@ -3,16 +3,17 @@ using Common.Constants;
 using Common.Contracts.Nft;
 using Solnet.Metaplex.NFT;
 using Solnet.Metaplex.NFT.Library;
+using Solnet.Rpc.Builders;
 
 namespace SolanaBridge.Nft;
 
-public interface ISolanaNftMinting : INftMinting;
+public interface ISolanaNftManager : INftManager;
 
-public sealed class SolanaNftMinting(
+public sealed class SolanaNftManager(
     INftWalletProvider walletProvider,
     INftMetadataSerializer metadataSerializer,
     MetadataClient metaplexClient,
-    IRpcClient client) : ISolanaNftMinting
+    IRpcClient client) : ISolanaNftManager
 {
     /// <inheritdoc />
     public async Task<Result<NftMintingResponse>> MintAsync(Common.DTOs.Nft nft, CancellationToken token = default)
@@ -107,6 +108,72 @@ public sealed class SolanaNftMinting(
         catch (Exception ex)
         {
             return Result<Common.DTOs.Nft>.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+
+    public async Task<Result<string>> BurnAsync(NftBurnRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            Mnemonic mnemonic = new(request.OwnerSeedPhrase);
+            Wallet wallet = new(mnemonic);
+            Account owner = wallet.Account;
+
+            PublicKey mintPublicKey = new(request.MintAddress);
+            PublicKey associatedTokenAccount =
+                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(owner.PublicKey, mintPublicKey);
+
+            RequestResult<ResponseValue<TokenBalance>> balanceResult =
+                await client.GetTokenAccountBalanceAsync(associatedTokenAccount);
+            if (balanceResult == null || balanceResult.Result.Value.Amount == "0")
+            {
+                return Result<string>.Failure(ResultPatternError.BadRequest(balanceResult?.ErrorData.ToString()));
+            }
+
+            ulong amountToBurn = ulong.Parse(balanceResult.Result.Value.Amount);
+
+            List<TransactionInstruction> instructions =
+            [
+                TokenProgram.Burn(
+                    source: associatedTokenAccount,
+                    mint: mintPublicKey,
+                    amount: amountToBurn,
+                    authority: owner.PublicKey
+                ),
+
+                TokenProgram.CloseAccount(
+                    account: associatedTokenAccount,
+                    destination: owner.PublicKey,
+                    authority: owner.PublicKey,
+                    programId: TokenProgram.ProgramIdKey
+                )
+            ];
+
+            RequestResult<ResponseValue<LatestBlockHash>> blockHash = await client.GetLatestBlockHashAsync();
+            if (blockHash.Result == null)
+                return Result<string>.Failure(ResultPatternError.InternalServerError(blockHash.ErrorData.ToString()));
+
+            TransactionBuilder txBuilder = new TransactionBuilder()
+                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .SetFeePayer(owner.PublicKey);
+
+            foreach (TransactionInstruction instruction in instructions)
+            {
+                txBuilder.AddInstruction(instruction);
+            }
+
+            byte[] tx = txBuilder.Build(new List<Account> { owner });
+
+            RequestResult<string> txResult = await client.SendTransactionAsync(tx, commitment: Commitment.Confirmed);
+
+            if (txResult.WasSuccessful)
+                return Result<string>.Success(txResult.Result);
+
+            return Result<string>.Failure(ResultPatternError.InternalServerError(txResult.ErrorData.ToString()));
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Failure(ResultPatternError.InternalServerError(ex.Message));
         }
     }
 }

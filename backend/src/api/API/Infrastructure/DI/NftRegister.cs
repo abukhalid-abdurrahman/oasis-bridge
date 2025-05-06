@@ -11,8 +11,8 @@ public static class NftRegister
     {
         builder.Services.AddScoped<INftWalletProvider, NftWalletProvider>();
         builder.Services.AddScoped<INftMetadataSerializer, NftMetadataSerializer>();
-        builder.Services.AddScoped<INftMinting, SolanaNftMinting>();
-        builder.Services.AddScoped<ISolanaNftMinting, SolanaNftMinting>();
+        builder.Services.AddScoped<INftManager, SolanaNftManager>();
+        builder.Services.AddScoped<ISolanaNftManager, SolanaNftManager>();
         builder.Services.AddScoped<MetadataClient>();
         
         return builder;

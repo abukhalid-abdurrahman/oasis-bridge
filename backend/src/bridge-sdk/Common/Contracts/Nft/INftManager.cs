@@ -6,7 +6,7 @@ namespace Common.Contracts.Nft;
 /// <remarks>
 ///     This separates the business logic of minting from the specifics of the network (e.g., Solana, Radix).
 /// </remarks>
-public interface INftMinting
+public interface INftManager
 {
     /// <summary>
     ///     Initiates the minting process for an NFT.
@@ -42,4 +42,18 @@ public interface INftMinting
     ///     The success value includes the full metadata of the NFT, such as name, symbol, and URL.
     /// </returns>
     Task<Result<DTOs.Nft>> GetMetadataAsync(string nftAddress, CancellationToken token = default);
+
+    /// <summary>
+    ///     Burns an NFT by its mint address.
+    /// </summary>
+    /// <param name="request">
+    /// 
+    /// </param>
+    /// <param name="token">
+    ///     Cancellation token for the operation.
+    /// </param>
+    /// <returns>
+    ///     A result indicating whether the burn operation was successful.
+    /// </returns>
+    Task<Result<string>> BurnAsync(NftBurnRequest request, CancellationToken token = default);
 }

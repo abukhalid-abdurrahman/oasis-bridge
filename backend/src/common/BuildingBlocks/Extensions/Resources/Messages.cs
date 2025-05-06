@@ -58,6 +58,7 @@ public static class Messages
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string NftLengthRequirement => _resources.Get().AsString();
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
     public static string RwaTokenNotFound => _resources.Get().AsString();
