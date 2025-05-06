@@ -12,7 +12,21 @@ public static class RwaTokenMapper
             entity.Image,
             entity.Version);
 
-    public static CreateRwaTokenResponse ToReadResponse(this RwaToken entity)
+    public static CreateRwaTokenResponse ToCreateResponse(this RwaToken entity)
+        => new(
+            entity.Id,
+            entity.Title,
+            entity.Price,
+            entity.MintAccountType.ToString(),
+            entity.Royalty,
+            entity.OwnerContact,
+            entity.Metadata,
+            entity.MintAccount,
+            entity.TransactionHash,
+            entity.Version);
+
+
+    public static UpdateRwaTokenResponse ToUpdateResponse(this RwaToken entity)
         => new(
             entity.Id,
             entity.Title,
@@ -78,5 +92,29 @@ public static class RwaTokenMapper
                 : NetworkType.Radix,
             VirtualAccountId = vaId
         };
+    }
+
+    public static RwaToken ToEntity(this RwaToken rwaToken,
+        UpdateRwaTokenRequest request,
+        IHttpContextAccessor accessor,
+        NftMintingResponse nftMintingResponse)
+    {
+        rwaToken.AssetType = request.AssetType;
+        rwaToken.Title = request.Title;
+        rwaToken.OwnerContact = request.OwnerContact;
+        rwaToken.ValuationDate = request.ValuationDate;
+        rwaToken.AssetDescription = request.AssetDescription;
+        rwaToken.ProofOfOwnershipDocument = request.ProofOfOwnershipDocument;
+        rwaToken.Price = request.Price;
+        rwaToken.Royalty = request.Royalty;
+        rwaToken.Update(accessor.GetId());
+        rwaToken.UpdatedByIp?.Add(accessor.GetRemoteIpAddress());
+        rwaToken.Metadata = nftMintingResponse.Metadata;
+        rwaToken.MintAccount = nftMintingResponse.MintAccount;
+        rwaToken.TransactionHash = nftMintingResponse.TransactionHash;
+        rwaToken.MintAccountType = nftMintingResponse.Network == Networks.Solana
+            ? NetworkType.Solana
+            : NetworkType.Radix;
+        return rwaToken;
     }
 }

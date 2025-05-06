@@ -106,7 +106,7 @@ public sealed class RwaTokenService(
             if (request.UniqueIdentifier.Length == 0 && request.UniqueIdentifier.Length > 10)
                 return Result<CreateRwaTokenResponse>.Failure(
                     ResultPatternError.BadRequest(Messages.NftLengthRequirement));
-            
+
             Guid userId = accessor.GetId();
 
             bool existingUser = await dbContext.Users.AnyAsync(x
@@ -146,7 +146,7 @@ public sealed class RwaTokenService(
             await dbContext.RwaTokens.AddAsync(newRwaToken, token);
 
             return await dbContext.SaveChangesAsync(token) != 0
-                ? Result<CreateRwaTokenResponse>.Success(newRwaToken.ToReadResponse())
+                ? Result<CreateRwaTokenResponse>.Success(newRwaToken.ToCreateResponse())
                 : Result<CreateRwaTokenResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.CreateRwaTokenFailed));
         }
@@ -155,6 +155,66 @@ public sealed class RwaTokenService(
             logger.OperationException(nameof(CreateAsync), ex.Message);
             logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+
+    public async Task<Result<UpdateRwaTokenResponse>> UpdateAsync(Guid id, UpdateRwaTokenRequest request,
+        CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(UpdateAsync), date);
+
+        try
+        {
+            RwaToken? rwaToken = await dbContext.RwaTokens.FirstOrDefaultAsync(x => x.Id == id, token);
+            if (rwaToken is null)
+                return Result<UpdateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
+
+            if (rwaToken.AreRwaTokensEqual(request))
+                return Result<UpdateRwaTokenResponse>.Success();
+
+            NftBurnRequest? nftBurnRequest = await (from va in dbContext.VirtualAccounts
+                where va.Id == rwaToken.VirtualAccountId
+                select new NftBurnRequest
+                {
+                    MintAddress = rwaToken.MintAccount,
+                    OwnerPrivateKey = va.PrivateKey,
+                    OwnerPublicKey = va.PublicKey,
+                    OwnerSeedPhrase = va.SeedPhrase
+                }).FirstOrDefaultAsync(token);
+            if (nftBurnRequest is null)
+                return Result<UpdateRwaTokenResponse>.Failure(
+                    ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
+
+            Result<string> burnResponse = await solanaNftManager.BurnAsync(nftBurnRequest, token);
+            if (!burnResponse.IsSuccess)
+                return Result<UpdateRwaTokenResponse>.Failure(burnResponse.Error);
+
+            Common.DTOs.Nft nft = new()
+            {
+                Name = request.Title,
+                Royality = request.Royalty.ToString(),
+                Symbol = rwaToken.UniqueIdentifier,
+                Url = request.ProofOfOwnershipDocument,
+                Description = request.AssetDescription,
+                ImageUrl = rwaToken.Image
+            };
+
+            Result<NftMintingResponse> mintingResult = await solanaNftManager.MintAsync(nft, token);
+            if (!mintingResult.IsSuccess)
+                return Result<UpdateRwaTokenResponse>.Failure(mintingResult.Error);
+
+            rwaToken.ToEntity(request, accessor, mintingResult.Value!);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<UpdateRwaTokenResponse>.Success(rwaToken.ToUpdateResponse())
+                : Result<UpdateRwaTokenResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.UpdateRwaTokenFailed));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(UpdateAsync), ex.Message);
+            logger.OperationCompleted(nameof(UpdateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<UpdateRwaTokenResponse>.Failure(ResultPatternError.InternalServerError(ex.Message));
         }
     }
 }

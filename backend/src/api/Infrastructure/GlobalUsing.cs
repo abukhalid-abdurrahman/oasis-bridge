@@ -54,6 +54,7 @@ global using Microsoft.EntityFrameworkCore.Query;
 global using Application.DTOs.NetworkToken.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Microsoft.EntityFrameworkCore.Metadata;
+global using  Application.Extensions.CheckingUtility;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;

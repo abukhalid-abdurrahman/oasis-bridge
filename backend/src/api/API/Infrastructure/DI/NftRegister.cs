@@ -1,8 +1,3 @@
-using Common.Contracts.Nft;
-using Infrastructure.ImplementationContract.Nft;
-using SolanaBridge.Nft;
-using Solnet.Metaplex.NFT;
-
 namespace API.Infrastructure.DI;
 
 public static class NftRegister
@@ -14,7 +9,7 @@ public static class NftRegister
         builder.Services.AddScoped<INftManager, SolanaNftManager>();
         builder.Services.AddScoped<ISolanaNftManager, SolanaNftManager>();
         builder.Services.AddScoped<MetadataClient>();
-        
+
         return builder;
     }
 }

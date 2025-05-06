@@ -34,6 +34,7 @@ InvalidRadixFormat=Invalid Radix format address
 SmtpConnectionFailed=SMTP Connection failed after multiple attempts.
 SolanaNftMintingFailed=Minting failed
 CreateRwaTokenFailed=Failed in process creating RwaToken.
+UpdateRwaTokenFailed=Failed in process updating RwaToken.
 
 ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
 ChangePasswordIncorrect=Old password is incorrect!.

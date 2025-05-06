@@ -1,10 +1,3 @@
-using System.Text;
-using Common.Constants;
-using Common.Contracts.Nft;
-using Solnet.Metaplex.NFT;
-using Solnet.Metaplex.NFT.Library;
-using Solnet.Rpc.Builders;
-
 namespace SolanaBridge.Nft;
 
 public interface ISolanaNftManager : INftManager;

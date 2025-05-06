@@ -1,7 +1,3 @@
-using BuildingBlocks.Extensions.Resources;
-using Common.DTOs;
-using SolanaBridge.Nft;
-
 namespace API.Controllers.V1;
 
 [Route($"{ApiAddress.Base}/rwa")]

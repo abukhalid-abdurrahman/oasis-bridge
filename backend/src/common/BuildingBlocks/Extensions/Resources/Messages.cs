@@ -48,6 +48,7 @@ public static class Messages
     public static string InvalidAddressRadixFormat => _resources.Get().AsString();
     public static string DeleteNetworkTokenFailed => _resources.Get().AsString();
     public static string CreateRwaTokenFailed => _resources.Get().AsString();
+    public static string UpdateRwaTokenFailed => _resources.Get().AsString();
     public static string UpdateNetworkFailed => _resources.Get().AsString();
     public static string DeleteNetworkFailed => _resources.Get().AsString();
     public static string SendEmailConfirmationCodeFailed => _resources.Get().AsString();

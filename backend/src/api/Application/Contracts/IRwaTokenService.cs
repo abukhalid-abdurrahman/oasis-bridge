@@ -10,4 +10,7 @@ public interface IRwaTokenService
 
     Task<Result<CreateRwaTokenResponse>>
         CreateAsync(CreateRwaTokenRequest request, CancellationToken token = default);
+
+    Task<Result<UpdateRwaTokenResponse>>
+        UpdateAsync(Guid id, UpdateRwaTokenRequest request, CancellationToken token = default);
 }
