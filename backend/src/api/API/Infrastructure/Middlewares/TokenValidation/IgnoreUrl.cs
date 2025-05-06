@@ -13,12 +13,11 @@ public static class IgnoreUrl
     /// </summary>
     public static readonly HashSet<string> IgnoreUrls = new(StringComparer.OrdinalIgnoreCase)
     {
-        // List of authentication-related API endpoints that do not require token validation
-        $"/api/{ApiVersions.V1}/auth/register", // Registration endpoint
-        $"/api/{ApiVersions.V1}/auth/login", // Login endpoint
-        $"/api/{ApiVersions.V1}/auth/forgot-password", // Forgot password endpoint
-        $"/api/{ApiVersions.V1}/auth/reset-password", // Reset password endpoint
-        $"/api/{ApiVersions.V1}/auth/restore", // Restore account endpoint
-        $"/api/{ApiVersions.V1}/auth/restore/confirm", // Confirm restore account endpoint
+        $"/api/{ApiVersions.V1}/auth/register", 
+        $"/api/{ApiVersions.V1}/auth/login", 
+        $"/api/{ApiVersions.V1}/auth/forgot-password", 
+        $"/api/{ApiVersions.V1}/auth/reset-password", 
+        $"/api/{ApiVersions.V1}/auth/restore", 
+        $"/api/{ApiVersions.V1}/auth/restore/confirm", 
     };
 }

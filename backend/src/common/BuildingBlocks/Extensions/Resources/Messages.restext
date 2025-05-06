@@ -34,6 +34,9 @@ InvalidRadixFormat=Invalid Radix format address
 SmtpConnectionFailed=SMTP Connection failed after multiple attempts.
 SolanaNftMintingFailed=Minting failed
 CreateRwaTokenFailed=Failed in process creating RwaToken.
+UpdateRwaTokenFailed=Failed in process updating RwaToken.
+
+InvalidAddressRadixFormat=Invalid address Radix format.
 
 ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
 ChangePasswordIncorrect=Old password is incorrect!.
@@ -48,6 +51,7 @@ WalletNotFound=Wallet not found!.
 VirtualAccountNotFound=VirtualAccount not found!.
 RwaTokenNotFound= RwaToken not found!.
 AccountNotFound=Account not found. Ensure the account is initialized and funded before minting.
+NftLengthRequirement = UniqueIdentifier must be between 1 and 10 characters long (inclusive).
 
 WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!.
 UserAlreadyExist=User already exist!.

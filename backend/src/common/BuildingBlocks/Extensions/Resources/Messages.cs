@@ -48,6 +48,7 @@ public static class Messages
     public static string InvalidAddressRadixFormat => _resources.Get().AsString();
     public static string DeleteNetworkTokenFailed => _resources.Get().AsString();
     public static string CreateRwaTokenFailed => _resources.Get().AsString();
+    public static string UpdateRwaTokenFailed => _resources.Get().AsString();
     public static string UpdateNetworkFailed => _resources.Get().AsString();
     public static string DeleteNetworkFailed => _resources.Get().AsString();
     public static string SendEmailConfirmationCodeFailed => _resources.Get().AsString();
@@ -58,6 +59,7 @@ public static class Messages
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string NftLengthRequirement => _resources.Get().AsString();
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
     public static string RwaTokenNotFound => _resources.Get().AsString();
