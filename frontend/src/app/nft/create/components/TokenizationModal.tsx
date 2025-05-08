@@ -47,7 +47,7 @@ export default function TokenizationModal({
 
   return (
     <Modal
-      isNonClosable
+      isNonClosable={!isError}
       isNonUrlModal
       className={`${
         (!isSuccessfullyDone || isError) && "min-h-64 flex justify-center items-center"
