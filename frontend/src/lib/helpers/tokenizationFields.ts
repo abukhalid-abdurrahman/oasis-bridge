@@ -3,6 +3,7 @@ import {
   ACCEPTED_DOCUMENT_TYPES,
   ASSET_TYPES,
   MAX_FILE_SIZE,
+  PROPERTY_TYPES,
 } from "../constants";
 import { TokenizationField } from "../types";
 
@@ -131,8 +132,10 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "propertyType",
     placeholder: "Property Type",
     type: "string",
-    validation: z.string().min(1, { message: "Property Type is required" }),
+    validation: z.enum([...PROPERTY_TYPES] as [string, ...string[]]),
     defaultValue: "",
+    HTMLType: 'select',
+    selectItems: [...PROPERTY_TYPES]
   },
   {
     name: "constructionYear",

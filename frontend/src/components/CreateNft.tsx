@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { Button, buttonVariants } from "./ui/button";
+import { Button } from "./ui/button";
 import {
   getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
@@ -29,13 +29,16 @@ import {
   SelectValue,
 } from "./ui/select";
 import PageTitle from "./PageTitle";
-import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { mutateRwaToken } from "@/requests/postRequests";
 import { uploadFile } from "@/lib/scripts/script";
+import { Loader2 } from "lucide-react";
+import { DragAndDropUpload } from "./DragAndDropUpload";
+import InputAssetField from "@/app/nft/create/components/InputAssetField";
+import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
 
 const LocationPickerModal = dynamic(() => import("./LocationPickerModal"), {
   ssr: false,
@@ -82,31 +85,14 @@ export default function CreateNft() {
 
   const submit = mutateRwaToken();
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    console.log('Form', data)
     submit.mutate(data, {
       onSuccess: (res) => {
-        console.log(res);
+        console.log('Res', res);
       },
+      onError: (err) => console.log('Err', err)
     });
   };
-
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      setPreview(URL.createObjectURL(file));
-
-      const uploadedUrl = await uploadFile(file);
-      form.setValue("image", uploadedUrl);
-    },
-    [form]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [],
-    },
-    multiple: false,
-  });
 
   useEffect(() => {
     if (coords) {
@@ -130,30 +116,7 @@ export default function CreateNft() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex gap-20 items-start lg:gap-5 md:flex-col"
         >
-          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
-            <div
-              {...getRootProps()}
-              className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
-            >
-              <input {...getInputProps()} />
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mx-auto max-h-64 rounded-md object-contain"
-                />
-              ) : (
-                <div className="flex flex-col gap-3 justify-center">
-                  <h2 className="h1">NFT Image</h2>
-                  {isDragActive ? (
-                    <p className="text-gray-500">Drop the files here ...</p>
-                  ) : (
-                    <p>Drag & drop an image here, or click to select one</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          <DragAndDropUpload control={form.control} name="image" />
           <div className="w-1/2 md:w-full">
             <PageTitle title="Create your own NFT" />
             <div
@@ -276,26 +239,48 @@ export default function CreateNft() {
               <FormField
                 control={form.control}
                 name="proofOfOwnershipDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white">
-                      Proof of Ownership Document
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const uploadedUrl = await uploadFile(file);
-                            field.onChange(uploadedUrl);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const [isUploading, setIsUploading] = useState(false);
+
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-white">
+                        Proof of Ownership Document
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            disabled={isUploading}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  setIsUploading(true);
+                                  const uploadedUrl = await uploadFile(file);
+                                  field.onChange(uploadedUrl);
+                                } catch (err) {
+                                  console.error("File upload error:", err);
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }
+                            }}
+                          />
+                          {isUploading && (
+                            <div className="absolute inset-y-0 right-2 flex items-center">
+                              <Loader2
+                                className="animate-spin text-gray-400"
+                                size={20}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
@@ -337,36 +322,13 @@ export default function CreateNft() {
                 Additional fields for {assetType}
               </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <FormField
-                  key={item.name}
-                  control={form.control}
-                  name={item.name}
-                  defaultValue={item.defaultValue}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        {item.name === "geolocation" ? (
-                          <Input
-                            onClick={() => {
-                              setIsMapOpen(true);
-                            }}
-                            placeholder={item.placeholder}
-                            value={
-                              coords
-                                ? coords.latitude + " " + coords.longitude
-                                : ""
-                            }
-                            onChange={() => {}}
-                            className="cursor-pointer"
-                          />
-                        ) : (
-                          <Input placeholder={item.placeholder} {...field} />
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                <>
+                  {item?.HTMLType === 'select' ? (
+                    <SelectAssetField item={item} form={form} />
+                  ) : (
+                    <InputAssetField item={item} form={form} setIsMapOpen={setIsMapOpen} coords={coords} />
                   )}
-                />
+                </>
               ))}
             </div>
 

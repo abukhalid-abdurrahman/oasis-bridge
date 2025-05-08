@@ -22,6 +22,8 @@ export interface TokenizationField {
   validation: ZodType;
   group?: number;
   defaultValue?: string;
+  HTMLType?: string;
+  selectItems?: string[]
 }
 
 export type PostWallet = {

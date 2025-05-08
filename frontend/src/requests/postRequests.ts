@@ -117,7 +117,7 @@ export const mutateWallet = () => {
 
 // Post Rwa token to tokenize it
 const postRwaToken = async(req: any) => {
-  const res = await axiosInstance.post(`/rwa/tokenize`)
+  const res = await axiosInstance.post(`/rwa/tokenize`, req)
   return res.data
 }
 
