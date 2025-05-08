@@ -254,48 +254,46 @@ export default function CreateNft() {
               <FormField
                 control={form.control}
                 name="proofOfOwnershipDocument"
-                render={({ field }) => {
-                  const [isUploading, setIsUploading] = useState(false);
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">
+                      Proof of Ownership Document
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
 
-                  return (
-                    <FormItem>
-                      <FormLabel className="text-white">
-                        Proof of Ownership Document
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="file"
-                            disabled={isUploading}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                try {
-                                  setIsUploading(true);
-                                  const uploadedUrl = await uploadFile(file);
-                                  field.onChange(uploadedUrl);
-                                } catch (err) {
-                                  console.error("File upload error:", err);
-                                } finally {
-                                  setIsUploading(false);
-                                }
-                              }
-                            }}
-                          />
-                          {isUploading && (
-                            <div className="absolute inset-y-0 right-2 flex items-center">
-                              <Loader2
-                                className="animate-spin text-gray-400"
-                                size={20}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
+                          const allowedTypes = 'image/*';
+                          if (!allowedTypes.includes(file.type)) {
+                            form.setError("proofOfOwnershipDocument", {
+                              type: "manual",
+                              message:
+                                "File must be an image",
+                            });
+                            return;
+                          }
+
+                          const maxSizeInBytes = 10 * 1024 * 1024;
+                          if (file.size > maxSizeInBytes) {
+                            form.setError("proofOfOwnershipDocument", {
+                              type: "manual",
+                              message: "File must be smaller than 10MB",
+                            });
+                            return;
+                          }
+
+                          const uploadedUrl = await uploadFile(file);
+                          field.onChange(uploadedUrl);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
               <FormField
@@ -349,7 +347,7 @@ export default function CreateNft() {
                       coords={coords}
                     />
                   )}
-                  {item?.HTMLType === 'date' && (
+                  {item?.HTMLType === "date" && (
                     <DateAssetField item={item} form={form} />
                   )}
                 </div>
