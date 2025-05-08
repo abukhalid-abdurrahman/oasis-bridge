@@ -40,6 +40,7 @@ import { DragAndDropUpload } from "@/components/DragAndDropUpload";
 import InputAssetField from "@/app/nft/create/components/InputAssetField";
 import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
 import TokenizationModal from "./TokenizationModal";
+import DateAssetField from "./DateAssetField";
 
 const LocationPickerModal = dynamic(
   () => import("@/components/LocationPickerModal"),
@@ -59,7 +60,7 @@ export default function CreateNft() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isTokenized, setIsTokenized] = useState(false);
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
-  const [netAmount, setNetAmount] = useState<number | string>('')
+  const [netAmount, setNetAmount] = useState<number | string>("");
 
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
@@ -89,8 +90,8 @@ export default function CreateNft() {
   });
 
   const assetType = form.watch("assetType");
-  const price = form.watch('price')
-  const royalty = form.watch('royalty')
+  const price = form.watch("price");
+  const royalty = form.watch("royalty");
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setFormData(data);
@@ -100,12 +101,12 @@ export default function CreateNft() {
   useEffect(() => {
     if (price && royalty) {
       setNetAmount(() => {
-        return (royalty * price) / 100
-      })
+        return (royalty * price) / 100;
+      });
     } else {
-      setNetAmount('')
+      setNetAmount("");
     }
-  }, [price, royalty])
+  }, [price, royalty]);
 
   useEffect(() => {
     if (coords) {
@@ -337,15 +338,19 @@ export default function CreateNft() {
               </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
                 <div key={item.name}>
-                  {item?.HTMLType === "select" ? (
+                  {item?.HTMLType === "select" && (
                     <SelectAssetField item={item} form={form} />
-                  ) : (
+                  )}
+                  {!item?.HTMLType && (
                     <InputAssetField
                       item={item}
                       form={form}
                       setIsMapOpen={setIsMapOpen}
                       coords={coords}
                     />
+                  )}
+                  {item?.HTMLType === 'date' && (
+                    <DateAssetField item={item} form={form} />
                   )}
                 </div>
               ))}

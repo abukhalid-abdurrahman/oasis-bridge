@@ -120,6 +120,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     type: "string",
     validation: z.string().min(1, { message: "Valuation Date is required" }),
     defaultValue: "",
+    HTMLType: 'date'
   },
   {
     name: "area",
