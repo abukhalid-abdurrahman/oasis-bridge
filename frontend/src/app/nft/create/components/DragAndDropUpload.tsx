@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Loader2 } from "lucide-react";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { uploadFile } from "@/lib/scripts/script";
 
-type Props = {
+interface DragAndDropProps {
   control: any;
   name: string;
   label?: string;
 };
 
-export function DragAndDropUpload({ control, name }: Props) {
+export function DragAndDropUpload({ control, name }: DragAndDropProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -59,7 +59,7 @@ export function DragAndDropUpload({ control, name }: Props) {
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2 text-white">
                       <Loader2 className="animate-spin" size={32} />
-                      <p>Uploading...</p>
+                      <p className="p">Uploading...</p>
                     </div>
                   ) : preview || field.value ? (
                     <img
@@ -70,7 +70,7 @@ export function DragAndDropUpload({ control, name }: Props) {
                   ) : (
                     <div className="flex flex-col gap-3 justify-center text-white">
                       <h2 className="h1">NFT Image</h2>
-                      <p>{isDragActive ? "Drop the file here..." : "Drag & drop or click to upload"}</p>
+                      <p className="p">{isDragActive ? "Drop the file here..." : "Drag & drop or click to upload"}</p>
                     </div>
                   )}
                 </div>

@@ -4,7 +4,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -18,7 +17,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
-interface DateAssetField {
+interface DateAssetFieldProps {
   item: TokenizationField;
   form: UseFormReturn<
     {
@@ -31,7 +30,7 @@ interface DateAssetField {
   >;
 }
 
-export default function DateAssetField({ item, form }: DateAssetField) {
+export default function DateAssetField({ item, form }: DateAssetFieldProps) {
   return (
     <FormField
       control={form.control}

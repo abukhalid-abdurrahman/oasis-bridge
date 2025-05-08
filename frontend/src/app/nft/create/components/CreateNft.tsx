@@ -33,10 +33,8 @@ import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { mutateRwaToken } from "@/requests/postRequests";
 import { uploadFile } from "@/lib/scripts/script";
-import { Loader2 } from "lucide-react";
-import { DragAndDropUpload } from "@/components/DragAndDropUpload";
+import { DragAndDropUpload } from "@/app/nft/create/components/DragAndDropUpload";
 import InputAssetField from "@/app/nft/create/components/InputAssetField";
 import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
 import TokenizationModal from "./TokenizationModal";
@@ -50,7 +48,6 @@ const LocationPickerModal = dynamic(
 );
 
 export default function CreateNft() {
-  const [preview, setPreview] = useState<string | null>(null);
   const [isSecondStep, setIsSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
   const [coords, setCoords] = useState<{

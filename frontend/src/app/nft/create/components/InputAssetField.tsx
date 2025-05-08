@@ -9,7 +9,7 @@ import { TokenizationField } from "@/lib/types";
 import { Dispatch, SetStateAction } from "react";
 import { UseFormReturn } from "react-hook-form";
 
-interface InputAssetField {
+interface InputAssetFieldProps {
   item: TokenizationField;
   form: UseFormReturn<
     {
@@ -32,7 +32,7 @@ export default function InputAssetField({
   form,
   setIsMapOpen,
   coords,
-}: InputAssetField) {
+}: InputAssetFieldProps) {
   return (
     <FormField
       control={form.control}

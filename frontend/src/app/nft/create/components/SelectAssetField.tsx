@@ -18,7 +18,7 @@ import { TokenizationField } from "@/lib/types";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 
-interface SelectAssetField {
+interface SelectAssetFieldProps {
   item: TokenizationField;
   form: UseFormReturn<
     {
@@ -31,7 +31,7 @@ interface SelectAssetField {
   >;
 }
 
-export default function SelectAssetField({ item, form }: SelectAssetField) {
+export default function SelectAssetField({ item, form }: SelectAssetFieldProps) {
   return (
     <FormField
       control={form.control}
