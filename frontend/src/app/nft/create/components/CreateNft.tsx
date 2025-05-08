@@ -59,6 +59,7 @@ export default function CreateNft() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isTokenized, setIsTokenized] = useState(false);
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
+  const [netAmount, setNetAmount] = useState<number | string>('')
 
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
@@ -88,11 +89,23 @@ export default function CreateNft() {
   });
 
   const assetType = form.watch("assetType");
+  const price = form.watch('price')
+  const royalty = form.watch('royalty')
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setFormData(data);
     setIsTokenized(true);
   };
+
+  useEffect(() => {
+    if (price && royalty) {
+      setNetAmount(() => {
+        return (royalty * price) / 100
+      })
+    } else {
+      setNetAmount('')
+    }
+  }, [price, royalty])
 
   useEffect(() => {
     if (coords) {
@@ -219,6 +232,7 @@ export default function CreateNft() {
                     type="number"
                     placeholder="Net amount"
                     disabled={true}
+                    value={netAmount}
                   />
                 </div>
               </div>
