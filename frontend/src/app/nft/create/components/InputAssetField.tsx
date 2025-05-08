@@ -35,7 +35,6 @@ export default function InputAssetField({
 }: InputAssetField) {
   return (
     <FormField
-      key={item.name}
       control={form.control}
       name={item.name}
       defaultValue={item.defaultValue}

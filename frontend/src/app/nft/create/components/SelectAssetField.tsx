@@ -34,7 +34,6 @@ interface SelectAssetField {
 export default function SelectAssetField({ item, form }: SelectAssetField) {
   return (
     <FormField
-      key={item.name}
       control={form.control}
       name={item.name}
       render={({ field }) => (

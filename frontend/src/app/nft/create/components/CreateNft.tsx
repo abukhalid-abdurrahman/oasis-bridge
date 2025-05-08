@@ -10,9 +10,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
@@ -27,8 +27,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import PageTitle from "./PageTitle";
+} from "@/components/ui/select";
+import PageTitle from "@/components/PageTitle";
 import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
@@ -36,13 +36,17 @@ import dynamic from "next/dynamic";
 import { mutateRwaToken } from "@/requests/postRequests";
 import { uploadFile } from "@/lib/scripts/script";
 import { Loader2 } from "lucide-react";
-import { DragAndDropUpload } from "./DragAndDropUpload";
+import { DragAndDropUpload } from "@/components/DragAndDropUpload";
 import InputAssetField from "@/app/nft/create/components/InputAssetField";
 import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
+import TokenizationModal from "./TokenizationModal";
 
-const LocationPickerModal = dynamic(() => import("./LocationPickerModal"), {
-  ssr: false,
-});
+const LocationPickerModal = dynamic(
+  () => import("@/components/LocationPickerModal"),
+  {
+    ssr: false,
+  }
+);
 
 export default function CreateNft() {
   const [preview, setPreview] = useState<string | null>(null);
@@ -53,6 +57,8 @@ export default function CreateNft() {
     longitude: number;
   } | null>(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isTokenized, setIsTokenized] = useState(false);
+  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
 
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
@@ -83,15 +89,9 @@ export default function CreateNft() {
 
   const assetType = form.watch("assetType");
 
-  const submit = mutateRwaToken();
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log('Form', data)
-    submit.mutate(data, {
-      onSuccess: (res) => {
-        console.log('Res', res);
-      },
-      onError: (err) => console.log('Err', err)
-    });
+    setFormData(data);
+    setIsTokenized(true);
   };
 
   useEffect(() => {
@@ -322,13 +322,18 @@ export default function CreateNft() {
                 Additional fields for {assetType}
               </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <>
-                  {item?.HTMLType === 'select' ? (
+                <div key={item.name}>
+                  {item?.HTMLType === "select" ? (
                     <SelectAssetField item={item} form={form} />
                   ) : (
-                    <InputAssetField item={item} form={form} setIsMapOpen={setIsMapOpen} coords={coords} />
+                    <InputAssetField
+                      item={item}
+                      form={form}
+                      setIsMapOpen={setIsMapOpen}
+                      coords={coords}
+                    />
                   )}
-                </>
+                </div>
               ))}
             </div>
 
@@ -373,6 +378,7 @@ export default function CreateNft() {
                 type="submit"
                 size="xl"
                 className={`w-full ${isSecondStep ? "block" : "hidden"}`}
+                onClick={() => setIsTokenized(true)}
               >
                 Tokenize
               </Button>
@@ -387,6 +393,14 @@ export default function CreateNft() {
             // setIsMapOpen(false);
           }}
           setIsOpen={setIsMapOpen}
+        />
+      )}
+      {isTokenized && formData && (
+        <TokenizationModal
+          formData={formData}
+          setIsTokenized={setIsTokenized}
+          setIsSecondStep={setIsSecondStep}
+          form={form}
         />
       )}
     </>

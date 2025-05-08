@@ -1,6 +1,6 @@
 'use server'
 
-import CreateNft from "@/components/CreateNft";
+import CreateNft from "@/app/nft/create/components/CreateNft";
 import Header from "@/components/Header";
 import { searchParams } from "@/lib/types";
 
