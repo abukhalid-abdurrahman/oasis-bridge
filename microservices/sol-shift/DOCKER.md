@@ -24,8 +24,14 @@ docker build -t sol-shift .
 
 ## 🚀 Run the Container
 
-In root directury run
+In root directury run. For devnet
 
 ```bash
 docker run -d -p 3001:3001 -e SOLANA_NETWORK=https://api.devnet.solana.com sol-shift
+```
+
+or for mainnet
+
+```bash
+docker run -d -p 3001:3001 -e SOLANA_NETWORK=https://api.mainnet-beta.solana.com sol-shift
 ```
