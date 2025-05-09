@@ -11,7 +11,7 @@ import { SendSignedTransactionResponseDto } from './dto/sendSignedTransactionRes
 export class ShiftController {
   constructor(private readonly shiftService: ShiftService) {}
 
-  @Post('create-tx')
+  @Post('create-transaction')
   @ApiResponse({
     status: 200,
     description: 'Transaction successfully created',

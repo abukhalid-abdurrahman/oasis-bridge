@@ -134,15 +134,31 @@ export class ShiftService {
   }
 
   async sendSignedTransaction(dto: SendSignedTransactionDto) {
-    const buffer = Buffer.from(dto.signedTransaction, 'base64');
-    const transactionId = await connection.sendRawTransaction(buffer);
-    return {
-      status: 'success',
-      message: 'Transaction created successfully.',
-      code: HttpStatus.OK,
-      data: {
-        transactionId: transactionId,
-      },
-    };
+    try {
+      const buffer = Buffer.from(dto.signedTransaction, 'base64');
+      const transactionId = await connection.sendRawTransaction(buffer);
+      return {
+        status: 'success',
+        message: 'Transaction sent successfully.',
+        code: HttpStatus.OK,
+        data: {
+          transactionId: transactionId,
+        },
+      };
+    } catch (error) {
+      if (error.message) {
+        throw new BadRequestException({
+          status: 'error',
+          message: error.message,
+          code: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Transaction sending failed.',
+        code: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 }
