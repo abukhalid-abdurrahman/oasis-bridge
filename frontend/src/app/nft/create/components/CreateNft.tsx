@@ -10,10 +10,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
+  getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
   tokenizationFieldsBase,
   tokenizationFieldsRealEstate,
@@ -26,37 +27,43 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import PageTitle from "./PageTitle";
-import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useState } from "react";
+} from "@/components/ui/select";
+import PageTitle from "@/components/PageTitle";
+import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
+import dynamic from "next/dynamic";
+import { uploadFile } from "@/lib/scripts/script";
+import { DragAndDropUpload } from "@/app/nft/create/components/DragAndDropUpload";
+import InputAssetField from "@/app/nft/create/components/InputAssetField";
+import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
+import TokenizationModal from "./TokenizationModal";
+import DateAssetField from "./DateAssetField";
+
+const LocationPickerModal = dynamic(
+  () => import("@/components/LocationPickerModal"),
+  {
+    ssr: false,
+  }
+);
 
 export default function CreateNft() {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [secondStep, setSecondStep] = useState(false);
+  const [isSecondStep, setIsSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [],
-    },
-    multiple: false,
-  });
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isTokenized, setIsTokenized] = useState(false);
+  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
+  const [netAmount, setNetAmount] = useState<number | string>("");
 
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
       case "Automobiles":
         return tokenizationFieldsAutomobiles;
-      case "Real Estate":
+      case "RealEstate":
         return tokenizationFieldsRealEstate;
       default:
         return [];
@@ -72,11 +79,40 @@ export default function CreateNft() {
     Object.fromEntries(allFields.map((field) => [field.name, field.validation]))
   );
 
+  const defaultValues = getDefaultValuesFromFields(allFields);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues,
   });
 
-  const assetType = form.watch("asset_type");
+  const assetType = form.watch("assetType");
+  const price = form.watch("price");
+  const royalty = form.watch("royalty");
+
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    setFormData(data);
+    setIsTokenized(true);
+  };
+
+  useEffect(() => {
+    if (price && royalty) {
+      setNetAmount(() => {
+        return (royalty * price) / 100;
+      });
+    } else {
+      setNetAmount("");
+    }
+  }, [price, royalty]);
+
+  useEffect(() => {
+    if (coords) {
+      form.setValue("geolocation", {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
+    }
+  }, [coords]);
 
   useEffect(() => {
     if (assetType) {
@@ -86,16 +122,19 @@ export default function CreateNft() {
 
   return (
     <>
-      <PageTitle title="Create your own NFT" />
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) => {
-            console.log(data);
-          })}
-          className="flex gap-10 items-start lg:gap-5 md:flex-col-reverse"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex gap-20 items-start lg:gap-5 md:flex-col"
         >
+          <DragAndDropUpload control={form.control} name="image" />
           <div className="w-1/2 md:w-full">
-            <div className={`flex flex-col gap-2 firstStep ${secondStep ? "hidden" : "block"}`}>
+            <PageTitle title="Create your own NFT" />
+            <div
+              className={`flex flex-col gap-2 firstStep ${
+                isSecondStep ? "hidden" : "block"
+              }`}
+            >
               <FormField
                 control={form.control}
                 name="title"
@@ -128,7 +167,7 @@ export default function CreateNft() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="uniqueIdentifier" {...field} />
+                      <Input placeholder="Unique identifier" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,7 +215,7 @@ export default function CreateNft() {
                 />
                 <FormField
                   control={form.control}
-                  name="Royalty"
+                  name="royalty"
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
@@ -191,17 +230,18 @@ export default function CreateNft() {
                     type="number"
                     placeholder="Net amount"
                     disabled={true}
+                    value={netAmount}
                   />
                 </div>
               </div>
 
               <FormField
                 control={form.control}
-                name="owner_contact"
+                name="ownerContact"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="owner_contact" {...field} />
+                      <Input placeholder="Owner contact" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,14 +250,43 @@ export default function CreateNft() {
 
               <FormField
                 control={form.control}
-                name="proofOfOwnershipDocumet"
+                name="proofOfOwnershipDocument"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">
                       Proof of Ownership Document
                     </FormLabel>
                     <FormControl>
-                      <Input id="picture" type="file" {...field} />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          const allowedTypes = 'image/*';
+                          if (!allowedTypes.includes(file.type)) {
+                            form.setError("proofOfOwnershipDocument", {
+                              type: "manual",
+                              message:
+                                "File must be an image",
+                            });
+                            return;
+                          }
+
+                          const maxSizeInBytes = 10 * 1024 * 1024;
+                          if (file.size > maxSizeInBytes) {
+                            form.setError("proofOfOwnershipDocument", {
+                              type: "manual",
+                              message: "File must be smaller than 10MB",
+                            });
+                            return;
+                          }
+
+                          const uploadedUrl = await uploadFile(file);
+                          field.onChange(uploadedUrl);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -226,13 +295,10 @@ export default function CreateNft() {
 
               <FormField
                 control={form.control}
-                name="asset_type"
+                name="assetType"
                 render={({ field }) => (
                   <FormItem>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Asset type" />
@@ -242,7 +308,10 @@ export default function CreateNft() {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem key={item} value={item}>
+                            <SelectItem
+                              key={item}
+                              value={item.replace(/\s/g, "")}
+                            >
                               {item}
                             </SelectItem>
                           ))}
@@ -254,34 +323,43 @@ export default function CreateNft() {
                 )}
               />
             </div>
-            <div className={`flex flex-col gap-2 secondStep ${secondStep ? "block" : "hidden"}`}>
-              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">Additional fields for {assetType}</h2>
+            <div
+              className={`flex flex-col gap-2 isSecondStep ${
+                isSecondStep ? "block" : "hidden"
+              }`}
+            >
+              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">
+                Additional fields for {assetType}
+              </h2>
               {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <FormField
-                  key={item.name}
-                  control={form.control}
-                  name={item.name}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder={item.placeholder} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                <div key={item.name}>
+                  {item?.HTMLType === "select" && (
+                    <SelectAssetField item={item} form={form} />
                   )}
-                />
+                  {!item?.HTMLType && (
+                    <InputAssetField
+                      item={item}
+                      form={form}
+                      setIsMapOpen={setIsMapOpen}
+                      coords={coords}
+                    />
+                  )}
+                  {item?.HTMLType === "date" && (
+                    <DateAssetField item={item} form={form} />
+                  )}
+                </div>
               ))}
             </div>
 
             <div className="flex gap-2 mt-2">
               <Button
                 onClick={() => {
-                  setSecondStep(false);
+                  setIsSecondStep(false);
                 }}
                 variant="gray"
                 type="button"
                 size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
+                className={`w-full ${isSecondStep ? "block" : "hidden"}`}
               >
                 Prev Step
               </Button>
@@ -293,17 +371,19 @@ export default function CreateNft() {
                     "uniqueIdentifier",
                     "network",
                     "price",
-                    "Royalty",
-                    "owner_contact",
+                    "royalty",
+                    "ownerContact",
+                    "image",
+                    "proofOfOwnershipDocument",
                   ]);
                   if (isValid) {
-                    setSecondStep(true);
+                    setIsSecondStep(true);
                   }
                 }}
                 variant="gray"
                 type="button"
                 size="xl"
-                className={`w-full ${secondStep ? "hidden" : "block"}`}
+                className={`w-full ${isSecondStep ? "hidden" : "block"}`}
               >
                 Next Step
               </Button>
@@ -311,38 +391,32 @@ export default function CreateNft() {
                 variant="gray"
                 type="submit"
                 size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
+                className={`w-full ${isSecondStep ? "block" : "hidden"}`}
+                onClick={() => setIsTokenized(true)}
               >
                 Tokenize
               </Button>
             </div>
           </div>
-          <div className="w-1/2 aspect-square h-auto rounded-2xl bg-textGray md:w-full">
-            <div
-              {...getRootProps()}
-              className="flex justify-center items-center border-2 border-dashed border-gray   p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full"
-            >
-              <input {...getInputProps()} />
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mx-auto max-h-64 rounded-md object-contain"
-                />
-              ) : (
-                <div className="flex flex-col gap-3 justify-center">
-                  <h2 className="h1">NFT Image</h2>
-                  {isDragActive ? (
-                    <p className="text-gray-500">Drop the files here ...</p>
-                  ) : (
-                    <p>Drag & drop an image here, or click to select one</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
         </form>
       </Form>
+      {isMapOpen && (
+        <LocationPickerModal
+          onSelect={(newCoords) => {
+            setCoords(newCoords);
+            // setIsMapOpen(false);
+          }}
+          setIsOpen={setIsMapOpen}
+        />
+      )}
+      {isTokenized && formData && (
+        <TokenizationModal
+          formData={formData}
+          setIsTokenized={setIsTokenized}
+          setIsSecondStep={setIsSecondStep}
+          form={form}
+        />
+      )}
     </>
   );
 }

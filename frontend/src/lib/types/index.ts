@@ -21,9 +21,12 @@ export interface TokenizationField {
   type: string;
   validation: ZodType;
   group?: number;
+  defaultValue?: string;
+  HTMLType?: string;
+  selectItems?: string[]
 }
 
 export type PostWallet = {
-  walletAddress: PublicKey,
-  network: string
-}
+  walletAddress: PublicKey;
+  network: string;
+};
