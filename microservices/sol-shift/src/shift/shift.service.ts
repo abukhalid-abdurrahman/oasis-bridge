@@ -9,11 +9,17 @@ import {
   createTransferInstruction,
   getOrCreateAssociatedTokenAccount,
 } from '@solana/spl-token';
-import { BadRequestException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { connection } from 'src/solana/connection';
 import bs58 from 'bs58';
 import { CreateTransactionDto } from './dto/createTransaction.dto';
 import { TransactionResponseDto } from './dto/transactionResponse.dto';
+import { SendSignedTransactionDto } from './dto/sendSignedTransaction.dt';
 
 @Injectable()
 export class ShiftService {
@@ -107,10 +113,10 @@ export class ShiftService {
         message: 'Transaction created successfully.',
         code: HttpStatus.OK,
         data: {
-          base64: serialized.toString('base64'),
+          transaction: serialized.toString('base64'),
         },
       };
-    } catch (error) {  
+    } catch (error) {
       if (error.message) {
         throw new BadRequestException({
           status: 'error',
@@ -118,12 +124,25 @@ export class ShiftService {
           code: HttpStatus.BAD_REQUEST,
         });
       }
-    
+
       throw new InternalServerErrorException({
         status: 'error',
         message: 'Transaction creation failed.',
         code: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
+  }
+
+  async sendSignedTransaction(dto: SendSignedTransactionDto) {
+    const buffer = Buffer.from(dto.signedTransaction, 'base64');
+    const transactionId = await connection.sendRawTransaction(buffer);
+    return {
+      status: 'success',
+      message: 'Transaction created successfully.',
+      code: HttpStatus.OK,
+      data: {
+        transactionId: transactionId,
+      },
+    };
   }
 }

@@ -1,20 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseResponseDto } from 'src/common/dto/baseResponse.dto';
 
 class TransactionData {
   @ApiProperty({ description: 'Base64-encoded transaction', example: 'AbC123==' })
-  base64: string;
+  transaction: string;
 }
 
-export class TransactionResponseDto {
-  @ApiProperty({ example: 'success', enum: ['success', 'error'] })
-  status: string;
-
-  @ApiProperty({ example: 'Transaction created successfully.' })
-  message: string;
-
-  @ApiProperty({ example: 200 })
-  code: number;
-
+export class TransactionResponseDto extends BaseResponseDto {
   @ApiProperty({ type: TransactionData, required: false })
   data?: TransactionData;
 }
