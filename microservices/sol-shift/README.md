@@ -41,7 +41,7 @@
 | `sellerSecretkey` | string   | ✅        | Base58-encoded secret key of seller (escrow) |
 | `nftMint`         | string   | ✅        | Mint address of NFT being transferred |
 | `price`           | number   | ✅        | Price in SOL (if no token) or smallest token unit (if SPL token) |
-| `tokenMint`       | string\|null | ✅   | Mint address of SPL token, or null for SOL |
+| `tokenMint`       | string\|null |    | Mint address of SPL token, or null for SOL |
 
 ---
 
