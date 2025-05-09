@@ -24,6 +24,11 @@ export class ShiftController {
   }
 
   @Post('send-transaction')
+  @ApiResponse({
+    status: 200,
+    description: 'Transaction successfully sent',
+    type: SendSignedTransactionResponseDto,
+  })
   sendSignedTransaction(
     @Body() dto: SendSignedTransactionDto,
   ): Promise<SendSignedTransactionResponseDto> {
