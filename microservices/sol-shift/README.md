@@ -1,6 +1,6 @@
-# ShiftService – Solana Transaction Generator
+# Sol-Shift – Solana Transaction Generator
 
-`ShiftService` is a NestJS service for generating a **Solana transaction** to purchase an NFT. It supports payments in **SOL** or **SPL tokens**, and returns a partially signed Base64 transaction ready for the buyer to sign and send.
+`Sol-Shift` is a NestJS service for generating a **Solana transaction** to purchase an NFT. It supports payments in **SOL** or **SPL tokens**, and returns a partially signed Base64 transaction ready for the buyer to sign and send.
 
 ---
 
