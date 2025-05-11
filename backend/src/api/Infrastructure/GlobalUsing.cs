@@ -63,5 +63,6 @@ global using Application.DTOs.WalletLinkedAccount.Requests;
 global using Application.DTOs.WalletLinkedAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Application.DTOs.RwaTokenPriceHistory.Responses;
 
  

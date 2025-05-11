@@ -5,7 +5,7 @@ public readonly record struct GetRwaTokenPriceHistoryResponse(
     Guid RwaTokenId,
     decimal OldPrice,
     decimal NewPrice,
-    DateTime ChangedAt,
+    DateTimeOffset ChangedAt,
     Guid VirtualAccountOwnerId,
     string PublicKey,
     Guid OwnerUserId,

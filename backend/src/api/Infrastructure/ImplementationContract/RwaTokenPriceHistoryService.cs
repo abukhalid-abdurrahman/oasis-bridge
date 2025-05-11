@@ -1,0 +1,52 @@
+namespace Infrastructure.ImplementationContract;
+
+public sealed class RwaTokenPriceHistoryService(
+    ILogger<RwaTokenPriceHistoryService> logger,
+    DataContext dbContext) : IRwaTokenPriceHistoryService
+{
+    public async Task<Result<PagedResponse<IEnumerable<GetRwaTokenPriceHistoryResponse>>>> GetAsync(
+        RwaTokenPriceHistoryFilter filter, CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetAsync), date);
+
+        try
+        {
+            IQueryable<GetRwaTokenPriceHistoryResponse> query = dbContext.RwaTokenPriceHistories.AsNoTracking()
+                .Include(x => x.RwaToken)
+                .ThenInclude(x => x.VirtualAccount)
+                .ThenInclude(x => x.User)
+                .WhereIf(filter.Id is not null, x => x.Id == filter.Id)
+                .WhereIf(filter.ChangedAt is not null, x => x.ChangedAt == filter.ChangedAt)
+                .WhereIf(filter.NewPrice is not null, x => x.NewPrice == filter.NewPrice)
+                .WhereIf(filter.OldPrice is not null, x => x.OldPrice == filter.OldPrice)
+                .WhereIf(filter.RwaTokenId is not null, x => x.RwaTokenId == filter.RwaTokenId)
+                .WhereIf(filter.VirtualAccountOwnerId is not null,
+                    x => x.RwaToken.VirtualAccountId == filter.VirtualAccountOwnerId)
+                .WhereIf(!string.IsNullOrWhiteSpace(filter.PublicKey),
+                    x => x.RwaToken.VirtualAccount.PublicKey == filter.PublicKey)
+                .WhereIf(filter.OwnerUserId is not null, x =>
+                    x.RwaToken.VirtualAccount.User.Id == filter.OwnerUserId)
+                .Select(x => x.ToRead());
+
+            int totalCount = await query.CountAsync(token);
+
+            PagedResponse<IEnumerable<GetRwaTokenPriceHistoryResponse>> result =
+                PagedResponse<IEnumerable<GetRwaTokenPriceHistoryResponse>>.Create(
+                    filter.PageSize,
+                    filter.PageNumber,
+                    totalCount,
+                    query.Page(filter.PageNumber, filter.PageSize));
+
+            logger.OperationCompleted(nameof(GetAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokenPriceHistoryResponse>>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetAsync), ex.Message);
+            logger.OperationCompleted(nameof(GetAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokenPriceHistoryResponse>>>.Failure(
+                ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+}
