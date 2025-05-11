@@ -24,4 +24,6 @@ public sealed class RwaToken : BaseEntity
 
     public Guid VirtualAccountId { get; set; }
     public VirtualAccount VirtualAccount { get; set; } = default!;
+    public ICollection<RwaTokenPriceHistory> RwaTokenPriceHistories { get; set; } = [];
+    public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransfers { get; set; } = [];
 }
