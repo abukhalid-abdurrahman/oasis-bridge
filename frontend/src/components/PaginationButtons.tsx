@@ -16,7 +16,7 @@ interface PaginationButtonsProps {
   className?: string;
   pages: number;
   currentPage: number;
-  setCurrentPage: Dispatch<SetStateAction<number>>;
+  setCurrentPage: Dispatch<SetStateAction<any>>;
 }
 
 export function PaginationButtons({
@@ -28,25 +28,36 @@ export function PaginationButtons({
   const visiblePages = getVisiblePages(currentPage, pages);
 
   const setPage = (i: number) => {
-    setCurrentPage(i);
+    setCurrentPage((prevState: any) => {
+      return {
+        ...prevState,
+        pageNumber: i
+      }
+    });
   };
 
   const previuosPage = () => {
-    setCurrentPage((prevState) => {
-      if (prevState <= 1) {
+    setCurrentPage((prevState: any) => {
+      if (prevState.pageNumber <= 1) {
         return prevState
       } else {
-        return prevState -= 1
+        return {
+          ...prevState,
+          pageNumber: prevState.pageNumber -= 1
+        }
       }
     });
   };
 
   const nextPage = () => {
-    setCurrentPage((prevState) => {
-      if (prevState >= pages) {
+    setCurrentPage((prevState: any) => {
+      if (prevState.pageNumber >= pages) {
         return prevState
       } else {
-        return prevState += 1
+        return {
+          ...prevState,
+          pageNumber: prevState.pageNumber += 1
+        }
       }
     });
   };

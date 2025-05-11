@@ -201,7 +201,6 @@ const nftsExample = [
 ];
 
 export default function NFTTable() {
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const [tokenIds, setTokenIds] = useState<string[]>([]);
   const [reqParams, setReqParams] = useState<RwasReq>({
     assetType: null,
@@ -210,7 +209,7 @@ export default function NFTTable() {
     sortBy: null,
     sortOrder: null,
     pageSize: 5,
-    pageNumber: currentPage,
+    pageNumber: 1,
   });
 
   const { data: nfts, isFetching: nftsFetching } = useNfts(reqParams);
@@ -349,14 +348,14 @@ export default function NFTTable() {
           </Table>
         </>
       )}
-      {/* {nfts?.data?.totalPages > 1 && (
+      {nfts?.data?.totalPages > 1 && (
         <PaginationButtons
           className="mt-10"
           pages={nfts.data.totalPages}
           currentPage={reqParams.pageNumber}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={setReqParams}
         />
-      )} */}
+      )}
     </div>
   );
 }
