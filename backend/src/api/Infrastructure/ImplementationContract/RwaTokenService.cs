@@ -199,11 +199,24 @@ public sealed class RwaTokenService(
                 Description = request.AssetDescription,
                 ImageUrl = rwaToken.Image
             };
-
+            
             Result<NftMintingResponse> mintingResult = await solanaNftManager.MintAsync(nft, token);
             if (!mintingResult.IsSuccess)
                 return Result<UpdateRwaTokenResponse>.Failure(mintingResult.Error);
 
+            if (request.Price != rwaToken.Price)
+            {
+                await dbContext.RwaTokenPriceHistories.AddAsync(new()
+                {
+                    CreatedBy = accessor.GetId(),
+                    CreatedByIp = accessor.GetRemoteIpAddress(),
+                    OldPrice = rwaToken.Price,
+                    NewPrice = request.Price,
+                    RwaTokenId = rwaToken.Id,
+                    OwnerId = rwaToken.VirtualAccountId,
+                }, token);
+            }
+            
             rwaToken.ToEntity(request, accessor, mintingResult.Value!);
             return await dbContext.SaveChangesAsync(token) != 0
                 ? Result<UpdateRwaTokenResponse>.Success(rwaToken.ToUpdateResponse())
