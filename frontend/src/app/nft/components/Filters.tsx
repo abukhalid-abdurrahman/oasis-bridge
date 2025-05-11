@@ -1,0 +1,186 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ASSET_TYPES } from "@/lib/constants";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+interface FiltersProps {
+  reqParams: any;
+  setReqParams: Dispatch<SetStateAction<any>>;
+}
+
+export default function Filters({ reqParams, setReqParams }: FiltersProps) {
+  const [inputClasses] = useState(
+    "px-2 py-1 bg-transparent border-textGray text-white rounded-sm text-sm w-full"
+  );
+
+  const FormSchema = z.object({
+    assetType: z.any(),
+    priceMin: z.any(),
+    priceMax: z.any(),
+    sortBy: z.any(),
+    sortOrder: z.any(),
+  });
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      assetType: "",
+      priceMin: "",
+      priceMax: "",
+      sortBy: "",
+      sortOrder: "",
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    setReqParams((prevState: any) => {
+      return {
+        ...prevState,
+        ...data
+      }
+    })
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        className="flex gap-3 text-sm text-nowrap"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="flex items-center gap-3">
+          <p className="">Price</p>
+          <div className="flex gap-1 items-center max-w-36">
+            <FormField
+              control={form.control}
+              name="priceMin"
+              render={({ field }) => (
+                <>
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <Input
+                        className={`${inputClasses} text-right`}
+                        placeholder="min"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                </>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="priceMax"
+              render={({ field }) => (
+                <>
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <Input
+                        className={`${inputClasses} text-right`}
+                        placeholder="max"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                </>
+              )}
+            />
+          </div>
+        </div>
+        <FormField
+          control={form.control}
+          name="assetType"
+          render={({ field }) => (
+            <FormItem className="flex gap-2 items-center">
+              <FormLabel>Asset Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className={`${inputClasses} !mt-0`}>
+                    <SelectValue placeholder="AssetType" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    {ASSET_TYPES.map((type, i) => (
+                      <SelectItem key={i} value={type.replace(/\s/g,'')}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {/* <FormMessage /> */}
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="sortBy"
+          render={({ field }) => (
+            <FormItem className="flex gap-2 items-center">
+              <FormLabel>Sort by</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className={`${inputClasses} !mt-0`}>
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value='Price'>Price</SelectItem>
+                    <SelectItem value='CreatedAt'>Date of Creation</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {/* <FormMessage /> */}
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="sortOrder"
+          render={({ field }) => (
+            <FormItem className="flex gap-2 items-center">
+              <FormLabel>Sort order</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className={`${inputClasses} !mt-0`}>
+                    <SelectValue placeholder="Sort order" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value='Asc'>Asc</SelectItem>
+                    <SelectItem value='Desc'>Desc</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {/* <FormMessage /> */}
+            </FormItem>
+          )}
+        />
+        <Button variant='gray' size='sm' type="submit">Apply filters</Button>
+      </form>
+    </Form>
+  );
+}

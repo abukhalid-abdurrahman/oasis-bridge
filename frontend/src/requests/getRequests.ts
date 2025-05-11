@@ -181,16 +181,19 @@ export const useNft = (tokenId: string) => {
 export const useNftMultiple = (tokenIds: string[]) => {
   return useQueries({
     queries: tokenIds.map((id) => ({
-      queryKey: ["nft", 'multiple', id],
+      queryKey: ["nft", "multiple", id],
       queryFn: () => getNft(id),
-      enabled: !!tokenIds
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      enabled: !!tokenIds,
     })),
     combine: (results) => {
       return {
-        data: results.map(result => result.data),
-        isFetching: results.map(result => result.isFetching)
-      }
-    }
+        data: results.map((result) => result.data),
+        isFetching: results.map((result) => result.isFetching),
+      };
+    },
   });
 };
 
@@ -207,5 +210,24 @@ export const useNftChanges = (tokenId: string) => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
+  });
+};
+
+export const useNftChangesMultiple = (tokenIds: string[]) => {
+  return useQueries({
+    queries: tokenIds.map((id) => ({
+      queryKey: ["nft-changes", "multiple", id],
+      queryFn: () => getNftChanges(id),
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      enabled: !!tokenIds,
+    })),
+    combine: (results) => {
+      return {
+        data: results.map((result) => result.data),
+        isFetching: results.map((result) => result.isFetching),
+      };
+    },
   });
 };
