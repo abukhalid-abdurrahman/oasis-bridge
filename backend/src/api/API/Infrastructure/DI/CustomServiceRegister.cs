@@ -46,6 +46,8 @@ public static class CustomServiceRegister
         builder.Services.AddScoped<IWalletLinkedAccountService, WalletLinkedAccountService>();
 
         builder.Services.AddScoped<IRwaTokenService, RwaTokenService>();
+        
+        builder.Services.AddScoped<IRwaTokenPriceHistoryService, RwaTokenPriceHistoryService>();
 
         return builder;
     }

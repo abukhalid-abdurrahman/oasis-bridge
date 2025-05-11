@@ -49,4 +49,30 @@ public sealed class RwaTokenPriceHistoryService(
                 ResultPatternError.InternalServerError(ex.Message));
         }
     }
+
+    public async Task<Result<IEnumerable<GetRwaTokenPriceHistoryResponse>>> GetAsync(Guid id,
+        CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetAsync), date);
+
+        try
+        {
+            return Result<IEnumerable<GetRwaTokenPriceHistoryResponse>>.Success(await dbContext.RwaTokenPriceHistories
+                .AsNoTracking()
+                .Include(x => x.RwaToken)
+                .ThenInclude(x => x.VirtualAccount)
+                .ThenInclude(x => x.User)
+                .Where(x => x.RwaTokenId == id)
+                .Select(x => x.ToRead())
+                .ToListAsync(token));
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetAsync), ex.Message);
+            logger.OperationCompleted(nameof(GetAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            return Result<IEnumerable<GetRwaTokenPriceHistoryResponse>>.Failure(
+                ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
 }
