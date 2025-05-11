@@ -112,4 +112,9 @@ public static class Messages
     public static string IpfsSuccessMessageFile => _resources.Get().AsString();
     public static string IpfsFileNotFound => _resources.Get().AsString();
     public static string IpfsInvalidFormatCid => _resources.Get().AsString();
+    public static string TitleInvalid => _resources.Get().AsString();
+    public static string AssetDescriptionInvalid => _resources.Get().AsString();
+    public static string ImageInvalid => _resources.Get().AsString();
+    public static string UniqueIdentifierInvalid => _resources.Get().AsString();
+
 }

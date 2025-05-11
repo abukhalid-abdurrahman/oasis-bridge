@@ -25,6 +25,7 @@ global using Application.DTOs.Network.Responses;
 global using Application.DTOs.RwaToken.Requests;
 global using Application.DTOs.UserRole.Requests;
 global using Application.DTOs.RwaToken.Responses;
+global using BuildingBlocks.Extensions.Resources;
 global using Application.DTOs.UserRole.Responses;
 global using System.ComponentModel.DataAnnotations;
 global using Application.DTOs.NetworkToken.Requests;
