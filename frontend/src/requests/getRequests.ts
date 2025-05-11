@@ -1,7 +1,8 @@
-import axiosInstance from "@/lib/axiosInstance"
-import { API } from "@/lib/constants"
-import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
+import axiosInstance from "@/lib/axiosInstance";
+import { API } from "@/lib/constants";
+import { RwasReq } from "@/lib/types";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 // Get for Exchange Rate
 const getExchangeRate = async (fromToken: string, toToken: string) => {
@@ -12,20 +13,20 @@ const getExchangeRate = async (fromToken: string, toToken: string) => {
     params: {
       fromToken: fromToken,
       toToken: toToken,
-    }
-  })
-  return res.data
-}
+    },
+  });
+  return res.data;
+};
 
 export const useExchangeRate = (fromToken: string, toToken: string) => {
   return useQuery({
-    queryKey: [fromToken, toToken, 'exchange-rate'],
+    queryKey: [fromToken, toToken, "exchange-rate"],
     queryFn: () => getExchangeRate(fromToken, toToken),
     refetchOnWindowFocus: false,
     refetchInterval: 300000,
     // enabled: !!token
-  })
-}
+  });
+};
 
 // Get for Transaction Status
 const getTransactionStatus = async (transactionId: string) => {
@@ -34,21 +35,21 @@ const getTransactionStatus = async (transactionId: string) => {
       "Content-Type": "application/json",
     },
     params: {
-      transactionId: transactionId
-    }
-  })
-  return res.data
-}
+      transactionId: transactionId,
+    },
+  });
+  return res.data;
+};
 
 export const useTransactionStatus = (transactionId: string) => {
   return useQuery({
-    queryKey: [transactionId, 'transaction-id'],
+    queryKey: [transactionId, "transaction-id"],
     queryFn: () => getTransactionStatus(transactionId),
     refetchOnWindowFocus: false,
     // initialData: true
-    enabled: false
-  })
-}
+    enabled: false,
+  });
+};
 
 // Get for Virtual Account
 // const getVirtualAccount = async (fromNetwork: string, toNetwork: string) => {
@@ -75,43 +76,44 @@ export const useTransactionStatus = (transactionId: string) => {
 //   })
 // }
 
-
 // Get for User virtual Accounts
 const getUserVirtualAccounts = async () => {
-  const res = await axiosInstance.get(`/accounts/list`)
-  return res.data
-}
+  const res = await axiosInstance.get(`/accounts/list`);
+  return res.data;
+};
 
 export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
   return useQuery({
-    queryKey: [token, 'user-accounts'],
+    queryKey: [token, "user-accounts"],
     queryFn: () => getUserVirtualAccounts(),
     gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    enabled: isEnabled
-  })
-}
+    enabled: isEnabled,
+  });
+};
 
 // Get for Chaecking Virtual Accaount Balance
 const getVirtualAccountBalance = async (orderId: string) => {
-  const res = await axiosInstance.get(`/orders/${orderId}/check-balance`)
-  return res.data
-}
+  const res = await axiosInstance.get(`/orders/${orderId}/check-balance`);
+  return res.data;
+};
 
-export const useVirtualAccountBalance = (orderId: string, completed: string | boolean) => {
+export const useVirtualAccountBalance = (
+  orderId: string,
+  completed: string | boolean
+) => {
   return useQuery({
-    queryKey: [orderId, 'virtual-account-balance'],
+    queryKey: [orderId, "virtual-account-balance"],
     queryFn: () => getVirtualAccountBalance(orderId),
     gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    enabled: !!orderId && !!completed
-  })
-}
-
+    enabled: !!orderId && !!completed,
+  });
+};
 
 // Get Networks
 const getNetworks = async () => {
@@ -119,16 +121,91 @@ const getNetworks = async () => {
     headers: {
       "Content-Type": "application/json",
     },
-  })
-  return res.data
-}
+  });
+  return res.data;
+};
 
 export const useNetworks = () => {
   return useQuery({
-    queryKey: ['networks'],
+    queryKey: ["networks"],
     queryFn: () => getNetworks(),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-  })
-}
+  });
+};
+
+// Get all NFTs
+const getNfts = async (reqParams: RwasReq) => {
+  const res = await axiosInstance.get("/rwa", {
+    params: {
+      AssetType: reqParams.assetType,
+      PriceMin: reqParams.priceMin,
+      PriceMax: reqParams.priceMax,
+      SortBy: reqParams.sortBy,
+      SortOrder: reqParams.sortOrder,
+      PageSize: reqParams.pageSize,
+      PageNumber: reqParams.pageNumber,
+    },
+  });
+  return res.data;
+};
+
+export const useNfts = (reqParams: any) => {
+  return useQuery({
+    queryKey: ["rwas", reqParams],
+    queryFn: () => getNfts(reqParams),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};
+
+// Get a specific NFT
+const getNft = async (tokenId: string) => {
+  const res = await axiosInstance.get(`/rwa/${tokenId}`);
+  return res.data;
+};
+
+export const useNft = (tokenId: string) => {
+  return useQuery({
+    queryKey: ["nft", tokenId],
+    queryFn: () => getNft(tokenId),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};
+
+// Example with multiple request
+export const useNftMultiple = (tokenIds: string[]) => {
+  return useQueries({
+    queries: tokenIds.map((id) => ({
+      queryKey: ["nft", 'multiple', id],
+      queryFn: () => getNft(id),
+      enabled: !!tokenIds
+    })),
+    combine: (results) => {
+      return {
+        data: results.map(result => result.data),
+        isFetching: results.map(result => result.isFetching)
+      }
+    }
+  });
+};
+
+// Get Sell/Buy history and price change history
+const getNftChanges = async (tokenId: string) => {
+  const res = await axiosInstance.get(`/rwa/${tokenId}/history`);
+  return res.data;
+};
+
+export const useNftChanges = (tokenId: string) => {
+  return useQuery({
+    queryKey: ["nft-changes", tokenId],
+    queryFn: () => getNftChanges(tokenId),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};

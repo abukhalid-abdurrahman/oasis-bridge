@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -16,8 +16,11 @@ import { shortDescription } from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
+import { useNftMultiple, useNfts } from "@/requests/getRequests";
+import Loading from "@/components/Loading";
+import { RwasReq } from "@/lib/types";
 
-const nfts = [
+const nftsExample = [
   {
     image: "/nft.avif",
     title: "Shiza Quick",
@@ -191,7 +194,34 @@ const nfts = [
 ];
 
 export default function NFTTable() {
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [tokenIds, setTokenIds] = useState<string[]>([]);
+  const [reqParams, setReqParams] = useState<RwasReq>({
+    assetType: null,
+    priceMin: null,
+    priceMax: null,
+    sortBy: null,
+    sortOrder: null,
+    pageSize: 10,
+    pageNumber: currentPage,
+  });
+
+  const { data: nfts, isFetching: nftsFetching } = useNfts(reqParams);
+  const { data: nftMultiple, isFetching: nftMultipleFetching } = useNftMultiple(tokenIds);
+
+  useEffect(() => {
+    if (nfts) {
+      const getAlltokenIds = (nfts: any) => {
+        return nfts?.data?.data.map((nft: any) => nft.tokenId);
+      };
+      setTokenIds(getAlltokenIds(nfts));
+    }
+  }, [nfts]);
+
+  if (nftsFetching) {
+    return <Loading classNameLoading="border-white" />;
+  }
+
   return (
     <div>
       <Table className="min-w-[965px]">
@@ -200,21 +230,24 @@ export default function NFTTable() {
             <TableHead colSpan={2} className="w-[100px]">
               NFT
             </TableHead>
-            <TableHead className="text-right">Network</TableHead>
+            {/* <TableHead className="text-right">Network</TableHead> */}
             <TableHead className="text-right">Price</TableHead>
             <TableHead className="text-right">Asset Type</TableHead>
-            <TableHead className="text-right">Geolocation</TableHead>
-            <TableHead className="text-right">Price Change (%)</TableHead>
+            {/* <TableHead className="text-right">Geolocation</TableHead> */}
+            {/* <TableHead className="text-right">Price Change (%)</TableHead> */}
             <TableHead className="text-right"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {nfts.map((nft, i) => (
-            <TableRow key={i} className="border-primary hover:bg-transparent">
+          {nfts?.data?.data.map((nft: any) => (
+            <TableRow
+              key={nft.tokenId}
+              className="border-primary hover:bg-transparent"
+            >
               <TableCell colSpan={2} className="font-medium py-3">
                 <div className="flex gap-3 items-center">
                   <Image
-                    src={nft.image}
+                    src={nft.image !== "string" ? nft.image : "/nft.avif"}
                     alt={nft.title}
                     width={50}
                     height={50}
@@ -222,15 +255,15 @@ export default function NFTTable() {
                   />
                   <div className="flex flex-col">
                     <p className="p">{nft.title}</p>
-                    <p className="text-textGray">
+                    {/* <p className="text-textGray">
                       {shortDescription(nft.description)}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               </TableCell>
-              <TableCell className="text-right">{nft.network}</TableCell>
+              {/* <TableCell className="text-right">{nft.network}</TableCell> */}
               <TableCell className="text-right">
-                {nft.price.value}
+                {nft.price} SOL
                 <span className="text-red-600 text-xs flex items-center justify-end">
                   <span className="inline">
                     <ChevronDown size={15} />
@@ -239,8 +272,8 @@ export default function NFTTable() {
                 </span>
               </TableCell>
               <TableCell className="text-right">{nft.assetType}</TableCell>
-              <TableCell className="text-right">{nft.geolocation}</TableCell>
-              <TableCell className="text-right">
+              {/* <TableCell className="text-right">{nft.geolocation}</TableCell> */}
+              {/* <TableCell className="text-right">
                 {nft.priceChangePercentage.value}
                 <span className="text-green-600 flex items-center text-xs justify-end">
                   <span className="inline">
@@ -248,7 +281,7 @@ export default function NFTTable() {
                   </span>
                   {nft.priceChangePercentage.secondValue}
                 </span>
-              </TableCell>
+              </TableCell> */}
               <TableCell className="text-right space-x-2">
                 <Button variant="gray" size="sm">
                   Details
@@ -261,7 +294,14 @@ export default function NFTTable() {
           ))}
         </TableBody>
       </Table>
-      <PaginationButtons className="mt-10" pages={5} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      {reqParams.pageNumber > 1 && (
+        <PaginationButtons
+          className="mt-10"
+          pages={nfts.data.totalPages}
+          currentPage={reqParams.pageNumber}
+          setCurrentPage={setCurrentPage}
+        />
+      )}
     </div>
   );
 }
