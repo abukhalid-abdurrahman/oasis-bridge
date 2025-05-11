@@ -4,7 +4,7 @@ namespace API.Controllers.V1
     /// Controller for managing user accounts within the system.
     /// Provides endpoints for retrieving, updating, and managing user profiles and virtual accounts.
     /// </summary>
-    [Route($"{ApiAddress.Base}/accounts")]
+    [Route($"{ApiAddresses.Base}/accounts")]
     public sealed class UserController(IUserService userService) : V1BaseController
     {
         /// <summary>

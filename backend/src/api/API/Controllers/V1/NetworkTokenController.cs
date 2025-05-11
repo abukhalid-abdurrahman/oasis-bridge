@@ -5,7 +5,7 @@ namespace API.Controllers.V1;
 /// The controller ensures that only authorized users with the appropriate roles (Admin) can modify network tokens.
 /// Provides actions to interact with the network token service for business logic and data handling.
 /// </summary>
-[Route($"{ApiAddress.Base}/network-tokens")]
+[Route($"{ApiAddresses.Base}/network-tokens")]
 public sealed class NetworkTokenController(INetworkTokenService networkTokenService) : V1BaseController
 {
     /// <summary>

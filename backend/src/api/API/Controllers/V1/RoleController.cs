@@ -5,7 +5,7 @@ namespace API.Controllers.V1;
 /// Provides endpoints for retrieving, creating, updating, and deleting roles.
 /// Only accessible by users with the Admin role.
 /// </summary>
-[Route($"{ApiAddress.Base}/roles")]
+[Route($"{ApiAddresses.Base}/roles")]
 [Authorize(Roles = Roles.Admin)]
 public sealed class RoleController(IRoleService roleService) : V1BaseController
 {

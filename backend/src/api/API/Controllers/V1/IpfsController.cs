@@ -4,7 +4,7 @@ namespace API.Controllers.V1;
 /// Controller responsible for handling file operations via IPFS, including file upload, retrieval,
 /// and on-the-fly image optimization for NFT logos. Exposes endpoints for interacting with IPFS service.
 /// </summary>
-[Route($"{ApiAddress.Base}/files")]
+[Route($"{ApiAddresses.Base}/files")]
 [AllowAnonymous]
 public sealed class IpfsController(IIpfsService service, IConfiguration config) : V1BaseController
 {

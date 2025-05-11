@@ -5,7 +5,7 @@ namespace API.Controllers.V1;
 /// Accessible only by authorized users with the appropriate roles. This controller exposes actions for managing network
 /// entities and is designed to interact with the network service layer for data processing and business logic.
 /// </summary>
-[Route($"{ApiAddress.Base}/networks")]
+[Route($"{ApiAddresses.Base}/networks")]
 public sealed class NetworkController(INetworkService networkService) : V1BaseController
 {
     /// <summary>
