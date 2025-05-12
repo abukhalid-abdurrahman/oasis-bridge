@@ -15,7 +15,7 @@ export default function AccountAddresses() {
   if (isFetching) {
     return (
       <div className="flex flex-col space-y-3">
-        <Skeleton className="w-full h-10 rounded-xl" />
+        <Skeleton className="w-2/3 h-10 rounded-xl" />
         <div className="space-y-2">
           <Skeleton className="w-full h-20" />
         </div>
@@ -26,7 +26,7 @@ export default function AccountAddresses() {
   if (data.data.length <= 0) {
     return (
       <div>
-        <h2 className="h2 text-white mb-6">Account Addresses</h2>
+        <h2 className="h2 text-white mb-4">Account Addresses</h2>
         <div className="flex flex-col gap-[5px]">
           <p className="p text-white">
             You don't have any virtual accounts yet. Make your first swap to

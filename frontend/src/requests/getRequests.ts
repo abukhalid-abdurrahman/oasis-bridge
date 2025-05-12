@@ -230,3 +230,19 @@ export const useNftChangesMultiple = (tokenIds: string[]) => {
     },
   });
 };
+
+// Get linked wallets
+const getLinkedWallets = async () => {
+  const res = await axiosInstance.get("/linked-accounts/me");
+  return res.data;
+}
+
+export const useLinkedWallets = (token: string) => {
+  return useQuery({
+    queryKey: [token, "linked-wallets"],
+    queryFn: () => getLinkedWallets(),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};

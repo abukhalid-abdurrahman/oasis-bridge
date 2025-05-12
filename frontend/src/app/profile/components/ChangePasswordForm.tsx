@@ -61,8 +61,8 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <div className="mt-16">
-      <h2 className="h2 text-white mb-6">Change Password</h2>
+    <div className="mt-10">
+      <h2 className="h2 text-white mb-4">Change Password</h2>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
