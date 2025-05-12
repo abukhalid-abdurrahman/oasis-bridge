@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountAddresses() {
   const user = useUserStore((state) => state.user);
-  const { data, isFetching } = useUserVirtualAccounts(true, user?.token!);
+  const { data, isFetching } = useUserVirtualAccounts(user?.token!);
 
   if (isFetching) {
     return (

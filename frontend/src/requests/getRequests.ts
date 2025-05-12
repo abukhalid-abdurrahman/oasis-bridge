@@ -82,7 +82,7 @@ const getUserVirtualAccounts = async () => {
   return res.data;
 };
 
-export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
+export const useUserVirtualAccounts = (token: string) => {
   return useQuery({
     queryKey: [token, "user-accounts"],
     queryFn: () => getUserVirtualAccounts(),
@@ -90,7 +90,6 @@ export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    enabled: isEnabled,
   });
 };
 
