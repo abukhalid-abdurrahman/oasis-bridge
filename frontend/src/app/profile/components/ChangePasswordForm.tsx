@@ -5,14 +5,12 @@ import { useUserStore } from "@/store/useUserStore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import Cookies from "js-cookie";
-import { redirectOnUnauthorize, removeUser } from "@/lib/scripts/script";
-import { AxiosError } from "axios";
+import { removeUser } from "@/lib/scripts/script";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function ChangePasswordForm() {
   const router = useRouter();

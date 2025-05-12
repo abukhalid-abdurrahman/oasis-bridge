@@ -1,9 +1,9 @@
 "use server";
 
-import AccountAddresses from "@/components/AccountAddresses";
-import ChangePasswordForm from "@/components/ChangePasswordForm";
 import Header from "@/components/Header";
 import { searchParams } from "@/lib/types";
+import AccountAddresses from "./components/AccountAddresses";
+import ChangePasswordForm from "./components/ChangePasswordForm";
 
 export default async function page({
   searchParams,

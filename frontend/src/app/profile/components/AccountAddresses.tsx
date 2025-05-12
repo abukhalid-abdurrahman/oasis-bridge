@@ -1,41 +1,29 @@
-"use server";
+"use client";
 
-import CryptoItem from "./CryptoItem";
-import CopyBtn from "./CopyBtn";
-// import { useUserStore } from "@/store/useUserStore";
-// import { useUserVirtualAccounts } from "@/requests/getRequests";
-import { getUserVirtualAccountsOnServer } from "@/requests/getRequestsOnServer";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import CryptoItem from "@/components/CryptoItem";
+import CopyBtn from "@/components/CopyBtn";
+import { useUserStore } from "@/store/useUserStore";
+import { useUserVirtualAccounts } from "@/requests/getRequests";
 import Link from "next/link";
-import { buttonVariants } from "./ui/button";
-// import { useEffect } from "react";
-// import { redirectOnUnauthorize } from "@/lib/scripts/script";
+import { buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function AccountAddresses() {
-  const cookiesStore = await cookies();
-  const token = cookiesStore.get("oasisToken")?.value;
-  // const user = useUserStore((state) => state.user)
-  // const { data } = useUserVirtualAccounts(true, user?.token!)
-  const data: any = [];
-  try {
-    const res = await getUserVirtualAccountsOnServer(token!);
-    if (res.status === 401) {
-      const create = async () => {
-        cookiesStore.delete("oasisToken");
-      };
-      redirect("/?sigin=true");
-    } else {
-      data.push(res.data);
-    }
-  } catch (error) {
-    const create = async () => {
-      cookiesStore.delete("oasisToken");
-    };
-    redirect("/?signin=true");
+export default function AccountAddresses() {
+  const user = useUserStore((state) => state.user);
+  const { data, isFetching } = useUserVirtualAccounts(true, user?.token!);
+
+  if (isFetching) {
+    return (
+      <div className="flex flex-col space-y-3">
+        <Skeleton className="w-full h-10 rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="w-full h-20" />
+        </div>
+      </div>
+    );
   }
 
-  if (data[0].data.length <= 0) {
+  if (data.data.length <= 0) {
     return (
       <div>
         <h2 className="h2 text-white mb-6">Account Addresses</h2>
@@ -53,12 +41,12 @@ export default async function AccountAddresses() {
         </div>
       </div>
     );
-  } else if (data[0].data.length > 0) {
+  } else if (data.data.length > 0) {
     return (
       <div>
         <h2 className="h2 text-white mb-6">Account Addresses</h2>
         <div className="flex flex-col gap-[5px]">
-          {data[0]?.data.map((address: any) => (
+          {data?.data.map((address: any) => (
             <div key={address.token} className="flex gap-[5px]">
               <CryptoItem
                 image={`/${address.token}.png`}
