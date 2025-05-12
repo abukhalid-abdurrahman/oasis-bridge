@@ -98,7 +98,7 @@ public sealed class DataContext(DbContextOptions<DataContext> options) : DbConte
     public DbSet<RwaToken> RwaTokens { get; set; }
 
     public DbSet<RwaTokenPriceHistory> RwaTokenPriceHistories { get; set; }
-    
+
     public DbSet<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransfers { get; set; }
 
 

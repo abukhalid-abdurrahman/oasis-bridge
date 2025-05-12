@@ -1,8 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+
 WORKDIR /app
 COPY / ./
-RUN dotnet restore /app/backend/src/api/API/API.csproj &&\
-    dotnet publish /app/backend/src/api/API/API.csproj -c Release -o /out --no-restore
+
+RUN dotnet format /app/backend/src/api/API/API.csproj --verify-no-changes &&\
+    dotnet publish /app/backend/src/api/API/API.csproj -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
@@ -14,4 +16,5 @@ RUN apk -U upgrade &&\
 COPY --from=build /out ./
     
 ENV ASPNETCORE_URLS=http://+:80
+
 ENTRYPOINT ["dotnet", "API.dll"]

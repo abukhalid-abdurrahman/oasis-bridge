@@ -74,7 +74,7 @@ public sealed class UserRoleService(
             ? Result<GetUserRoleDetailResponse>.Success(userRole)
             : Result<GetUserRoleDetailResponse>.Failure(ResultPatternError.NotFound(Messages.UserRoleNotFound));
     }
-    
+
     /// <summary>
     /// Creates a new user role assignment for a user.
     /// </summary>

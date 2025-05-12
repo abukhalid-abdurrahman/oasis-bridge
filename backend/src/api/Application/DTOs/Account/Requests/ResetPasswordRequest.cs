@@ -4,7 +4,7 @@ namespace Application.DTOs.Account.Requests
     /// Represents a request for resetting the password of a user account.
     /// This request is typically made after the user has successfully received a reset code via email.
     /// The user provides their email, the reset code, and the new password they wish to set.
-   ///</summary>
+    ///</summary>
     public sealed record ResetPasswordRequest
     {
         /// <summary>

@@ -1,24 +1,30 @@
-﻿const string pathConfig = "appsettings.json";
-const string connectionStringName = "DefaultConnection";
+﻿using BuildingBlocks.Extensions;
 
-IHost host = Host.CreateDefaultBuilder(args)
+IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((_, config) =>
     {
-        config.AddJsonFile(pathConfig, optional: true)
+        config
+            .AddJsonFile("appsettings.json", optional: true)
             .AddEnvironmentVariables();
     })
-    .ConfigureServices((context, services) =>
+    .ConfigureServices((ctx, svc) =>
     {
-        services.AddDbContext<DataContext>(configure =>
-        {
-            string connectionString = context.Configuration.GetConnectionString(connectionStringName)
-                                      ?? throw new InvalidOperationException();
-            configure.UseNpgsql(connectionString);
-        });
-        services.AddLogging(logging => logging.AddConsole());
-    })
-    .Build();
+        svc.AddDbContext<DataContext>(c => c.UseNpgsql(ctx.Configuration.GetDefaultConnectionString()));
+        svc.AddLogging(logging => logging.AddConsole());
 
-await Migrator.MigrateAsync(host);
-await host.StopAsync();
-host.Dispose();
+        svc.AddScoped<Migrator>();
+    });
+
+using IHost host = hostBuilder.Build();
+
+try
+{
+    await host.StartAsync();
+
+    Migrator migrator = host.Services.GetRequiredService<Migrator>();
+    await migrator.MigrateAsync();
+}
+finally
+{
+    await host.StopAsync();
+}

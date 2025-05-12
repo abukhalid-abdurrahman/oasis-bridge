@@ -32,7 +32,7 @@ public static class DecentralizedFileStorages
         string nodeUrl = configuration.GetRequiredString(NodeUrl);
         string gatewayUrl = configuration.GetRequiredString(GatewayUrl);
 
-        ConfigureIpfsFileStorage(services, pin, chunkSize, nodeUrl,gatewayUrl);
+        ConfigureIpfsFileStorage(services, pin, chunkSize, nodeUrl, gatewayUrl);
         return services;
     }
 
@@ -44,7 +44,7 @@ public static class DecentralizedFileStorages
     /// <param name="chunkSize">The buffer size used when reading files from IPFS.</param>
     /// <param name="url">The URL of the IPFS node.</param>
     /// <param name="gatewayUrl"></param>
-    private static void ConfigureIpfsFileStorage(IServiceCollection services, bool pin, int chunkSize, string url,string gatewayUrl)
+    private static void ConfigureIpfsFileStorage(IServiceCollection services, bool pin, int chunkSize, string url, string gatewayUrl)
     {
         services.Configure<IpfsOptions>(options =>
         {

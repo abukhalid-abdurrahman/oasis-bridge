@@ -4,6 +4,6 @@ public sealed class AccountBalanceConfig : IEntityTypeConfiguration<AccountBalan
 {
     public void Configure(EntityTypeBuilder<AccountBalance> builder)
     {
-        
+
     }
 }

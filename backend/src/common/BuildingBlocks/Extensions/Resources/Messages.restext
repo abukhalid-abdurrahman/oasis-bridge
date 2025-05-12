@@ -111,3 +111,8 @@ TitleInvalid=Title is required and must be at most 32 characters.
 AssetDescriptionInvalid=AssetDescription is required and must be at most 500 characters.
 ImageInvalid=Image must be a valid absolute URL.
 UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 64 characters.
+
+ConfigurationValueRequired=Configuration value for '{0}' is required and was not found or empty.
+ConfigurationValueMustBeInteger=Configuration value for '{0}' must be a valid integer. Found: '{1}'.
+ConfigurationValueMustBeBoolean=Configuration value for '{0}' must be a valid boolean. Found: '{1}'.
+ConnectionStringNotFound=Connection string '{0}' was not found in the configuration.

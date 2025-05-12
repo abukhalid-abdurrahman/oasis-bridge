@@ -59,4 +59,17 @@ public static partial class LoggerDefinitions
         Level = LogLevel.Error,
         Message = "Exception in {OperationName}.\nMessages:{Message}")]
     public static partial void OperationException(this ILogger logger, string operationName, string message);
+
+    /// <summary>
+    /// Logs an error that occurred during the specified operation.
+    /// Intended for catching and recording exception with full stack trace.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="ex">Throwed exception to be logged.</param>
+    /// <param name="operationName">The operation in which the exception occurred.</param>
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Error,
+        Message = "Exception in {OperationName}.")]
+    public static partial void OperationException(this ILogger logger, Exception ex, string operationName);
 }
