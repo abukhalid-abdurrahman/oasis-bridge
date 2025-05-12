@@ -56,7 +56,7 @@ export default function SignInForm() {
           expires: expiresDate,
         });
 
-        router.push("/");
+        router.back();
       },
       onError: (error: any) => {
         setErrorMessage(error.response?.data.message || "An error occurred");
