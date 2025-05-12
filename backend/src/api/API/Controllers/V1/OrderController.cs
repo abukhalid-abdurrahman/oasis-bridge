@@ -4,7 +4,7 @@ namespace API.Controllers.V1;
 /// Controller that handles order-related operations, including creating orders and checking their balances.
 /// Provides endpoints for interacting with the order service for business logic and data management.
 /// </summary>
-[Route($"{ApiAddress.Base}/orders")]
+[Route($"{ApiAddresses.Base}/orders")]
 public sealed class OrderController(IOrderService orderService) : V1BaseController
 {
     /// <summary>

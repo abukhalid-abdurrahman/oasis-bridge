@@ -18,6 +18,7 @@ global using Application.Filters;
 global using Application.Contracts;
 global using NBitcoin.DataEncoders;
 global using System.Security.Claims;
+global using Application.Validations;
 global using System.Linq.Expressions;
 global using Infrastructure.DataAccess;
 global using Microsoft.AspNetCore.Http;
@@ -50,6 +51,7 @@ global using Application.DTOs.RwaToken.Requests;
 global using Application.DTOs.RwaToken.Responses;
 global using Application.DTOs.UserRole.Responses;
 global using BuildingBlocks.Extensions.Resources;
+global using BuildingBlocks.Extensions.Resources;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Application.DTOs.NetworkToken.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
@@ -63,5 +65,6 @@ global using Application.DTOs.WalletLinkedAccount.Requests;
 global using Application.DTOs.WalletLinkedAccount.Responses;
 global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Application.DTOs.RwaTokenPriceHistory.Responses;
 
  

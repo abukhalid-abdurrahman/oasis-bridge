@@ -1,6 +1,6 @@
 namespace API.Controllers.V1;
 
-[Route($"{ApiAddress.Base}/rwa")]
+[Route($"{ApiAddresses.Base}/rwa")]
 public class RwaTokenController(IRwaTokenService service) : V1BaseController
 {
     [HttpPost("tokenize")]

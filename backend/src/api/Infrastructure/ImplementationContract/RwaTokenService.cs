@@ -103,9 +103,8 @@ public sealed class RwaTokenService(
 
         try
         {
-            if (request.UniqueIdentifier.Length == 0 && request.UniqueIdentifier.Length > 10)
-                return Result<CreateRwaTokenResponse>.Failure(
-                    ResultPatternError.BadRequest(Messages.NftLengthRequirement));
+            Result<CreateRwaTokenResponse> responseValidation = request.CreateValidateNftFields();
+            if (!responseValidation.IsSuccess) return responseValidation;
 
             Guid userId = accessor.GetId();
 
@@ -166,6 +165,9 @@ public sealed class RwaTokenService(
 
         try
         {
+            Result<UpdateRwaTokenResponse> responseValidation = request.UpdateValidateNftFields();
+            if (!responseValidation.IsSuccess) return responseValidation;
+
             RwaToken? rwaToken = await dbContext.RwaTokens.FirstOrDefaultAsync(x => x.Id == id, token);
             if (rwaToken is null)
                 return Result<UpdateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
@@ -203,6 +205,19 @@ public sealed class RwaTokenService(
             Result<NftMintingResponse> mintingResult = await solanaNftManager.MintAsync(nft, token);
             if (!mintingResult.IsSuccess)
                 return Result<UpdateRwaTokenResponse>.Failure(mintingResult.Error);
+
+            if (request.Price != rwaToken.Price)
+            {
+                await dbContext.RwaTokenPriceHistories.AddAsync(new()
+                {
+                    CreatedBy = accessor.GetId(),
+                    CreatedByIp = accessor.GetRemoteIpAddress(),
+                    OldPrice = rwaToken.Price,
+                    NewPrice = request.Price,
+                    RwaTokenId = rwaToken.Id,
+                    OwnerId = rwaToken.VirtualAccountId,
+                }, token);
+            }
 
             rwaToken.ToEntity(request, accessor, mintingResult.Value!);
             return await dbContext.SaveChangesAsync(token) != 0

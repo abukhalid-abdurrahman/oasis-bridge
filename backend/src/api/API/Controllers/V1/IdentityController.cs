@@ -4,7 +4,7 @@ namespace API.Controllers.V1;
 /// Controller that handles identity-related operations, such as user registration, login, password management, 
 /// and account recovery. All actions are routed under the "auth" base path for authentication and authorization tasks.
 /// </summary>
-[Route($"{ApiAddress.Base}/auth")]
+[Route($"{ApiAddresses.Base}/auth")]
 [AllowAnonymous]
 public sealed class IdentityController(IIdentityService identityService) : V1BaseController
 {

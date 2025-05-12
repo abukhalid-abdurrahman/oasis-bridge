@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250511104729_v-12")]
+    partial class v12
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -654,7 +657,7 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("SellerWalletId");
 
-                    b.ToTable("RwaTokenOwnershipTransfers");
+                    b.ToTable("RwaTokenOwnershipTransfer");
                 });
 
             modelBuilder.Entity("Domain.Entities.RwaTokenPriceHistory", b =>
@@ -720,7 +723,7 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("RwaTokenId");
 
-                    b.ToTable("RwaTokenPriceHistories");
+                    b.ToTable("RwaTokenPriceHistory");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

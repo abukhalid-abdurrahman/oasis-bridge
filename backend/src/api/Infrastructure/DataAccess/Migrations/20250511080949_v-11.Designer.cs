@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250511080949_v-11")]
+    partial class v11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -654,7 +657,7 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("SellerWalletId");
 
-                    b.ToTable("RwaTokenOwnershipTransfers");
+                    b.ToTable("RwaTokenOwnershipTransfer");
                 });
 
             modelBuilder.Entity("Domain.Entities.RwaTokenPriceHistory", b =>
@@ -663,7 +666,7 @@ namespace Infrastructure.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("ChangedAt")
+                    b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -674,6 +677,9 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.Property<string>("CreatedByIp")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("CurrentOwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -692,9 +698,6 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.Property<decimal>("OldPrice")
                         .HasColumnType("numeric");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RwaTokenId")
                         .HasColumnType("uuid");
@@ -716,11 +719,11 @@ namespace Infrastructure.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("CurrentOwnerId");
 
                     b.HasIndex("RwaTokenId");
 
-                    b.ToTable("RwaTokenPriceHistories");
+                    b.ToTable("RwaTokenPriceHistory");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -1429,9 +1432,9 @@ namespace Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("Domain.Entities.RwaTokenPriceHistory", b =>
                 {
-                    b.HasOne("Domain.Entities.VirtualAccount", "Owner")
+                    b.HasOne("Domain.Entities.VirtualAccount", "CurrentOwner")
                         .WithMany("RwaTokenPriceHistories")
-                        .HasForeignKey("OwnerId")
+                        .HasForeignKey("CurrentOwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1441,7 +1444,7 @@ namespace Infrastructure.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Owner");
+                    b.Navigation("CurrentOwner");
 
                     b.Navigation("RwaToken");
                 });

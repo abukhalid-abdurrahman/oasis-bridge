@@ -4,7 +4,7 @@ namespace API.Controllers.V1;
 /// Controller for managing linked wallet accounts.
 /// Provides endpoints to create linked wallet accounts and retrieve the current user's linked accounts.
 /// </summary>
-[Route($"{ApiAddress.Base}/linked-accounts")]
+[Route($"{ApiAddresses.Base}/linked-accounts")]
 public sealed class WalletLinkedAccountController(IWalletLinkedAccountService service) : V1BaseController
 {
     /// <summary>

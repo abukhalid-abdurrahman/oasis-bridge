@@ -4,7 +4,7 @@ namespace API.Controllers.V1;
 /// Controller for managing user roles within the system.
 /// Provides endpoints for retrieving, creating, updating, and deleting user roles.
 /// </summary>
-[Route($"{ApiAddress.Base}/user-roles")]
+[Route($"{ApiAddresses.Base}/user-roles")]
 public sealed class UserRoleController(IUserRoleService userRoleService) : V1BaseController
 {
     /// <summary>

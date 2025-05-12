@@ -22,7 +22,7 @@ public static class ApiVersions
 /// Contains constants representing the base address structure for the API endpoints.
 /// This is used to avoid hardcoding URLs and to make it easier to manage API routes.
 /// </summary>
-public static class ApiAddress
+public static class ApiAddresses
 {
     /// <summary>
     /// The base URL for version 1 of the API. Can be updated to include versioning changes.

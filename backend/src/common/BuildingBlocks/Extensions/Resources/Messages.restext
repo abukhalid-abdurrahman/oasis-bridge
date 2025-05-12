@@ -105,3 +105,9 @@ IpfsInvalidTypeFile=Invalid file type.
 IpfsSuccessMessageFile=File successfully uploaded.
 IpfsFileNotFound=File not found.
 IpfsInvalidFormatCid=Ipfs invalid-format cid
+
+
+TitleInvalid=Title is required and must be at most 32 characters.
+AssetDescriptionInvalid=AssetDescription is required and must be at most 500 characters.
+ImageInvalid=Image must be a valid absolute URL.
+UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 64 characters.

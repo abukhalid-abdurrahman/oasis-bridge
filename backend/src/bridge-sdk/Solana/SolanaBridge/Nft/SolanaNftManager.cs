@@ -50,7 +50,7 @@ public sealed class SolanaNftManager(
                 tokenStandard: TokenStandard.NonFungible,
                 metaData: metadata,
                 isMasterEdition: true,
-                isMutable: false
+                isMutable: true
             );
 
             if (tx.WasSuccessful)
@@ -118,9 +118,9 @@ public sealed class SolanaNftManager(
 
             RequestResult<ResponseValue<TokenBalance>> balanceResult =
                 await client.GetTokenAccountBalanceAsync(associatedTokenAccount);
-            if (balanceResult == null || balanceResult.Result.Value.Amount == "0")
+            if (balanceResult == null || balanceResult.Result?.Value == null || balanceResult.Result.Value.Amount == "0")
             {
-                return Result<string>.Failure(ResultPatternError.BadRequest(balanceResult?.ErrorData.ToString()));
+                return Result<string>.Failure(ResultPatternError.BadRequest(balanceResult?.ErrorData?.ToString()?? balanceResult?.Reason));
             }
 
             ulong amountToBurn = ulong.Parse(balanceResult.Result.Value.Amount);

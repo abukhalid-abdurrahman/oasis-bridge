@@ -5,7 +5,7 @@ namespace API.Controllers.V1;
 /// This includes retrieving historical exchange rates, details of a specific exchange rate, 
 /// and fetching the current exchange rate.
 /// </summary>
-[Route($"{ApiAddress.Base}")]
+[Route($"{ApiAddresses.Base}")]
 [AllowAnonymous]
 public sealed class ExchangeRateController(IExchangeRateService exchangeRateService) : V1BaseController
 {
