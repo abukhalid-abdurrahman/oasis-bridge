@@ -14,7 +14,7 @@ export default async function page({
   return (
     <div className="">
       <Header searchParams={searchParams} />
-      <div className="max-w-[512px] mx-auto mt-20">
+      <div className="max-w-[512px] mx-auto mt-20 md:mt-14">
         <AccountAddresses />
         <LinkedWallets />
         <ChangePasswordForm />

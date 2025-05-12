@@ -66,7 +66,7 @@ export default function ChangePasswordForm() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-[10px]"
+          className="flex flex-col gap-[5px]"
         >
           <FormField
             control={form.control}

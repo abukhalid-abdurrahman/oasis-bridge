@@ -56,7 +56,7 @@ export default function AccountAddresses() {
                 className={`${buttonVariants({
                   variant: "empty",
                   size: "xl",
-                })} flex gap-2 bg-gray px-5 rounded-xl justify-between items-center flex-1 sm:py-1 xxs:px-3 relative`}
+                })} flex gap-2 bg-gray px-5 rounded-xl justify-between items-center flex-1 sm:py-1 sm:px-3 sm:h-[46px] relative`}
               >
                 <p className="p sm:absolute sm:text-textGray sm:top-1 sm:text-xs">
                   Balance:
