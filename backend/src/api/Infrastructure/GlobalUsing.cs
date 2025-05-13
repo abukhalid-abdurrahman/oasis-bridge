@@ -51,12 +51,11 @@ global using Application.DTOs.RwaToken.Requests;
 global using Application.DTOs.RwaToken.Responses;
 global using Application.DTOs.UserRole.Responses;
 global using BuildingBlocks.Extensions.Resources;
-global using BuildingBlocks.Extensions.Resources;
 global using Microsoft.EntityFrameworkCore.Query;
 global using Application.DTOs.NetworkToken.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Microsoft.EntityFrameworkCore.Metadata;
-global using  Application.Extensions.CheckingUtility;
+global using Application.Extensions.CheckingUtility;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;
 global using Application.DTOs.ExchangeRate.Responses;
@@ -67,4 +66,3 @@ global using Application.Extensions.Responses.PagedResponse;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Application.DTOs.RwaTokenPriceHistory.Responses;
 
- 

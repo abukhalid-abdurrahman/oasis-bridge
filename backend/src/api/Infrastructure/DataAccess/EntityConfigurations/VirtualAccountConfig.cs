@@ -4,6 +4,6 @@ public sealed class VirtualAccountConfig : IEntityTypeConfiguration<VirtualAccou
 {
     public void Configure(EntityTypeBuilder<VirtualAccount> builder)
     {
-      
+
     }
 }

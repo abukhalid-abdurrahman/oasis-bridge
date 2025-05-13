@@ -116,5 +116,8 @@ public static class Messages
     public static string AssetDescriptionInvalid => _resources.Get().AsString();
     public static string ImageInvalid => _resources.Get().AsString();
     public static string UniqueIdentifierInvalid => _resources.Get().AsString();
-
+    public static string ConfigurationValueRequired(string key) => _resources.Get().Format(key);
+    public static string ConfigurationValueMustBeInteger(string key, string? value) => _resources.Get().Format(key, value);
+    public static string ConfigurationValueMustBeBoolean(string key, string? value) => _resources.Get().Format(key, value);
+    public static string ConnectionStringNotFound(string name) => _resources.Get().Format(name);
 }

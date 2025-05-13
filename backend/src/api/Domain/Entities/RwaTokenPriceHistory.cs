@@ -7,7 +7,7 @@ public sealed class RwaTokenPriceHistory : BaseEntity
 
     public decimal OldPrice { get; set; }
     public decimal NewPrice { get; set; }
-    public DateTimeOffset ChangedAt { get; set; }= DateTimeOffset.UtcNow;
+    public DateTimeOffset ChangedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public Guid OwnerId { get; set; }
     public VirtualAccount Owner { get; set; } = default!;

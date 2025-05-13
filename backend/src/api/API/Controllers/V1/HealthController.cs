@@ -4,8 +4,8 @@ namespace API.Controllers.V1;
 /// Controller responsible for health check operations. 
 /// Primarily used to check if the API is responsive and operational.
 /// </summary>
-[Route($"{ApiAddresses.Base}")] 
-[AllowAnonymous] 
+[Route($"{ApiAddresses.Base}")]
+[AllowAnonymous]
 public sealed class HealthController : V1BaseController
 {
     /// <summary>

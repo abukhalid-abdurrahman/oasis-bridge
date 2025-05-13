@@ -1,24 +1,22 @@
 namespace db_migrator;
 
-public class Migrator
+public sealed class Migrator(DataContext dbContext, ILogger<Migrator> logger)
 {
-    public static async Task MigrateAsync(IHost host, CancellationToken cancellationToken = default)
+    public async Task MigrateAsync(CancellationToken token = default)
     {
-        ILogger logger = host.Services.GetRequiredService<ILogger<Migrator>>();
-        DateTimeOffset date = DateTimeOffset.UtcNow;
-        logger.OperationStarted(nameof(MigrateAsync), date);
+        DateTimeOffset startTime = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(MigrateAsync), startTime);
 
         try
         {
-            using IServiceScope scope = host.Services.CreateScope();
-            DataContext db = scope.ServiceProvider.GetRequiredService<DataContext>();
-            await db.Database.MigrateAsync(cancellationToken);
-            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            await dbContext.Database.MigrateAsync(token);
+
+            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime);
         }
         catch (Exception ex)
         {
-            logger.OperationException(nameof(MigrateAsync), ex.ToString());
-            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            logger.OperationException(ex, nameof(MigrateAsync));
+            logger.OperationCompleted(nameof(MigrateAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - startTime);
         }
     }
 }

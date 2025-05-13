@@ -15,15 +15,15 @@ public sealed class NftWalletProvider(
             ArgumentException.ThrowIfNullOrEmpty(network);
 
             var result = await (from u in dbContext.Users
-                join va in dbContext.VirtualAccounts on u.Id equals va.UserId
-                join n in dbContext.Networks on va.NetworkId equals n.Id
-                where u.Id == accessor.GetId() && n.Name == network
-                select new
-                {
-                    va.PrivateKey,
-                    va.PublicKey,
-                    va.SeedPhrase
-                }).FirstOrDefaultAsync(token);
+                                join va in dbContext.VirtualAccounts on u.Id equals va.UserId
+                                join n in dbContext.Networks on va.NetworkId equals n.Id
+                                where u.Id == accessor.GetId() && n.Name == network
+                                select new
+                                {
+                                    va.PrivateKey,
+                                    va.PublicKey,
+                                    va.SeedPhrase
+                                }).FirstOrDefaultAsync(token);
             if (result is null)
             {
                 logger.OperationCompleted(nameof(GetWalletAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);

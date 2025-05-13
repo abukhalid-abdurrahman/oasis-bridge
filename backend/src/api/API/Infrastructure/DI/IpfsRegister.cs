@@ -21,7 +21,7 @@ public static class IpfsRegister
 
         // Register ipfs-services
         builder.Services.AddScoped<IIpfsService, IpfsService>();
-        
+
         return builder;
     }
 }

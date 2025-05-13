@@ -20,10 +20,10 @@ namespace Infrastructure.ImplementationContract.Nft
                 using MemoryStream memoryStream = new();
                 await JsonSerializer.SerializeAsync(memoryStream, nft, NftMetadataSerializerContext.Default.Nft, token);
 
-                memoryStream.Seek(0, SeekOrigin.Begin);  
+                memoryStream.Seek(offset: 0, SeekOrigin.Begin);
 
                 string uniqueFileName = $"{nft.Name}_{Guid.NewGuid():N}_metadata.json";
-                
+
                 string cid = await fileStorage.CreateAsync(memoryStream, uniqueFileName, token);
                 string fileUrl = options.CurrentValue.GatewayUrl + cid;
 

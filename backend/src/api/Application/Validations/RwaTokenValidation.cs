@@ -30,12 +30,12 @@ public static class CreateRwaTokenValidation
 
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Length > 32)
             errors.Add(Messages.TitleInvalid);
-        
+
         if (string.IsNullOrWhiteSpace(request.AssetDescription) || request.AssetDescription.Length > 500)
             errors.Add(Messages.AssetDescriptionInvalid);
 
 
-        if (errors.Any())
+        if (errors.Count > 0)
             return Result<UpdateRwaTokenResponse>.Failure(ResultPatternError.BadRequest(string.Join(" | ", errors)));
 
         return Result<UpdateRwaTokenResponse>.Success();

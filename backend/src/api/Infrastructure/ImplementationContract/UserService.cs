@@ -95,16 +95,16 @@ public sealed class UserService(
         }
 
         var accounts = await (from nt in dbContext.NetworkTokens
-            join n in dbContext.Networks on nt.NetworkId equals n.Id
-            join va in dbContext.VirtualAccounts on n.Id equals va.NetworkId
-            join u in dbContext.Users on va.UserId equals u.Id
-            where u.Id == userId
-            select new
-            {
-                va.Address,
-                Network = n.Name,
-                Token = nt.Symbol,
-            }).ToListAsync(token);
+                              join n in dbContext.Networks on nt.NetworkId equals n.Id
+                              join va in dbContext.VirtualAccounts on n.Id equals va.NetworkId
+                              join u in dbContext.Users on va.UserId equals u.Id
+                              where u.Id == userId
+                              select new
+                              {
+                                  va.Address,
+                                  Network = n.Name,
+                                  Token = nt.Symbol,
+                              }).ToListAsync(token);
 
         List<GetVirtualAccountDetailResponse> result = new();
 

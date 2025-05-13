@@ -15,13 +15,13 @@ public static class WalletLinkedAccountMapper
     /// <returns>A new WalletLinkedAccount entity with the provided data.</returns>
     public static WalletLinkedAccount ToEntity(this CreateWalletLinkedAccountRequest request,
         Guid networkId, IHttpContextAccessor accessor) => new()
-    {
-        CreatedBy = accessor.GetId(),
-        CreatedByIp = accessor.GetRemoteIpAddress(),
-        NetworkId = networkId,
-        PublicKey = request.WalletAddress,
-        UserId = accessor.GetId()
-    };
+        {
+            CreatedBy = accessor.GetId(),
+            CreatedByIp = accessor.GetRemoteIpAddress(),
+            NetworkId = networkId,
+            PublicKey = request.WalletAddress,
+            UserId = accessor.GetId()
+        };
 
     /// <summary>
     /// Maps a WalletLinkedAccount entity to a GetWalletLinkedAccountDetailResponse, including details about the user, wallet, and network.

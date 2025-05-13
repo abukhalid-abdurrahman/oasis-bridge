@@ -120,7 +120,7 @@ public sealed class SolanaNftManager(
                 await client.GetTokenAccountBalanceAsync(associatedTokenAccount);
             if (balanceResult == null || balanceResult.Result?.Value == null || balanceResult.Result.Value.Amount == "0")
             {
-                return Result<string>.Failure(ResultPatternError.BadRequest(balanceResult?.ErrorData?.ToString()?? balanceResult?.Reason));
+                return Result<string>.Failure(ResultPatternError.BadRequest(balanceResult?.ErrorData?.ToString() ?? balanceResult?.Reason));
             }
 
             ulong amountToBurn = ulong.Parse(balanceResult.Result.Value.Amount);

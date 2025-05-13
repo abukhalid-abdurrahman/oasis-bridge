@@ -23,4 +23,3 @@ global using System.Text.Json.Serialization;
 global using BuildingBlocks.Extensions.Logger;
 global using BuildingBlocks.Extensions.Resources;
 global using BuildingBlocks.Extensions.ResultPattern;
- 

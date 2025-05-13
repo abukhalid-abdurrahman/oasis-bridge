@@ -91,7 +91,7 @@ public sealed class NetworkService(
 
         logger.OperationCompleted(nameof(GetNetworkDetailAsync), DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow - date);
-        
+
         return network is not null
             ? Result<GetNetworkDetailResponse>.Success(network)
             : Result<GetNetworkDetailResponse>.Failure(ResultPatternError.NotFound(Messages.NetworkNotFound));
@@ -132,7 +132,7 @@ public sealed class NetworkService(
             logger.OperationCompleted(nameof(CreateNetworkAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
 
             return await dbContext.SaveChangesAsync(token) != 0
-                ? Result<CreateNetworkResponse>.Success(new (newNetwork.Id))
+                ? Result<CreateNetworkResponse>.Success(new(newNetwork.Id))
                 : Result<CreateNetworkResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.CreateNetworkFailed));
         }
@@ -195,7 +195,7 @@ public sealed class NetworkService(
             network.ToEntity(accessor, request);
             logger.OperationCompleted(nameof(UpdateNetworkAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return await dbContext.SaveChangesAsync(token) != 0
-                ? Result<UpdateNetworkResponse>.Success(new (network.Id))
+                ? Result<UpdateNetworkResponse>.Success(new(network.Id))
                 : Result<UpdateNetworkResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.UpdateNetworkFailed));
         }
@@ -240,7 +240,7 @@ public sealed class NetworkService(
             network.ToEntity(accessor);
             logger.OperationCompleted(nameof(DeleteNetworkAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return await dbContext.SaveChangesAsync(token) != 0
-                ? Result<DeleteNetworkResponse>.Success(new (network.Id))
+                ? Result<DeleteNetworkResponse>.Success(new(network.Id))
                 : Result<DeleteNetworkResponse>.Failure(
                     ResultPatternError.InternalServerError(Messages.DeleteNetworkFailed));
         }

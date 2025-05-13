@@ -1,7 +1,11 @@
+using BuildingBlocks.Extensions.Resources;
+
 namespace BuildingBlocks.Extensions;
 
 public static class ConfigurationExtensions
 {
+    private const string DefaultConnectionName = "DefaultConnection";
+
     /// <summary>
     /// Retrieves the required string value for the specified configuration key.
     /// </summary>
@@ -15,8 +19,7 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidOperationException(
-                $"Configuration value for '{key}' is required and was not found or empty.");
+            throw new InvalidOperationException(Messages.ConfigurationValueRequired(key));
 
         return value;
     }
@@ -34,8 +37,7 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (!int.TryParse(value, out int result))
-            throw new InvalidOperationException(
-                $"Configuration value for '{key}' must be a valid integer. Found: '{value}'.");
+            throw new InvalidOperationException(Messages.ConfigurationValueMustBeInteger(key, value));
 
         return result;
     }
@@ -53,9 +55,32 @@ public static class ConfigurationExtensions
     {
         string? value = configuration[key];
         if (!bool.TryParse(value, out bool result))
-            throw new InvalidOperationException(
-                $"Configuration value for '{key}' must be a valid boolean. Found: '{value}'.");
+            throw new InvalidOperationException(Messages.ConfigurationValueMustBeBoolean(key, value));
 
         return result;
     }
+
+    /// <summary>
+    /// Retrieves the specified connection string from the configuration, or throws an exception if it is not found.
+    /// </summary>
+    /// <param name="configuration">The application configuration instance.</param>
+    /// <param name="name">The name of the connection string to retrieve.</param>
+    /// <returns>The connection string associated with the specified name.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the connection string with the specified name is not found in the configuration.
+    /// </exception>
+    public static string GetRequiredConnectionString(this IConfiguration configuration, string name) =>
+        configuration.GetConnectionString(name)
+            ?? throw new InvalidOperationException(Messages.ConnectionStringNotFound(name));
+
+    /// <summary>
+    /// Retrieves the default connection string from the configuration, or throws an exception if it is not found.
+    /// </summary>
+    /// <param name="configuration">The application configuration instance.</param>
+    /// <returns>The default connection string.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the default connection string is not found in the configuration.
+    /// </exception>
+    public static string GetDefaultConnectionString(this IConfiguration configuration) =>
+        configuration.GetRequiredConnectionString(DefaultConnectionName);
 }
