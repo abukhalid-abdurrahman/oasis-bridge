@@ -23,10 +23,20 @@ export interface TokenizationField {
   group?: number;
   defaultValue?: string;
   HTMLType?: string;
-  selectItems?: string[]
+  selectItems?: string[];
 }
 
 export type PostWallet = {
   walletAddress: PublicKey;
   network: string;
+};
+
+export type RwasReq = {
+  assetType?: string | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
+  sortBy?: string | null;
+  sortOrder?: string | null;
+  pageSize: number;
+  pageNumber: number;
 };

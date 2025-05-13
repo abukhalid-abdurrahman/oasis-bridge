@@ -49,6 +49,35 @@ export const uploadFile = async (file: File): Promise<string> => {
     return res.data.data.fileUrl;
   } catch (error) {
     console.error("Upload failed", error);
-    return 'File upload failed';
+    return "File upload failed";
   }
+};
+
+export const getVisiblePages = (
+  current: number,
+  total: number
+): (number | "...")[] => {
+  const delta = 1;
+  const range: (number | "...")[] = [];
+  const left = current - delta;
+  const right = current + delta;
+
+  let l: number;
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= left && i <= right)) {
+      range.push(i);
+    } else if (range[range.length - 1] !== "...") {
+      range.push("...");
+    }
+  }
+  return range;
+};
+
+export const calculatePercentageDifference = (
+  oldPrice: number,
+  newPrice: number
+) => {
+  if (!oldPrice || oldPrice === 0) return "0%";
+  const difference = ((newPrice - oldPrice) / oldPrice) * 100;
+  return `${Math.abs(difference).toFixed(2)}%`;
 };
