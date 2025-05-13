@@ -37,6 +37,7 @@ export default function FiltersForm({
   const [inputClasses] = useState(
     "px-2 py-1 bg-transparent border-textGray text-white rounded-sm text-sm w-full lg:text-base lg:text-black"
   );
+  const [formKey, setFormKey] = useState(0);
 
   const FormSchema = z.object({
     assetType: z.any(),
@@ -67,7 +68,7 @@ export default function FiltersForm({
   };
 
   return (
-    <Form {...form}>
+    <Form key={formKey} {...form}>
       <form
         className="flex gap-3 text-sm text-nowrap lg:flex-col lg:text-base"
         onSubmit={form.handleSubmit(onSubmit)}
@@ -83,6 +84,7 @@ export default function FiltersForm({
                   <FormItem className="w-full">
                     <FormControl>
                       <Input
+                        type="number"
                         className={`${inputClasses} text-right`}
                         placeholder="min"
                         {...field}
@@ -100,6 +102,7 @@ export default function FiltersForm({
                   <FormItem className="w-full">
                     <FormControl>
                       <Input
+                        type="number"
                         className={`${inputClasses} text-right`}
                         placeholder="max"
                         {...field}
@@ -117,7 +120,11 @@ export default function FiltersForm({
           render={({ field }) => (
             <FormItem className="flex gap-2 items-center lg:justify-between">
               <FormLabel className="lg:text-base">Asset Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger
                     className={`${inputClasses} !mt-0 lg:max-w-[300px] sm:!max-w-[160px]`}
@@ -189,18 +196,44 @@ export default function FiltersForm({
             </FormItem>
           )}
         />
-        <Button variant="gray" size="sm" type="submit" className="lg:hidden">
-          Apply filters
-        </Button>
-        <Button
-          onClick={() => setIsFiltersOpen ? setIsFiltersOpen(false) : null}
-          variant="gray"
-          size="default"
-          type="submit"
-          className="hidden lg:flex lg:mt-3"
-        >
-          Apply filters
-        </Button>
+        <div className="flex gap-3 lg:hidden">
+          <Button variant="gray" size="sm" type="submit">
+            Apply filters
+          </Button>
+          <Button
+            onClick={() => {
+              form.reset();
+              setFormKey((prev) => prev + 1);
+            }}
+            variant="gray"
+            size="sm"
+            type="submit"
+          >
+            Clear filters
+          </Button>
+        </div>
+        <div className="hidden lg:flex lg:flex-col lg:gap-3">
+          <Button
+            onClick={() => (setIsFiltersOpen ? setIsFiltersOpen(false) : null)}
+            variant="gray"
+            size="default"
+            type="submit"
+            className="hidden lg:flex lg:mt-3"
+          >
+            Apply filters
+          </Button>
+          <Button
+            onClick={() => {
+              form.reset();
+              setFormKey((prev) => prev + 1);
+            }}
+            variant="gray"
+            size="default"
+            type="submit"
+          >
+            Clear filters
+          </Button>
+        </div>
       </form>
     </Form>
   );
