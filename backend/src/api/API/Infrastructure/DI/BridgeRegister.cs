@@ -15,19 +15,14 @@ public static class BridgeRegister
     /// <returns>The WebApplicationBuilder instance with the bridge services registered.</returns>
     public static WebApplicationBuilder AddBridgeService(this WebApplicationBuilder builder)
     {
-        // Registers the RadixBridge as an IBridge and IRadixBridge service
         builder.Services.AddScoped<IBridge, RadixBridge.RadixBridge>();
         builder.Services.AddScoped<IRadixBridge, RadixBridge.RadixBridge>();
-
-        // Registers the SolanaBridge as an IBridge and ISolanaBridge service
         builder.Services.AddScoped<IBridge, SolanaBridge.SolanaBridge>();
         builder.Services.AddScoped<ISolanaBridge, SolanaBridge.SolanaBridge>();
 
-        // Registers the Solana RPC client with configuration from app settings
         builder.Services.AddScoped<IRpcClient>(_ =>
             ClientFactory.GetClient(builder.Configuration["SolanaTechnicalAccountBridgeOptions:HostUri"] ?? ""));
 
-        // Registers Solana-specific options as a singleton service with configuration values
         builder.Services.AddSingleton(new SolanaTechnicalAccountBridgeOptions
         {
             HostUri = builder.Configuration["SolanaTechnicalAccountBridgeOptions:HostUri"] ?? "",
@@ -35,7 +30,6 @@ public static class BridgeRegister
             PublicKey = builder.Configuration["SolanaTechnicalAccountBridgeOptions:PublicKey"] ?? "",
         });
 
-        // Registers Radix-specific options as a singleton service with configuration values
         builder.Services.AddSingleton(new RadixTechnicalAccountBridgeOptions()
         {
             HostUri = builder.Configuration["RadixTechnicalAccountBridgeOptions:HostUri"] ?? "",

@@ -16,9 +16,9 @@ public static class CorsRegister
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.AllowAnyOrigin() // Allows requests from any origin (domain).
-                    .AllowAnyMethod() // Allows any HTTP method (GET, POST, PUT, DELETE, etc.).
-                    .AllowAnyHeader(); // Allows any header to be sent in the request.
+                policy.AllowAnyOrigin() 
+                    .AllowAnyMethod() 
+                    .AllowAnyHeader();
             });
         });
         return builder;

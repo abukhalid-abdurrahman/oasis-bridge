@@ -14,25 +14,18 @@ public static class EmailRegister
     /// <returns>The WebApplicationBuilder instance with the email service dependencies registered.</returns>
     public static WebApplicationBuilder AddEmailService(this WebApplicationBuilder builder)
     {
-        // Retrieving email configuration from the application's configuration settings.
         EmailConfig? emailConfig = builder.Configuration
             .GetSection("EmailConfiguration")
             .Get<EmailConfig>();
 
-        // Registering the email configuration as a singleton to ensure it's only created once.
         builder.Services.AddSingleton(emailConfig!);
 
-        // Registering services needed to send emails:
-        // - SmtpClient is transient, meaning a new instance is created each time it is requested.
         builder.Services.AddTransient<SmtpClient>();
 
-        // - IEmailService is scoped, meaning it will be created once per request.
         builder.Services.AddScoped<IEmailService, EmailService>();
 
-        // - ISmtpClientWrapper is scoped to wrap SMTP-related functionality.
         builder.Services.AddScoped<ISmtpClientWrapper, SmtpClientWrapper>();
 
-        // Returning the builder for method chaining.
         return builder;
     }
 }

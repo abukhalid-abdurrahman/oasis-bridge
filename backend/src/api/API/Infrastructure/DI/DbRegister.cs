@@ -14,13 +14,11 @@ public static class DbRegister
     /// <returns>The WebApplicationBuilder instance with the DbContext service registered, enabling method chaining.</returns>
     public static WebApplicationBuilder AddDbService(this WebApplicationBuilder builder)
     {
-        // Registering the DataContext DbContext service with the PostgreSQL provider (Npgsql).
         builder.Services.AddDbContext<DataContext>(configure =>
         {
             configure.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
         });
 
-        // Returning the builder for method chaining.
         return builder;
     }
 }
