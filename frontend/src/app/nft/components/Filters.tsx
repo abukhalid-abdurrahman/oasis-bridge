@@ -1,28 +1,10 @@
 "use client";
 
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import FiltersForm from "./FiltersForm";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ASSET_TYPES } from "@/lib/constants";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Funnel } from "lucide-react";
+import Image from "next/image";
 
 interface FiltersProps {
   reqParams: any;
@@ -30,157 +12,65 @@ interface FiltersProps {
 }
 
 export default function Filters({ reqParams, setReqParams }: FiltersProps) {
-  const [inputClasses] = useState(
-    "px-2 py-1 bg-transparent border-textGray text-white rounded-sm text-sm w-full"
-  );
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const FormSchema = z.object({
-    assetType: z.any(),
-    priceMin: z.any(),
-    priceMax: z.any(),
-    sortBy: z.any(),
-    sortOrder: z.any(),
-  });
-
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      assetType: "",
-      priceMin: "",
-      priceMax: "",
-      sortBy: "",
-      sortOrder: "",
-    },
-  });
-
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    setReqParams((prevState: any) => {
-      return {
-        ...prevState,
-        ...data
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    })
-  };
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   return (
-    <Form {...form}>
-      <form
-        className="flex gap-3 text-sm text-nowrap"
-        onSubmit={form.handleSubmit(onSubmit)}
+    <>
+      <div className="lg:hidden">
+        <FiltersForm reqParams={reqParams} setReqParams={setReqParams} />
+      </div>
+
+      <Button
+        variant="gray"
+        size="sm"
+        className="hidden lg:flex"
+        onClick={() => setIsOpen(true)}
+        aria-label="Open menu"
       >
-        <div className="flex items-center gap-3">
-          <p className="">Price</p>
-          <div className="flex gap-1 items-center max-w-36">
-            <FormField
-              control={form.control}
-              name="priceMin"
-              render={({ field }) => (
-                <>
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Input
-                        className={`${inputClasses} text-right`}
-                        placeholder="min"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                </>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priceMax"
-              render={({ field }) => (
-                <>
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Input
-                        className={`${inputClasses} text-right`}
-                        placeholder="max"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                </>
-              )}
-            />
+        <Funnel /> Filters
+      </Button>
+      {/* Sidebar / Drawer */}
+      <div
+        className={`fixed -right-full top-0 bottom-0 z-50 bg-black/60 backdrop-blur-sm transition-all ${
+          isOpen && "!left-0 !right-0"
+        }`}
+      >
+        <div
+          ref={menuRef}
+          className={`absolute -right-full top-0 h-full w-4/5 bg-white text-black py-4 px-5 shadow-xl transition-all
+          ${isOpen && "!right-0"}`}
+        >
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="h3">Filters</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close menu"
+            >
+              
+              <Image src="/close.svg" alt="Close" width={12} height={12} />
+            </Button>
           </div>
+          <FiltersForm reqParams={reqParams} setReqParams={setReqParams} />
         </div>
-        <FormField
-          control={form.control}
-          name="assetType"
-          render={({ field }) => (
-            <FormItem className="flex gap-2 items-center">
-              <FormLabel>Asset Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className={`${inputClasses} !mt-0`}>
-                    <SelectValue placeholder="AssetType" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    {ASSET_TYPES.map((type, i) => (
-                      <SelectItem key={i} value={type.replace(/\s/g,'')}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {/* <FormMessage /> */}
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="sortBy"
-          render={({ field }) => (
-            <FormItem className="flex gap-2 items-center">
-              <FormLabel>Sort by</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className={`${inputClasses} !mt-0`}>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value='Price'>Price</SelectItem>
-                    <SelectItem value='CreatedAt'>Date of Creation</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {/* <FormMessage /> */}
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="sortOrder"
-          render={({ field }) => (
-            <FormItem className="flex gap-2 items-center">
-              <FormLabel>Sort order</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className={`${inputClasses} !mt-0`}>
-                    <SelectValue placeholder="Sort order" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value='Asc'>Asc</SelectItem>
-                    <SelectItem value='Desc'>Desc</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {/* <FormMessage /> */}
-            </FormItem>
-          )}
-        />
-        <Button variant='gray' size='sm' type="submit">Apply filters</Button>
-      </form>
-    </Form>
+      </div>
+    </>
   );
 }
