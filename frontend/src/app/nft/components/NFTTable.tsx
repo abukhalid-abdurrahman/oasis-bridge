@@ -12,7 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { shortDescription } from "@/lib/scripts/script";
+import {
+  calculatePercentageDifference,
+  shortDescription,
+} from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
@@ -227,129 +230,170 @@ export default function NFTTable() {
     }
   }, [nfts]);
 
-  useEffect(() => {
-    console.log(nftChangesMultiple)
-  }, [nftChangesMultiple])
+  const fullNfts = useMemo(() => {
+    const normalize = (arr: any[]) => {
+      return arr
+        .filter(Boolean)
+        .map((item) => ({
+          ...item,
+          tokenId: item?.tokenId ?? item?.rwaTokenId,
+        }))
+        .filter((item) => item.tokenId !== undefined);
+    };
 
-  // const allNftData = useMemo(() => {
-  //   const combined = [];
+    const base = normalize(nftMultiple.map((nft) => nft?.data));
+    const changes = normalize(
+      nftChangesMultiple.map((nft) => nft?.data?.[nft.data.length - 1])
+    );
 
-  //   const allArrays = [
-  //     ...(nfts?.data?.data || []),
-  //     ...(nftMultiple?.filter(Boolean) || []),
-  //     ...(nftChangesMultiple?.filter(Boolean) || []),
-  //   ];
+    const combinedMap = new Map<string, any>();
 
-  //   const uniqueByTokenId = _.uniqBy(allArrays, "tokenId");
+    for (const item of [...base, ...changes]) {
+      const existing = combinedMap.get(item.tokenId);
+      if (existing) {
+        combinedMap.set(item.tokenId, {
+          ...existing,
+          ...item,
+        });
+      } else {
+        combinedMap.set(item.tokenId, item);
+      }
+    }
 
-  //   return uniqueByTokenId;
-  // }, [nfts, nftMultiple, nftChangesMultiple]);
+    return Array.from(combinedMap.values());
+  }, [nfts, nftMultiple, nftChangesMultiple]);
 
   return (
     <div>
       <div className="w-full mb-5 flex justify-end text-sm">
         <Filters reqParams={reqParams} setReqParams={setReqParams} />
       </div>
-      {nftMultipleFetching.some((item) => item === true) || nftsFetching ? (
+      {nftMultipleFetching.some((item) => item === true) ||
+      nftChangesMultipleFetching.some((item) => item === true) ||
+      nftsFetching ? (
         <Loading
           className="flex justify-center mt-14"
           classNameLoading="!border-white !border-r-transparent !w-14 !h-14"
         />
       ) : (
         <>
-          <Table className="min-w-[965px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-primary">
-                <TableHead colSpan={2} className="w-[100px]">
-                  NFT
-                </TableHead>
-                <TableHead className="text-right">Network</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead className="text-right">Asset Type</TableHead>
-                {/* <TableHead className="text-right">Geolocation</TableHead> */}
-                {/* <TableHead className="text-right">Price Change (%)</TableHead> */}
-                <TableHead className="text-right"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {nftMultiple.map((nft: any) => {
-                return (
-                  <TableRow
-                    key={nft.data.tokenId}
-                    className="border-primary hover:bg-transparent"
-                  >
-                    <TableCell colSpan={2} className="font-medium py-3">
-                      <div className="">
-                        <Link
-                          className="flex gap-3 items-center"
-                          href={`/nft/${nft.data.tokenId}`}
-                        >
-                          <Image
-                            src={
-                              nft.data.image !== "string"
-                                ? nft.data.image
-                                : "/nft.avif"
-                            }
-                            alt={nft.data.title}
-                            width={50}
-                            height={50}
-                            className="rounded-md"
-                          />
-                          <div className="flex flex-col">
-                            <p className="p">{nft.data.title}</p>
-                            <p className="text-textGray">
-                              {shortDescription(nft.data.assetDescription)}
-                            </p>
-                          </div>
-                        </Link>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {nft.data.network}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {nft.data.price} SOL
-                      {/* <span className="text-red-600 text-xs flex items-center justify-end">
+          {fullNfts.length > 0 ? (
+            <Table className="min-w-[965px]">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-primary">
+                  <TableHead colSpan={2} className="w-[100px]">
+                    NFT
+                  </TableHead>
+                  <TableHead className="text-right">Network</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Asset Type</TableHead>
+                  {/* <TableHead className="text-right">Geolocation</TableHead> */}
+                  <TableHead className="text-right">Price Change (%)</TableHead>
+                  <TableHead className="text-right"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fullNfts.map((nft: any) => {
+                  return (
+                    <TableRow
+                      key={nft.tokenId}
+                      className="border-primary hover:bg-transparent"
+                    >
+                      <TableCell colSpan={2} className="font-medium py-3">
+                        <div className="">
+                          <Link
+                            className="flex gap-3 items-center"
+                            href={`/nft/${nft.tokenId}`}
+                          >
+                            <Image
+                              src={
+                                nft.image !== "string" ? nft.image : "/nft.avif"
+                              }
+                              alt={nft.title}
+                              width={50}
+                              height={50}
+                              className="rounded-md"
+                            />
+                            <div className="flex flex-col">
+                              <p className="p">{nft.title}</p>
+                              <p className="text-textGray">
+                                {shortDescription(nft.assetDescription)}
+                              </p>
+                            </div>
+                          </Link>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {nft.network}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {nft.price}
+                        {/* <span className="text-red-600 text-xs flex items-center justify-end">
                         <span className="inline">
                           <ChevronDown size={15} />
                         </span>
-                        {nft.data.price.secondValue}
+                        {nft.price.secondValue}
                       </span> */}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {nft.data.assetType}
-                    </TableCell>
-                    {/* <TableCell className="text-right">
-                      {nft.data.geolocation}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {nft.data.priceChangePercentage.value}
-                      <span className="text-green-600 flex items-center text-xs justify-end">
-                        <span className="inline">
-                          <ChevronUp size={15} />
-                        </span>
-                        {nft.data.priceChangePercentage.secondValue}
-                      </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {nft.assetType}
+                      </TableCell>
+                      {/* <TableCell className="text-right">
+                      {nft.geolocation}
                     </TableCell> */}
-                    <TableCell className="text-right space-x-2">
-                      <Link
-                        href={`/nft/${nft.data.tokenId}`}
-                        className={buttonVariants({
-                          variant: "gray",
-                          size: "sm",
-                        })}
-                      >
-                        Details
-                      </Link>
-                      <Button variant="green" size="sm">
-                        Purchase
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      <TableCell className="text-right">
+                        {nft?.oldPrice - nft?.price || (
+                          <>
+                            <p className="p opacity-60">---</p>
+                          </>
+                        )}
+                        {nft?.oldPrice &&
+                          (() => {
+                            const diff =
+                              ((nft.price - nft.oldPrice) / nft.oldPrice) * 100;
+                            const isPositive = diff >= 0;
+                            const percentage = Math.abs(diff).toFixed(2) + "%";
+
+                            return (
+                              <span
+                                className={`flex items-center text-xs justify-end ${
+                                  isPositive ? "text-green-600" : "text-red-600"
+                                }`}
+                              >
+                                {isPositive ? (
+                                  <ChevronUp size={15} className="inline" />
+                                ) : (
+                                  <ChevronDown size={15} className="inline" />
+                                )}
+                                {percentage}
+                              </span>
+                            );
+                          })()}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Link
+                          href={`/nft/${nft.tokenId}`}
+                          className={buttonVariants({
+                            variant: "gray",
+                            size: "sm",
+                          })}
+                        >
+                          Details
+                        </Link>
+                        <Button variant="green" size="sm">
+                          Purchase
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <>
+              <h3 className="h3 text-center mt-20 opacity-60">There are no NFTs available yet.</h3>
+            </>
+          )}
         </>
       )}
       {nfts?.data?.totalPages > 1 && (
