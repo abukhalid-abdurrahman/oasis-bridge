@@ -37,7 +37,6 @@ export default function FiltersForm({
   const [inputClasses] = useState(
     "px-2 py-1 bg-transparent border-textGray text-white rounded-sm text-sm w-full lg:text-base lg:text-black"
   );
-  const [formKey, setFormKey] = useState(0);
 
   const FormSchema = z.object({
     assetType: z.any(),
@@ -68,7 +67,7 @@ export default function FiltersForm({
   };
 
   return (
-    <Form key={formKey} {...form}>
+    <Form {...form}>
       <form
         className="flex gap-3 text-sm text-nowrap lg:flex-col lg:text-base"
         onSubmit={form.handleSubmit(onSubmit)}
@@ -203,7 +202,7 @@ export default function FiltersForm({
           <Button
             onClick={() => {
               form.reset();
-              setFormKey((prev) => prev + 1);
+              setIsFiltersOpen ? setIsFiltersOpen(false) : null;
             }}
             variant="gray"
             size="sm"
@@ -225,7 +224,7 @@ export default function FiltersForm({
           <Button
             onClick={() => {
               form.reset();
-              setFormKey((prev) => prev + 1);
+              setIsFiltersOpen ? setIsFiltersOpen(false) : null;
             }}
             variant="gray"
             size="default"

@@ -30,179 +30,6 @@ import _ from "lodash";
 import Link from "next/link";
 import Filters from "./Filters";
 
-const nftsExample = [
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-  {
-    image: "/nft.avif",
-    title: "Shiza Quick",
-    description:
-      "Shiza Quick is a digital artist known for her vibrant and surreal artwork.",
-    network: "Solana",
-    price: {
-      value: "3.12 SOL",
-      secondValue: "0.25%",
-    },
-    assetType: "Automobiles",
-    geolocation: "USA",
-    priceChangePercentage: {
-      value: "4.00%",
-      secondValue: "0.12%",
-    },
-  },
-];
-
 export default function NFTTable() {
   const [tokenIds, setTokenIds] = useState<string[]>([]);
   const [reqParams, setReqParams] = useState<RwasReq>({
@@ -351,18 +178,24 @@ export default function NFTTable() {
                           (() => {
                             const diff =
                               ((nft.price - nft.oldPrice) / nft.oldPrice) * 100;
-                            const isPositive = diff >= 0;
+                            const isPositive = diff > 0;
+                            const isNeutral = diff === 0
                             const percentage = Math.abs(diff).toFixed(2) + "%";
 
                             return (
                               <span
                                 className={`flex items-center text-xs justify-end ${
-                                  isPositive ? "text-green-600" : "text-red-600"
+                                  isPositive
+                                    ? "text-green-500"
+                                    : isNeutral
+                                    ? "text-textGray"
+                                    : "text-red-600"
                                 }`}
                               >
-                                {isPositive ? (
+                                {isPositive && (
                                   <ChevronUp size={15} className="inline" />
-                                ) : (
+                                )}
+                                {(!isPositive && !isNeutral) && (
                                   <ChevronDown size={15} className="inline" />
                                 )}
                                 {percentage}
