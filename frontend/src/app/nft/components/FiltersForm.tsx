@@ -26,11 +26,13 @@ import { z } from "zod";
 interface FiltersFormProps {
   reqParams: any;
   setReqParams: Dispatch<SetStateAction<any>>;
+  setIsFiltersOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function FiltersForm({
   reqParams,
   setReqParams,
+  setIsFiltersOpen,
 }: FiltersFormProps) {
   const [inputClasses] = useState(
     "px-2 py-1 bg-transparent border-textGray text-white rounded-sm text-sm w-full lg:text-base lg:text-black"
@@ -190,7 +192,13 @@ export default function FiltersForm({
         <Button variant="gray" size="sm" type="submit" className="lg:hidden">
           Apply filters
         </Button>
-        <Button variant="gray" size="default" type="submit" className="hidden lg:flex lg:mt-3">
+        <Button
+          onClick={() => setIsFiltersOpen ? setIsFiltersOpen(false) : null}
+          variant="gray"
+          size="default"
+          type="submit"
+          className="hidden lg:flex lg:mt-3"
+        >
           Apply filters
         </Button>
       </form>

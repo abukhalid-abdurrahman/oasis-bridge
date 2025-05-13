@@ -199,7 +199,7 @@ export const useNftMultiple = (tokenIds: string[]) => {
 
 // Get Sell/Buy history and price change history
 const getNftChanges = async (tokenId: string) => {
-  const res = await axiosInstance.get(`/rwa/${tokenId}/history`);
+  const res = await axiosInstance.get(`/rwa-price-histories/${tokenId}`);
   return res.data;
 };
 

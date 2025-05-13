@@ -215,8 +215,8 @@ export default function NFTTable() {
   const { data: nfts, isFetching: nftsFetching } = useNfts(reqParams);
   const { data: nftMultiple, isFetching: nftMultipleFetching } =
     useNftMultiple(tokenIds);
-  // const { data: nftChangesMultiple, isFetching: nftChangesMultipleFetching } =
-  //   useNftChangesMultiple(tokenIds);
+  const { data: nftChangesMultiple, isFetching: nftChangesMultipleFetching } =
+    useNftChangesMultiple(tokenIds);
 
   useEffect(() => {
     if (nfts) {
@@ -226,6 +226,10 @@ export default function NFTTable() {
       setTokenIds(getAlltokenIds(nfts));
     }
   }, [nfts]);
+
+  useEffect(() => {
+    console.log(nftChangesMultiple)
+  }, [nftChangesMultiple])
 
   // const allNftData = useMemo(() => {
   //   const combined = [];

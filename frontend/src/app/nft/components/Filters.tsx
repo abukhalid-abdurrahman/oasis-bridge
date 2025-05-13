@@ -15,21 +15,6 @@ export default function Filters({ reqParams, setReqParams }: FiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        isOpen &&
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
   return (
     <>
       <div className="lg:hidden">
@@ -64,11 +49,14 @@ export default function Filters({ reqParams, setReqParams }: FiltersProps) {
               onClick={() => setIsOpen(false)}
               aria-label="Close menu"
             >
-              
               <Image src="/close.svg" alt="Close" width={12} height={12} />
             </Button>
           </div>
-          <FiltersForm reqParams={reqParams} setReqParams={setReqParams} />
+          <FiltersForm
+            reqParams={reqParams}
+            setReqParams={setReqParams}
+            setIsFiltersOpen={setIsOpen}
+          />
         </div>
       </div>
     </>
