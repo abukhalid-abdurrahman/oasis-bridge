@@ -5,5 +5,5 @@ namespace Application.Contracts;
 public interface ISolShiftIntegrationService
 {
     Task<Result<TransactionResponse>> CreateTransactionAsync(CreateTransactionRequest request);
-    Task<Result<TransactionResponse>> SendTransactionAsync(string transactionId);
+    Task<Result<TransactionResponse>> SendTransactionAsync(string signedTransaction);
 }

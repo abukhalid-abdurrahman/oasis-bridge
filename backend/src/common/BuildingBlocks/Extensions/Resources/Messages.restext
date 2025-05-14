@@ -35,6 +35,7 @@ SmtpConnectionFailed=SMTP Connection failed after multiple attempts.
 SolanaNftMintingFailed=Minting failed
 CreateRwaTokenFailed=Failed in process creating RwaToken.
 UpdateRwaTokenFailed=Failed in process updating RwaToken.
+CreateNftPurchaseFailed=Failed in process creating nft purchase.
 
 InvalidAddressRadixFormat=Invalid address Radix format.
 
@@ -48,6 +49,7 @@ ExchangeRateNotFound=Exchange rate not found!.
 NetworkTokenNotFound=NetworkToken not found!.
 OrderNotFound=Order not found!.
 WalletNotFound=Wallet not found!.
+CreateNftPurchaseBuyerAccountNotFound=Buyer Wallet not found!.
 VirtualAccountNotFound=VirtualAccount not found!.
 RwaTokenNotFound= RwaToken not found!.
 AccountNotFound=Account not found. Ensure the account is initialized and funded before minting.

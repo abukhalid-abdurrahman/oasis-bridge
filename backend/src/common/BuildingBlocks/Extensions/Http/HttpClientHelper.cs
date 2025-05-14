@@ -20,8 +20,11 @@ public static class HttpClientHelper
     /// <param name="request">The request object to be serialized and sent in the POST body.</param>
     /// <param name="token">The cancellation token to monitor task cancellation.</param>
     /// <returns>The deserialized response object of type TResponse, or null if the request was unsuccessful or an error occurred.</returns>
-    public static async Task<Result<TResponse?>> PostAsync<TRequest, TResponse>(HttpClient httpClient, string url,
-        TRequest request, CancellationToken token = default)
+    public static async Task<Result<TResponse?>> PostAsync<TRequest, TResponse>(
+        HttpClient httpClient,
+        string url,
+        TRequest request,
+        CancellationToken token = default)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         Logger.OperationStarted(nameof(PostAsync), date);

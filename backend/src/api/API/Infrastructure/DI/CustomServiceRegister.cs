@@ -1,5 +1,3 @@
-using SolShiftIntegrationService = Infrastructure.ImplementationContract.SolShiftIntegrationService;
-
 namespace API.Infrastructure.DI;
 
 /// <summary>
@@ -32,14 +30,16 @@ public static class CustomServiceRegister
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
         builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
-
-        builder.Services.AddScoped<ISolShiftIntegrationService, SolShiftIntegrationService>();
-
+        
         builder.Services.AddScoped<IWalletLinkedAccountService, WalletLinkedAccountService>();
 
         builder.Services.AddScoped<IRwaTokenService, RwaTokenService>();
 
         builder.Services.AddScoped<IRwaTokenPriceHistoryService, RwaTokenPriceHistoryService>();
+        
+        builder.Services.AddScoped<ISolShiftIntegrationService, SolShiftIntegrationService>();
+        builder.Services.AddScoped<INftPurchaseService, NftPurchaseService>();
+        builder.Services.AddScoped<IRwaTokenOwnershipTransferService, RwaTokenOwnershipTransferService>();
 
         return builder;
     }

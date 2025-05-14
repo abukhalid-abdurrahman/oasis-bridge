@@ -4,8 +4,6 @@ namespace Infrastructure.ImplementationContract.Nft;
 
 public sealed class SolShiftIntegrationService(
     ILogger<SolShiftIntegrationService> logger,
-    DataContext dbContext,
-    IHttpContextAccessor accessor,
     IHttpClientFactory httpClientFactory) : ISolShiftIntegrationService
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient(HttpClientNames.SolShiftClient);
@@ -15,10 +13,17 @@ public sealed class SolShiftIntegrationService(
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(CreateTransactionAsync), date);
 
+        string url = _httpClient.BaseAddress + "shift/create-transaction";
         try
         {
-           Result<TransactionResponse> res= await HttpClientHelper
-               .PostAsync<CreateTransactionRequest,TransactionResponse>()
+            Result<TransactionResponse> response = await HttpClientHelper
+                .PostAsync<CreateTransactionRequest, TransactionResponse>(_httpClient, url, request);
+
+            logger.OperationCompleted(nameof(CreateTransactionAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return response.IsSuccess
+                ? Result<TransactionResponse>.Success(response.Value)
+                : Result<TransactionResponse>.Failure(response.Error);
         }
         catch (Exception ex)
         {
@@ -30,18 +35,27 @@ public sealed class SolShiftIntegrationService(
         }
     }
 
-    public async Task<Result<TransactionResponse>> SendTransactionAsync(string transactionId)
+    public async Task<Result<TransactionResponse>> SendTransactionAsync(string signedTransaction)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
-        logger.OperationStarted(nameof(CreateTransactionAsync), date);
+        logger.OperationStarted(nameof(SendTransactionAsync), date);
+        string url = _httpClient.BaseAddress + "shift/send-transaction";
 
         try
         {
+            Result<TransactionResponse> response = await HttpClientHelper
+                .PostAsync<string, TransactionResponse>(_httpClient, url, signedTransaction);
+
+            logger.OperationCompleted(nameof(SendTransactionAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return response.IsSuccess
+                ? Result<TransactionResponse>.Success(response.Value)
+                : Result<TransactionResponse>.Failure(response.Error);
         }
         catch (Exception ex)
         {
-            logger.OperationException(nameof(CreateTransactionAsync), ex.Message);
-            logger.OperationCompleted(nameof(CreateTransactionAsync), DateTimeOffset.UtcNow,
+            logger.OperationException(nameof(SendTransactionAsync), ex.Message);
+            logger.OperationCompleted(nameof(SendTransactionAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             return Result<TransactionResponse>.Failure(
                 ResultPatternError.InternalServerError(ex.Message));

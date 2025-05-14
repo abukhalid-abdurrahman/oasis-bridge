@@ -1,9 +1,9 @@
 namespace Application.DTOs.NftPurchase.Requests;
 
 public readonly record struct CreateTransactionRequest(
-    string BuyerPublicKey,
-    string SellerPubicKey,
-    string SellerPrivateKey,
+    string BuyerPubkey,
+    string SellerPubkey,
+    string SellerSecretKey,
     string NftMint,
-    double Price,
+    decimal Price,
     string? TokenMint);
