@@ -32,11 +32,9 @@ import { ASSET_TYPES } from "@/lib/constants";
 import { useNft } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
-import { mutateRwaUpdate } from "@/requests/putRequests";
 import { shortDescription, uploadFile } from "@/lib/scripts/script";
 import { Loader2 } from "lucide-react";
 import UpdatingModal from "./UpdatingModal";
-import { Params } from "next/dist/server/request/params";
 import Link from "next/link";
 
 interface ChangeNftProps {

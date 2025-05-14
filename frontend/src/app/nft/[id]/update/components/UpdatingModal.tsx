@@ -1,7 +1,6 @@
 import Loading from "@/components/Loading";
 import Modal from "@/components/Modal";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { mutateRwaToken } from "@/requests/postRequests";
 import { mutateRwaUpdate } from "@/requests/putRequests";
 import Image from "next/image";
 import Link from "next/link";
