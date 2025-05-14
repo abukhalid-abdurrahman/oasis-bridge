@@ -4,7 +4,7 @@ import Chart from "@/components/Chart";
 import Loading from "@/components/Loading";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { shortDescription } from "@/lib/scripts/script";
-import { useNft } from "@/requests/getRequests";
+import { useNft, useNftChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,9 +15,9 @@ interface RwaDataProps {
 export default function RwaData({ params }: RwaDataProps) {
   const tokenId = JSON.parse(params.value)?.id;
   const { data, isFetching } = useNft(tokenId);
-  // const { data: sellBuyData, isFetching: isFetchingSellBuy } = use;
+  const { data: sellBuyData, isFetching: isFetchingSellBuy } = useNftChanges(tokenId)
 
-  if (isFetching) {
+  if (isFetching || isFetchingSellBuy) {
     return (
       <Loading
         className="flex justify-center mt-14"
@@ -28,7 +28,7 @@ export default function RwaData({ params }: RwaDataProps) {
 
   return (
     <div className="grid grid-cols-3 gap-10 lg:gap-10 lg:flex lg:flex-col-reverse">
-      <Chart className="col-span-2 lg:col-span-1" />
+      <Chart data={sellBuyData.data} className="col-span-2 lg:col-span-1" />
       <div className="flex flex-col gap-5 text-white items-start col-span-1 lg:flex-row sm:!flex-col">
         <div className="flex gap-5 shrink-0 lg:flex-col lg:gap-3 sm:w-full">
           <Image
