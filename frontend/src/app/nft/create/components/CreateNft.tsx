@@ -264,12 +264,10 @@ export default function CreateNft() {
                           const file = e.target.files?.[0];
                           if (!file) return;
 
-                          const allowedTypes = 'image/*';
-                          if (!allowedTypes.includes(file.type)) {
+                          if (!file.type.startsWith("image/")) {
                             form.setError("proofOfOwnershipDocument", {
                               type: "manual",
-                              message:
-                                "File must be an image",
+                              message: "File must be an image",
                             });
                             return;
                           }
@@ -308,10 +306,7 @@ export default function CreateNft() {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem
-                              key={item}
-                              value={item.replace(/\s/g, "")}
-                            >
+                            <SelectItem key={item} value={item.replace(/\s/g,'')}>
                               {item}
                             </SelectItem>
                           ))}

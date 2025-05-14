@@ -10,10 +10,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Button, buttonVariants } from "./ui/button";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
+  getDefaultValuesFromFields,
   tokenizationFieldsAutomobiles,
   tokenizationFieldsBase,
   tokenizationFieldsRealEstate,
@@ -26,17 +27,29 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import PageTitle from "./PageTitle";
+} from "@/components/ui/select";
+import PageTitle from "@/components/PageTitle";
 import { useDropzone } from "react-dropzone";
 import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
+import { useNft } from "@/requests/getRequests";
+import Loading from "@/components/Loading";
 
-export default function ChangeNft() {
+interface ChangeNftProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function ChangeNft({ params }: ChangeNftProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [secondStep, setSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
+  const [netAmount, setNetAmount] = useState<number | string>("");
+  const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
+
+  const { data, isFetching } = useNft('c8d9e6ea-851b-4bf1-9f3f-26ecafc4d02b');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -56,7 +69,7 @@ export default function ChangeNft() {
     switch (type) {
       case "Automobiles":
         return tokenizationFieldsAutomobiles;
-      case "Real Estate":
+      case "RealEstate":
         return tokenizationFieldsRealEstate;
       default:
         return [];
@@ -72,11 +85,16 @@ export default function ChangeNft() {
     Object.fromEntries(allFields.map((field) => [field.name, field.validation]))
   );
 
+  const defaultValues = getDefaultValuesFromFields(allFields);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues,
   });
 
-  const assetType = form.watch("asset_type");
+  const assetType = form.watch("assetType");
+  const price = form.watch("price");
+  const royalty = form.watch("royalty");
 
   useEffect(() => {
     if (assetType) {
@@ -84,9 +102,40 @@ export default function ChangeNft() {
     }
   }, [assetType]);
 
+  useEffect(() => {
+    if (price && royalty) {
+      setNetAmount(() => {
+        return (royalty * price) / 100;
+      });
+    } else {
+      setNetAmount("");
+    }
+  }, [price, royalty]);
+
+  useEffect(() => {
+    if (data) {
+      if (data.data.price && data.data.royalty) {
+      setExistedNetAmount(() => {
+        return (data.data.royalty * data.data.price) / 100;
+      });
+    } else {
+      setExistedNetAmount("");
+    }
+    }
+  }, [data]);
+
+  if (isFetching) {
+    return (
+      <Loading
+        className="flex justify-center mt-14"
+        classNameLoading="!border-white !border-r-transparent !w-14 !h-14"
+      />
+    );
+  }
+
   return (
     <>
-      <PageTitle title="Change NFT" />
+      <PageTitle title="Update RWA" />
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit((data) => {
@@ -180,7 +229,7 @@ export default function ChangeNft() {
                 />
                 <FormField
                   control={form.control}
-                  name="Royalty"
+                  name="royalty"
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
@@ -195,13 +244,14 @@ export default function ChangeNft() {
                     type="number"
                     placeholder="Net amount"
                     disabled={true}
+                    value={netAmount}
                   />
                 </div>
               </div>
 
               <FormField
                 control={form.control}
-                name="owner_contact"
+                name="ownerContact"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -214,7 +264,7 @@ export default function ChangeNft() {
 
               <FormField
                 control={form.control}
-                name="proofOfOwnershipDocumet"
+                name="proofOfOwnershipDocument"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-white">
@@ -230,7 +280,7 @@ export default function ChangeNft() {
 
               <FormField
                 control={form.control}
-                name="asset_type"
+                name="assetType"
                 render={({ field }) => (
                   <FormItem>
                     <Select
@@ -303,8 +353,8 @@ export default function ChangeNft() {
                     "uniqueIdentifier",
                     "network",
                     "price",
-                    "Royalty",
-                    "owner_contact",
+                    "royalty",
+                    "ownerContact",
                   ]);
                   if (isValid) {
                     setSecondStep(true);
@@ -341,7 +391,7 @@ export default function ChangeNft() {
                 />
               ) : (
                 <div className="flex flex-col gap-3 justify-center">
-                  <h2 className="h1">NFT Image</h2>
+                  <h2 className="h1">RWA Image</h2>
                   {isDragActive ? (
                     <p className="text-gray-500">Drop the files here ...</p>
                   ) : (
@@ -357,7 +407,8 @@ export default function ChangeNft() {
                   size: "lg",
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
-                <span className="text-gray-500">Version:</span> 1.1
+                <span className="text-gray-500">Version:</span>
+                {data.data.version}
               </div>
               <div
                 className={`${buttonVariants({
@@ -375,7 +426,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Price:</span> 34.4 SOL
+                  <span className="text-gray-500">Price:</span>
+                  {data.data.price}
                 </div>
                 <div
                   className={`${buttonVariants({
@@ -383,7 +435,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Royalty:</span> 2%
+                  <span className="text-gray-500">Royalty:</span>
+                  {data.data.royalty}%
                 </div>
                 <div
                   className={`${buttonVariants({
@@ -391,7 +444,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Net Amout:</span> 2.4 SOL
+                  <span className="text-gray-500">Net Amout:</span>
+                  {existedNetAmount}
                 </div>
               </div>
               <div
