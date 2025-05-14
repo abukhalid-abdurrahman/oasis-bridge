@@ -1,5 +1,3 @@
-using TransactionResponse = Application.DTOs.NftPurchase.Responses.TransactionResponse;
-
 namespace Infrastructure.ImplementationContract.Nft;
 
 public sealed class SolShiftIntegrationService(
@@ -8,7 +6,7 @@ public sealed class SolShiftIntegrationService(
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient(HttpClientNames.SolShiftClient);
 
-    public async Task<Result<TransactionResponse>> CreateTransactionAsync(CreateTransactionRequest request)
+    public async Task<Result<CreateTransactionResponse>> CreateTransactionAsync(CreateTransactionRequest request)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(CreateTransactionAsync), date);
@@ -16,26 +14,26 @@ public sealed class SolShiftIntegrationService(
         string url = _httpClient.BaseAddress + "shift/create-transaction";
         try
         {
-            Result<TransactionResponse> response = await HttpClientHelper
-                .PostAsync<CreateTransactionRequest, TransactionResponse>(_httpClient, url, request);
+            Result<CreateTransactionResponse> response = await HttpClientHelper
+                .PostAsync<CreateTransactionRequest, CreateTransactionResponse>(_httpClient, url, request);
 
             logger.OperationCompleted(nameof(CreateTransactionAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             return response.IsSuccess
-                ? Result<TransactionResponse>.Success(response.Value)
-                : Result<TransactionResponse>.Failure(response.Error);
+                ? Result<CreateTransactionResponse>.Success(response.Value)
+                : Result<CreateTransactionResponse>.Failure(response.Error);
         }
         catch (Exception ex)
         {
             logger.OperationException(nameof(CreateTransactionAsync), ex.Message);
             logger.OperationCompleted(nameof(CreateTransactionAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
-            return Result<TransactionResponse>.Failure(
+            return Result<CreateTransactionResponse>.Failure(
                 ResultPatternError.InternalServerError(ex.Message));
         }
     }
 
-    public async Task<Result<TransactionResponse>> SendTransactionAsync(string signedTransaction)
+    public async Task<Result<SendTransactionResponse>> SendTransactionAsync(SendTransactionRequest request)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(SendTransactionAsync), date);
@@ -43,21 +41,21 @@ public sealed class SolShiftIntegrationService(
 
         try
         {
-            Result<TransactionResponse> response = await HttpClientHelper
-                .PostAsync<string, TransactionResponse>(_httpClient, url, signedTransaction);
+            Result<SendTransactionResponse> response = await HttpClientHelper
+                .PostAsync<SendTransactionRequest, SendTransactionResponse>(_httpClient, url, request);
 
             logger.OperationCompleted(nameof(SendTransactionAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             return response.IsSuccess
-                ? Result<TransactionResponse>.Success(response.Value)
-                : Result<TransactionResponse>.Failure(response.Error);
+                ? Result<SendTransactionResponse>.Success(response.Value)
+                : Result<SendTransactionResponse>.Failure(response.Error);
         }
         catch (Exception ex)
         {
             logger.OperationException(nameof(SendTransactionAsync), ex.Message);
             logger.OperationCompleted(nameof(SendTransactionAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
-            return Result<TransactionResponse>.Failure(
+            return Result<SendTransactionResponse>.Failure(
                 ResultPatternError.InternalServerError(ex.Message));
         }
     }

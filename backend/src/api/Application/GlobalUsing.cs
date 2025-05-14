@@ -30,6 +30,7 @@ global using Application.DTOs.UserRole.Responses;
 global using System.ComponentModel.DataAnnotations;
 global using Application.DTOs.NftPurchase.Requests;
 global using Application.DTOs.NetworkToken.Requests;
+global using Application.DTOs.NftPurchase.Responses;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Application.DTOs.NetworkToken.Responses;
 global using BuildingBlocks.Extensions.ResultPattern;

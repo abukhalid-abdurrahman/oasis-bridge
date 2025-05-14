@@ -36,6 +36,7 @@ SolanaNftMintingFailed=Minting failed
 CreateRwaTokenFailed=Failed in process creating RwaToken.
 UpdateRwaTokenFailed=Failed in process updating RwaToken.
 CreateNftPurchaseFailed=Failed in process creating nft purchase.
+SendNftPurchaseFailed==Failed in process sending nft purchase.
 
 InvalidAddressRadixFormat=Invalid address Radix format.
 
@@ -50,6 +51,7 @@ NetworkTokenNotFound=NetworkToken not found!.
 OrderNotFound=Order not found!.
 WalletNotFound=Wallet not found!.
 CreateNftPurchaseBuyerAccountNotFound=Buyer Wallet not found!.
+RwaTokenOwnershipTransferNotFound=RwaTokenOwnershipTransfer  not found!.
 VirtualAccountNotFound=VirtualAccount not found!.
 RwaTokenNotFound= RwaToken not found!.
 AccountNotFound=Account not found. Ensure the account is initialized and funded before minting.

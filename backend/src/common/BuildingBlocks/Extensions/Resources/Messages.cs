@@ -56,10 +56,12 @@ public static class Messages
     public static string ConfirmEmailFailed => _resources.Get().AsString();
     public static string CheckBalanceFailed => _resources.Get().AsString();
     public static string CreateNftPurchaseFailed => _resources.Get().AsString();
+    public static string SendNftPurchaseFailed => _resources.Get().AsString();
     public static string ForgotPasswordFailed => _resources.Get().AsString();
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string RwaTokenOwnershipTransferNotFound => _resources.Get().AsString();
     public static string NftLengthRequirement => _resources.Get().AsString();
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
