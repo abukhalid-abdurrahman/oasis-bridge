@@ -28,7 +28,10 @@ interface AllRwaDataProps {
   data: any;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
-export default function AllRwaData({ data, setIsOpen }: AllRwaDataProps) {
+export default function AllRwaData({
+  data,
+  setIsOpen,
+}: AllRwaDataProps) {
   const [copiedMap, setCopiedMap] = useState<Record<string, boolean>>({});
   const sortedData = useMemo(() => {
     if (!data) return;

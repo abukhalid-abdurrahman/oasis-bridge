@@ -32,8 +32,8 @@ export default function RwaData({ params }: RwaDataProps) {
 
   return (
     <div className="grid grid-cols-3 gap-10 lg:gap-10 lg:flex lg:flex-col-reverse">
-      <Chart data={sellBuyData.data} className="col-span-2 lg:col-span-1" />
-      <div className="flex flex-col gap-5 text-white items-start col-span-1 lg:flex-row sm:!flex-col">
+      <Chart data={sellBuyData.data} className="col-span-2 lg:col-span-1 lg:order-1" />
+      <div className="flex flex-col gap-5 text-white items-start col-span-1 lg:flex-row lg:order-3 sm:!flex-col">
         <div className="flex gap-5 shrink-0 lg:flex-col lg:gap-3 sm:w-full">
           <Image
             src={data.data.image}
@@ -107,7 +107,7 @@ export default function RwaData({ params }: RwaDataProps) {
           </Button>
         </div>
       </div>
-      <Button variant="gray" size="xl" className='col-span-3' onClick={() => setIsAlldataOpen(true)}>
+      <Button variant="gray" size="xl" className='col-span-1 lg:order-2' onClick={() => setIsAlldataOpen(true)}>
         Check all information about this RWA
       </Button>
       {isAlldataOpen && (
