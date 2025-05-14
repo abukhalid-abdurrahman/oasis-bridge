@@ -16,12 +16,10 @@ public static class ResultExtensions
     /// <returns>An `IActionResult` that represents the result of the operation.</returns>
     public static IActionResult ToActionResult<T>(this Result<T> result)
     {
-        // Construct the ApiResponse from the result
         ApiResponse<T> apiResponse = result.IsSuccess
             ? ApiResponse<T>.Success(result.Value)
             : ApiResponse<T>.Fail(result.Error, result.Value);
 
-        // Return the corresponding HTTP status code based on the error type
         return result.Error.ErrorType switch
         {
             ErrorType.Conflict => new ConflictObjectResult(apiResponse),
@@ -42,12 +40,10 @@ public static class ResultExtensions
     /// <returns>An `IActionResult` that represents the result of the operation.</returns>
     public static IActionResult ToActionResult(this BaseResult result)
     {
-        // Construct the ApiResponse from the base result
         ApiResponse<BaseResult> apiResponse = result.IsSuccess
             ? ApiResponse<BaseResult>.Success(null)
             : ApiResponse<BaseResult>.Fail(result.Error);
 
-        // Return the corresponding HTTP status code based on the error type
         return result.Error.ErrorType switch
         {
             ErrorType.Conflict => new ConflictObjectResult(apiResponse),

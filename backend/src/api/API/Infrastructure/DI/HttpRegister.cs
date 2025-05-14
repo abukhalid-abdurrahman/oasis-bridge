@@ -15,20 +15,16 @@ public static class HttpRegister
     /// <returns>The WebApplicationBuilder instance with HTTP-related services registered.</returns>
     public static WebApplicationBuilder AddHttpService(this WebApplicationBuilder builder)
     {
-        // Registering HttpClient service for making outbound HTTP requests.
-        builder.Services.AddHttpClient();
-
-        // Registering HttpContextAccessor to allow accessing the current HTTP request context.
-        builder.Services.AddHttpContextAccessor();
-
-        // Registering HTTP logging service to log all HTTP request and response data.
-        builder.Services.AddHttpLogging(options =>
+        builder.Services.AddHttpClient(HttpClientNames.SolShiftClient, client =>
         {
-            // Configuring the logging options to capture all HTTP request and response details.
-            options.LoggingFields = HttpLoggingFields.All;
+            client.BaseAddress = new Uri(builder.Configuration.GetRequiredString(HttpClientNames.SolShiftClient));
+            client.Timeout = TimeSpan.FromSeconds(20);
         });
 
-        // Returning the builder for method chaining.
+        builder.Services.AddHttpContextAccessor();
+
+        builder.Services.AddHttpLogging(options => { options.LoggingFields = HttpLoggingFields.All; });
+
         return builder;
     }
 }

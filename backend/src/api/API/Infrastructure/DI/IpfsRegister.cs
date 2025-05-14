@@ -16,10 +16,8 @@ public static class IpfsRegister
     /// <returns>The WebApplicationBuilder instance with the IPFS service dependencies registered.</returns>
     public static WebApplicationBuilder AddIpfsService(this WebApplicationBuilder builder)
     {
-        // Registering IPFS services using application configuration.
         builder.Services.AddIpfs(builder.Configuration);
 
-        // Register ipfs-services
         builder.Services.AddScoped<IIpfsService, IpfsService>();
 
         return builder;

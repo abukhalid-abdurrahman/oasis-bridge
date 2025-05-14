@@ -55,10 +55,13 @@ public static class Messages
     public static string ResetPasswordFailed => _resources.Get().AsString();
     public static string ConfirmEmailFailed => _resources.Get().AsString();
     public static string CheckBalanceFailed => _resources.Get().AsString();
+    public static string CreateNftPurchaseFailed => _resources.Get().AsString();
+    public static string SendNftPurchaseFailed => _resources.Get().AsString();
     public static string ForgotPasswordFailed => _resources.Get().AsString();
     public static string ConfirmEmailInvalidOrExpiredTimeCode => _resources.Get().AsString();
     public static string UserNotFound => _resources.Get().AsString();
     public static string NetworkNotFound => _resources.Get().AsString();
+    public static string RwaTokenOwnershipTransferNotFound => _resources.Get().AsString();
     public static string NftLengthRequirement => _resources.Get().AsString();
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
@@ -66,6 +69,7 @@ public static class Messages
     public static string AccountNotFound => _resources.Get().AsString();
     public static string OrderInsufficientFunds => _resources.Get().AsString();
     public static string VirtualAccountNotFound => _resources.Get().AsString();
+    public static string CreateNftPurchaseBuyerAccountNotFound => _resources.Get().AsString();
     public static string OrderAlreadyCompleted => _resources.Get().AsString();
     public static string OrderCanceled => _resources.Get().AsString();
     public static string NetworkTokenNotFound => _resources.Get().AsString();

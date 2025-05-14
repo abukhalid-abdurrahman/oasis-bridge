@@ -7,9 +7,9 @@ namespace API.Infrastructure.DI;
 public static class RateLimiterRegister
 {
     private static readonly TimeSpan
-        WindowSize = TimeSpan.FromMinutes(1); // The duration of the time window for rate-limiting.
+        WindowSize = TimeSpan.FromMinutes(1);
 
-    private const int RequestLimit = 20; // The maximum number of requests allowed within the specified window.
+    private const int RequestLimit = 20;
 
     /// <summary>
     /// Registers the rate-limiting service for the application to limit the number of requests that clients can make.
@@ -20,33 +20,24 @@ public static class RateLimiterRegister
     {
         builder.Services.AddRateLimiter(options =>
         {
-            // Configure the global rate limiter to be partitioned based on the client's IP address and requested route.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
-                // Get the client's IP address and the requested route path.
                 string ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "UnknownIP";
                 string routePath = httpContext.Request.Path.Value ?? "/";
 
-                // Create a partition key based on the combination of IP address and route path.
                 string partitionKey = $"{ipAddress}:{routePath}";
 
-                // Define the rate limit for each partition using a fixed window model.
                 return RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey,
                     _ => new FixedWindowRateLimiterOptions
                     {
-                        // Set the number of requests allowed within the time window.
                         PermitLimit = RequestLimit,
-                        // Set the time window duration.
                         Window = WindowSize,
-                        // Set the queue limit to zero, meaning no queuing of requests after the limit is reached.
                         QueueLimit = 0,
-                        // Enable automatic replenishment of available requests.
                         AutoReplenishment = true
                     });
             });
 
-            // Set the HTTP status code to return when the rate limit is exceeded.
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
 

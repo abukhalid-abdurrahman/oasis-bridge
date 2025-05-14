@@ -5,16 +5,14 @@ namespace RadixBridge.Helpers;
 /// </summary>
 public static class RadixBridgeHelper
 {
-    // Constants representing the network identifiers for StokeNet and MainNet.
-    public const string StokeNet = "stokenet"; // The network identifier for StokeNet.
-    public const string MainNet = "mainnet"; // The network identifier for MainNet.
+    public const string StokeNet = "stokenet";
+    public const string MainNet = "mainnet";
 
-    // Constants representing the XRD resource addresses for StokeNet and MainNet.
     public const string MainNetXrdAddress =
-        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"; // MainNet XRD address.
+        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd";
 
     public const string StokeNetXrdAddress =
-        "resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc"; // StokeNet XRD address.
+        "resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc";
 
     /// <summary>
     /// Generates a private key from the provided mnemonic (seed phrase).
@@ -33,4 +31,37 @@ public static class RadixBridgeHelper
     /// <returns>A random nonce value as a uint.</returns>
     public static uint RandomNonce()
         => (uint)RandomNumberGenerator.GetInt32(int.MaxValue);
+
+    /// <summary>
+    /// Sends a request to retrieve construction metadata, such as the current epoch, for a given network.
+    /// </summary>
+    /// <param name="client">The HTTP client used to send the request.</param>
+    /// <param name="options">The Radix technical account bridge options.</param>
+    /// <returns>A task representing the operation. The task result contains the current epoch response, or null if the request fails.</returns>
+    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,
+        RadixTechnicalAccountBridgeOptions options)
+    {
+        try
+        {
+            var data = new
+            {
+                network = options.NetworkId == 0x01
+                    ? MainNet
+                    : StokeNet
+            };
+
+
+            Result<CurrentEpochResponse?> response = await HttpClientHelper.PostAsync<object, CurrentEpochResponse>(
+                client,
+                $"{options.HostUri}/core/lts/transaction/construction",
+                data
+            );
+
+            return response.Value;
+        }
+        catch
+        {
+            return default;
+        }
+    }
 }

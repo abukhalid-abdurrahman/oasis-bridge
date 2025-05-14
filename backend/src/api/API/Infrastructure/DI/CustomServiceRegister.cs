@@ -15,39 +15,31 @@ public static class CustomServiceRegister
     /// <returns>The WebApplicationBuilder instance with the custom services registered, enabling method chaining.</returns>
     public static WebApplicationBuilder AddCustomServices(this WebApplicationBuilder builder)
     {
-        // Registering the Seeder service for initializing or seeding data in the application.
         builder.Services.AddScoped<Seeder>();
 
-        // Registering role-related services.
         builder.Services.AddScoped<IRoleService, RoleService>();
 
-        // Registering user-related services.
         builder.Services.AddScoped<IUserService, UserService>();
 
-        // Registering order-related services.
         builder.Services.AddScoped<IOrderService, OrderService>();
 
-        // Registering network-related services.
         builder.Services.AddScoped<INetworkService, NetworkService>();
 
-        // Registering identity-related services (authentication, registration, etc.).
         builder.Services.AddScoped<IIdentityService, IdentityService>();
 
-        // Registering user-role management services.
         builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
-        // Registering exchange rate services, which could be used for financial calculations.
         builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
-
-        // Registering network token-related services, which may involve operations with tokens on a network.
-        builder.Services.AddScoped<INetworkTokenService, NetworkTokenService>();
-
-        // Registering wallet and linked account services for managing wallets and associated accounts.
+        
         builder.Services.AddScoped<IWalletLinkedAccountService, WalletLinkedAccountService>();
 
         builder.Services.AddScoped<IRwaTokenService, RwaTokenService>();
 
         builder.Services.AddScoped<IRwaTokenPriceHistoryService, RwaTokenPriceHistoryService>();
+        
+        builder.Services.AddScoped<ISolShiftIntegrationService, SolShiftIntegrationService>();
+        builder.Services.AddScoped<INftPurchaseService, NftPurchaseService>();
+        builder.Services.AddScoped<IRwaTokenOwnershipTransferService, RwaTokenOwnershipTransferService>();
 
         return builder;
     }
