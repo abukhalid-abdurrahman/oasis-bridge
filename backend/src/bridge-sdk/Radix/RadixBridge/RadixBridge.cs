@@ -61,8 +61,8 @@ public sealed class RadixBridge : IRadixBridge
             );
 
         _logger.OperationCompleted(nameof(GetAccountBalanceAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-        return result.Value!=null
-            ? Result<decimal>.Success(decimal.Parse(result.Value?.FungibleResourceBalance.Amount??"0"))
+        return result.Value != null
+            ? Result<decimal>.Success(decimal.Parse(result.Value?.FungibleResourceBalance.Amount ?? "0"))
             : Result<decimal>.Success();
     }
 
