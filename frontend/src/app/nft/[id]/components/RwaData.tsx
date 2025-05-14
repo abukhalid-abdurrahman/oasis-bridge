@@ -107,7 +107,7 @@ export default function RwaData({ params }: RwaDataProps) {
           </Button>
         </div>
       </div>
-      <Button variant="gray" size="xl" className='col-span-1 lg:order-2' onClick={() => setIsAlldataOpen(true)}>
+      <Button variant="gray" size="xl" className='col-span-3 lg:order-2' onClick={() => setIsAlldataOpen(true)}>
         Check all information about this RWA
       </Button>
       {isAlldataOpen && (
