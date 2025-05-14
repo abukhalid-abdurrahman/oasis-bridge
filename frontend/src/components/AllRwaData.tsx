@@ -8,7 +8,11 @@ import {
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
-import { handleCopyAlt, shortAddress, shortDescription } from "@/lib/scripts/script";
+import {
+  handleCopyAlt,
+  shortAddress,
+  shortDescription,
+} from "@/lib/scripts/script";
 
 const fieldsMeta = [
   ...tokenizationFieldsBase,
@@ -42,65 +46,84 @@ export default function AllRwaData({ data, setIsOpen }: AllRwaDataProps) {
   };
 
   return (
-    <div className="absolute top-0 right-0 left-0 bottom-0 z-[1000000] w-full h-full bg-backgroundWebsite p-10">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="flex justify-between items-center mb-10">
-          <h2 className="h2 text-white">All RWA information</h2>
-          <Button variant="empty" size="icon" onClick={() => setIsOpen(false)}>
-            <Image src="/close.svg" alt="Close" width={12} height={12} />
-          </Button>
-        </div>
-        <Table className="text-white">
-          <TableBody>
-            {sortedData &&
-              Object.entries(sortedData).map(([key, value]: [string, any]) => (
-                <TableRow
-                  key={key}
-                  className="hover:bg-transparent border-textGray relative"
-                >
-                  <TableCell className="px-0">{getPlaceholder(key)}</TableCell>
-                  {key === "geolocation" ? (
-                    <TableCell className="px-0 text-right">
-                      latitude: {value.latitude} longitude: {value.longitude}
-                    </TableCell>
-                  ) : (
-                    <>
-                      {typeof value === "string" && value.includes("http") ? (
+    <div className="fixed inset-0 z-[1000000] bg-backgroundWebsite">
+      <div className="w-full h-full overflow-y-auto p-10 md:p-5">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex justify-between items-center mb-10 md:mb-5">
+            <h2 className="h2 text-white">All RWA information</h2>
+            <Button
+              variant="empty"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+            >
+              <Image src="/close.svg" alt="Close" width={12} height={12} />
+            </Button>
+          </div>
+
+          <Table className="text-white">
+            <TableBody>
+              {sortedData &&
+                Object.entries(sortedData).map(
+                  ([key, value]: [string, any]) => (
+                    <TableRow
+                      key={key}
+                      className="hover:bg-transparent border-textGray relative md:flex md:gap-2 md:justify-between"
+                    >
+                      <TableCell className="px-0">
+                        {getPlaceholder(key)}
+                      </TableCell>
+                      {key === "geolocation" ? (
                         <TableCell className="px-0 text-right">
-                          <div className="">
-                            <Link target="_blank" className="px-0 text-right" href={value}>
-                              {shortDescription(value, 25)}
-                            </Link>
-                          </div>
+                          latitude: {value.latitude} longitude:{" "}
+                          {value.longitude}
                         </TableCell>
                       ) : (
                         <>
-                          {key === "mintAccount" ||
-                          key === "transactionHash" ? (
-                              <TableCell
-                                onClick={() => handleCopyAlt(key, value, setCopiedMap)}
-                                className="px-0 text-right cursor-pointer block"
-                              >
-                                {shortAddress(value)}
-                                {copiedMap[key] && (
-                                  <span className="absolute right-0 -top-5 bg-white text-black text-xs px-2 py-1 rounded-md opacity-90 transition">
-                                    Copied
-                                  </span>
-                                )}
-                              </TableCell>
-                          ) : (
+                          {typeof value === "string" &&
+                          value.includes("http") ? (
                             <TableCell className="px-0 text-right">
-                              {value}
+                              <div>
+                                <Link
+                                  target="_blank"
+                                  className="px-0 text-right"
+                                  href={value}
+                                >
+                                  {shortDescription(value, 25)}
+                                </Link>
+                              </div>
                             </TableCell>
+                          ) : (
+                            <>
+                              {key === "mintAccount" ||
+                              key === "transactionHash" ? (
+                                <TableCell
+                                  onClick={() =>
+                                    handleCopyAlt(key, value, setCopiedMap)
+                                  }
+                                  className="px-0 text-right cursor-pointer block"
+                                >
+                                  {shortAddress(value)}
+                                  {copiedMap[key] && (
+                                    <span className="absolute right-0 -top-5 bg-white text-black text-xs px-2 py-1 rounded-md opacity-90 transition">
+                                      Copied
+                                    </span>
+                                  )}
+                                </TableCell>
+                              ) : (
+                                <TableCell className="px-0 text-right">
+                                  {value}
+                                </TableCell>
+                              )}
+                            </>
                           )}
                         </>
                       )}
-                    </>
-                  )}
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+                    </TableRow>
+                  )
+                )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
