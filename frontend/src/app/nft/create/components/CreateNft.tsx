@@ -39,6 +39,7 @@ import InputAssetField from "@/app/nft/create/components/InputAssetField";
 import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
 import TokenizationModal from "./TokenizationModal";
 import DateAssetField from "./DateAssetField";
+import { Loader2 } from "lucide-react";
 
 const LocationPickerModal = dynamic(
   () => import("@/components/LocationPickerModal"),
@@ -251,44 +252,72 @@ export default function CreateNft() {
               <FormField
                 control={form.control}
                 name="proofOfOwnershipDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white">
-                      Proof of Ownership Document
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
+                render={({ field }) => {
+                  const [isUploading, setIsUploading] = useState(false);
 
-                          if (!file.type.startsWith("image/")) {
-                            form.setError("proofOfOwnershipDocument", {
-                              type: "manual",
-                              message: "File must be an image",
-                            });
-                            return;
-                          }
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-white">
+                        Proof of Ownership Document
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploading}
+                            className={
+                              isUploading ? "cursor-not-allowed opacity-50" : ""
+                            }
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
 
-                          const maxSizeInBytes = 10 * 1024 * 1024;
-                          if (file.size > maxSizeInBytes) {
-                            form.setError("proofOfOwnershipDocument", {
-                              type: "manual",
-                              message: "File must be smaller than 10MB",
-                            });
-                            return;
-                          }
+                              if (!file.type.startsWith("image/")) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be an image",
+                                });
+                                return;
+                              }
 
-                          const uploadedUrl = await uploadFile(file);
-                          field.onChange(uploadedUrl);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                              const maxSizeInBytes = 10 * 1024 * 1024;
+                              if (file.size > maxSizeInBytes) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be smaller than 10MB",
+                                });
+                                return;
+                              }
+
+                              try {
+                                setIsUploading(true);
+                                const uploadedUrl = await uploadFile(file);
+                                field.onChange(uploadedUrl);
+                              } catch (error) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "Upload failed. Try again.",
+                                });
+                              } finally {
+                                setIsUploading(false);
+                              }
+                            }}
+                          />
+                          {isUploading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2
+                                className="animate-spin text-white"
+                                size={18}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
@@ -306,7 +335,10 @@ export default function CreateNft() {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem key={item} value={item.replace(/\s/g,'')}>
+                            <SelectItem
+                              key={item}
+                              value={item.replace(/\s/g, "")}
+                            >
                               {item}
                             </SelectItem>
                           ))}

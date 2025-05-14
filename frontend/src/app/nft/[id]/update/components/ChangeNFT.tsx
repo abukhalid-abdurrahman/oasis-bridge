@@ -15,9 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   getDefaultValuesFromFields,
-  tokenizationFieldsAutomobiles,
   tokenizationFieldsBase,
-  tokenizationFieldsRealEstate,
 } from "@/lib/helpers/tokenizationFields";
 import {
   Select,
@@ -29,33 +27,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PageTitle from "@/components/PageTitle";
-import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
-import { TokenizationField } from "@/lib/types";
 import { useNft } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 import { mutateRwaUpdate } from "@/requests/putRequests";
+import { uploadFile } from "@/lib/scripts/script";
+import { Loader2 } from "lucide-react";
+import UpdatingModal from "./UpdatingModal";
+import { Params } from "next/dist/server/request/params";
 
 interface ChangeNftProps {
-  params: {
-    id: string;
-  };
+  params: any
 }
 
 export default function ChangeNft({ params }: ChangeNftProps) {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [secondStep, setSecondStep] = useState(false);
-  const [selectedAssetType, setSelectedAssetType] = useState<string>("");
+  const tokenId = JSON.parse(params.value).id
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
+  const [isUpdated, setIsUpdated] = useState(false);
+  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
 
-  const { data, isFetching } = useNft("c8d9e6ea-851b-4bf1-9f3f-26ecafc4d02b");
-  const submit = mutateRwaUpdate()
+  const { data, isFetching } = useNft(tokenId);
+
 
   const FormSchema = z.object(
-    Object.fromEntries(tokenizationFieldsBase.map((field) => [field.name, field.validation]))
+    Object.fromEntries(
+      tokenizationFieldsBase
+        .filter((field) => field.name !== "image")
+        .map((field) => [field.name, field.validation])
+    )
   );
 
   const defaultValues = getDefaultValuesFromFields(tokenizationFieldsBase);
@@ -65,15 +67,13 @@ export default function ChangeNft({ params }: ChangeNftProps) {
     defaultValues,
   });
 
-  const assetType = form.watch("assetType");
   const price = form.watch("price");
   const royalty = form.watch("royalty");
 
-  useEffect(() => {
-    if (assetType) {
-      setSelectedAssetType(assetType);
-    }
-  }, [assetType]);
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    setFormData(data);
+    setIsUpdated(true);
+  };
 
   useEffect(() => {
     if (price && royalty) {
@@ -108,20 +108,14 @@ export default function ChangeNft({ params }: ChangeNftProps) {
 
   return (
     <>
-      <PageTitle title="Update RWA" />
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) => {
-            console.log(data);
-          })}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="flex gap-10 items-start lg:gap-5 md:flex-col-reverse"
         >
           <div className="w-1/2 md:w-full">
-            <div
-              className={`flex flex-col gap-2 firstStep ${
-                secondStep ? "hidden" : "block"
-              }`}
-            >
+            <PageTitle title="Update RWA" />
+            <div className="flex flex-col gap-2 firstStep">
               <FormField
                 control={form.control}
                 name="title"
@@ -238,17 +232,72 @@ export default function ChangeNft({ params }: ChangeNftProps) {
               <FormField
                 control={form.control}
                 name="proofOfOwnershipDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white">
-                      Proof of Ownership Document
-                    </FormLabel>
-                    <FormControl>
-                      <Input id="picture" type="file" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const [isUploading, setIsUploading] = useState(false);
+
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-white">
+                        Proof of Ownership Document
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploading}
+                            className={
+                              isUploading ? "cursor-not-allowed opacity-50" : ""
+                            }
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+
+                              if (!file.type.startsWith("image/")) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be an image",
+                                });
+                                return;
+                              }
+
+                              const maxSizeInBytes = 10 * 1024 * 1024;
+                              if (file.size > maxSizeInBytes) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be smaller than 10MB",
+                                });
+                                return;
+                              }
+
+                              try {
+                                setIsUploading(true);
+                                const uploadedUrl = await uploadFile(file);
+                                field.onChange(uploadedUrl);
+                              } catch (error) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "Upload failed. Try again.",
+                                });
+                              } finally {
+                                setIsUploading(false);
+                              }
+                            }}
+                          />
+                          {isUploading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2
+                                className="animate-spin text-white"
+                                size={18}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
@@ -269,7 +318,10 @@ export default function ChangeNft({ params }: ChangeNftProps) {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem key={item} value={item}>
+                            <SelectItem
+                              key={item}
+                              value={item.replace(/\s/g, "")}
+                            >
                               {item}
                             </SelectItem>
                           ))}
@@ -281,14 +333,14 @@ export default function ChangeNft({ params }: ChangeNftProps) {
                 )}
               />
             </div>
-              <Button
-                variant="gray"
-                type="submit"
-                size="xl"
-                className='w-full mt-2'
-              >
-                Update
-              </Button>
+            <Button
+              variant="gray"
+              type="submit"
+              size="xl"
+              className="w-full mt-2"
+            >
+              Update
+            </Button>
           </div>
           <div className="w-1/2 aspect-[3/2] rounded-2xl md:w-full md:aspect-auto">
             <div className="relative aspect-[3/2] w-full max-w-full bg-neutral-700/50 rounded-2xl p-5 flex items-center justify-center overflow-hidden">
@@ -360,6 +412,14 @@ export default function ChangeNft({ params }: ChangeNftProps) {
           </div>
         </form>
       </Form>
+      {isUpdated && formData && (
+        <UpdatingModal
+          formData={formData}
+          setIsUpdated={setIsUpdated}
+          form={form}
+          tokenId={data.data.tokenId}
+        />
+      )}
     </>
   );
 }
