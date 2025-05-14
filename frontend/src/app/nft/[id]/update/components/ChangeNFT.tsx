@@ -33,10 +33,11 @@ import { useNft } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 import { mutateRwaUpdate } from "@/requests/putRequests";
-import { uploadFile } from "@/lib/scripts/script";
+import { shortDescription, uploadFile } from "@/lib/scripts/script";
 import { Loader2 } from "lucide-react";
 import UpdatingModal from "./UpdatingModal";
 import { Params } from "next/dist/server/request/params";
+import Link from "next/link";
 
 interface ChangeNftProps {
   params: any
@@ -369,7 +370,7 @@ export default function ChangeNft({ params }: ChangeNftProps) {
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
                 <span className="text-gray-500">IPFS CID:</span>{" "}
-                {data.data.image.replace("https://ipfs.io/ipfs/", "")}
+                <Link href={data.data.image}>{shortDescription(data.data.image)}</Link>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <div
