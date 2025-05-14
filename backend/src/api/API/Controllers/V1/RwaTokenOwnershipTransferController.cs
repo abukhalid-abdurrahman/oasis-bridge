@@ -5,6 +5,6 @@ public sealed class RwaTokenOwnershipTransferController(
     IRwaTokenOwnershipTransferService service) : V1BaseController
 {
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetAsync(Guid id,CancellationToken token)
-        => (await service.GetByIdAsync(id,token)).ToActionResult();
+    public async Task<IActionResult> GetAsync(Guid id, CancellationToken token)
+        => (await service.GetByIdAsync(id, token)).ToActionResult();
 }

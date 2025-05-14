@@ -16,8 +16,8 @@ public static class CorsRegister
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.AllowAnyOrigin() 
-                    .AllowAnyMethod() 
+                policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
                     .AllowAnyHeader();
             });
         });

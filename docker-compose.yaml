@@ -29,7 +29,7 @@ services:
       - internal_network
 
   db-migrator:
-    image: nazarovqurbonali/oasis-db-migrator:v3
+    image: nazarovqurbonali/oasis-db-migrator:v4
     container_name: db-migrator
     platform: linux/arm64
     depends_on:
@@ -41,7 +41,7 @@ services:
     restart: "no"
 
   oasisbridge:
-    image: nazarovqurbonali/oasis-bridge:v22
+    image: nazarovqurbonali/oasis-bridge:v23
     container_name: oasisbridge
     restart: always
     platform: linux/arm64
