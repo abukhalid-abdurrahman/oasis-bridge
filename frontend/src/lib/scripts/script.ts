@@ -9,8 +9,8 @@ export const shortAddress = (address: string) => {
   }
 };
 
-export const shortDescription = (description: string) => {
-  return `${description.slice(0, 30)}...`;
+export const shortDescription = (description: string, symbols?: number) => {
+  return `${description.slice(0, symbols || 30)}...`;
 };
 
 export const parseJwt = (token: string) => {
