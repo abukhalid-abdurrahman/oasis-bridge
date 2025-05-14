@@ -1,3 +1,5 @@
+using SolShiftIntegrationService = Infrastructure.ImplementationContract.SolShiftIntegrationService;
+
 namespace API.Infrastructure.DI;
 
 /// <summary>
@@ -31,7 +33,7 @@ public static class CustomServiceRegister
 
         builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 
-        builder.Services.AddScoped<INetworkTokenService, NetworkTokenService>();
+        builder.Services.AddScoped<ISolShiftIntegrationService, SolShiftIntegrationService>();
 
         builder.Services.AddScoped<IWalletLinkedAccountService, WalletLinkedAccountService>();
 

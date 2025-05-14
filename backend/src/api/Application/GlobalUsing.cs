@@ -28,6 +28,7 @@ global using Application.DTOs.RwaToken.Responses;
 global using BuildingBlocks.Extensions.Resources;
 global using Application.DTOs.UserRole.Responses;
 global using System.ComponentModel.DataAnnotations;
+global using Application.DTOs.NftPurchase.Requests;
 global using Application.DTOs.NetworkToken.Requests;
 global using Application.DTOs.ExchangeRate.Requests;
 global using Application.DTOs.NetworkToken.Responses;

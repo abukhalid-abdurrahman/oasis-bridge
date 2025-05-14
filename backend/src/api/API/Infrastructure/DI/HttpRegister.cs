@@ -15,14 +15,15 @@ public static class HttpRegister
     /// <returns>The WebApplicationBuilder instance with HTTP-related services registered.</returns>
     public static WebApplicationBuilder AddHttpService(this WebApplicationBuilder builder)
     {
-        builder.Services.AddHttpClient();
+        builder.Services.AddHttpClient(HttpClientNames.SolShiftClient, client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration.GetRequiredString(HttpClientNames.SolShiftClient));
+            client.Timeout = TimeSpan.FromSeconds(20);
+        });
 
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddHttpLogging(options =>
-        {
-            options.LoggingFields = HttpLoggingFields.All;
-        });
+        builder.Services.AddHttpLogging(options => { options.LoggingFields = HttpLoggingFields.All; });
 
         return builder;
     }

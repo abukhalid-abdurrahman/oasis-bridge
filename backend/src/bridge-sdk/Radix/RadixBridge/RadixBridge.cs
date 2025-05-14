@@ -1,4 +1,3 @@
-using BuildingBlocks.Extensions.Resources;
 using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
 
 namespace RadixBridge;
@@ -53,8 +52,8 @@ public sealed class RadixBridge : IRadixBridge
             resource_address = _xrdAddress.AddressString()
         };
 
-        AccountFungibleResourceBalanceDto? result =
-            await RadixHttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
+        Result<AccountFungibleResourceBalanceDto?> result =
+            await HttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
                 _httpClient,
                 $"{_options.HostUri}/core/lts/state/account-fungible-resource-balance",
                 data,
@@ -62,8 +61,8 @@ public sealed class RadixBridge : IRadixBridge
             );
 
         _logger.OperationCompleted(nameof(GetAccountBalanceAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-        return result != null
-            ? Result<decimal>.Success(decimal.Parse(result.FungibleResourceBalance.Amount))
+        return result.Value!=null
+            ? Result<decimal>.Success(decimal.Parse(result.Value?.FungibleResourceBalance.Amount??"0"))
             : Result<decimal>.Success();
     }
 
@@ -244,8 +243,8 @@ public sealed class RadixBridge : IRadixBridge
                 force_recalculate = true
             };
 
-            TransactionSubmitResponse? response =
-                await RadixHttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+            Result<TransactionSubmitResponse?> response =
+                await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
                     _httpClient,
                     $"{_options.HostUri}/core/lts/transaction/submit",
                     data
@@ -255,10 +254,10 @@ public sealed class RadixBridge : IRadixBridge
                 DateTimeOffset.UtcNow - date);
             return Result<TransactionResponse>.Success(new TransactionResponse(
                 transaction.IntentHash().AsStr(),
-                response?.Duplicate.ToString(),
-                response != null,
-                response == null ? Messages.TransactionFailed : null,
-                response != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
+                response.Value?.Duplicate.ToString(),
+                response.Value != null,
+                response.Value == null ? Messages.TransactionFailed : null,
+                response.Value != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
             ));
         }
         catch (Exception e)
@@ -285,14 +284,14 @@ public sealed class RadixBridge : IRadixBridge
             intent_hash = transactionHash
         };
 
-        TransactionStatusResponse? response = await RadixHttpClientHelper.PostAsync<object, TransactionStatusResponse>(
+        Result<TransactionStatusResponse?> response = await HttpClientHelper.PostAsync<object, TransactionStatusResponse>(
             _httpClient,
             $"{_options.HostUri}/core/transaction/status",
             data,
             token
         );
 
-        if (response is null)
+        if (response.Value is null)
         {
             _logger.OperationCompleted(nameof(GetTransactionStatusAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
@@ -302,7 +301,7 @@ public sealed class RadixBridge : IRadixBridge
 
         _logger.OperationCompleted(nameof(GetTransactionStatusAsync), DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow - date);
-        return response.IntentStatus switch
+        return response.Value.IntentStatus switch
         {
             RadixTransactionStatus.CommittedSuccess => Result<BridgeTransactionStatus>.Success(BridgeTransactionStatus
                 .Completed),
