@@ -1,5 +1,6 @@
 "use client";
 
+import AllRwaData from "@/components/AllRwaData";
 import Chart from "@/components/Chart";
 import Loading from "@/components/Loading";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { shortDescription } from "@/lib/scripts/script";
 import { useNft, useNftChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 interface RwaDataProps {
   params: any;
@@ -15,7 +17,9 @@ interface RwaDataProps {
 export default function RwaData({ params }: RwaDataProps) {
   const tokenId = JSON.parse(params.value)?.id;
   const { data, isFetching } = useNft(tokenId);
-  const { data: sellBuyData, isFetching: isFetchingSellBuy } = useNftChanges(tokenId)
+  const { data: sellBuyData, isFetching: isFetchingSellBuy } =
+    useNftChanges(tokenId);
+  const [isAlldataOpen, setIsAlldataOpen] = useState(false)
 
   if (isFetching || isFetchingSellBuy) {
     return (
@@ -103,6 +107,12 @@ export default function RwaData({ params }: RwaDataProps) {
           </Button>
         </div>
       </div>
+      <Button variant="gray" size="xl" className='col-span-3' onClick={() => setIsAlldataOpen(true)}>
+        Check all information about this RWA
+      </Button>
+      {isAlldataOpen && (
+        <AllRwaData setIsOpen={setIsAlldataOpen} data={data.data} />
+      )}
     </div>
   );
 }
