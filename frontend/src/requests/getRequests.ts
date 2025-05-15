@@ -231,3 +231,25 @@ export const useNftChangesMultiple = (tokenIds: string[]) => {
     },
   });
 };
+
+// Get RWAs by user
+const getRwaMe = async (reqParams: any) => {
+  const res = await axiosInstance.get(`/rwa/me`, {
+    params: {
+      RwaId: reqParams.rwaId,
+      PageSize: reqParams.pageSize,
+      PageNumber: reqParams.pageNumber,
+    }
+  })
+  return res.data
+}
+
+export const useRwaMe = (token: string, reqParams: any) => {
+  return useQuery({
+    queryKey: ["rwa-me", token],
+    queryFn: () => getRwaMe(reqParams),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};

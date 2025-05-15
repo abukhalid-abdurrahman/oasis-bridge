@@ -27,15 +27,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PageTitle from "@/components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
-import { useNft } from "@/requests/getRequests";
+import { useNft, useRwaMe } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 import { shortDescription, uploadFile } from "@/lib/scripts/script";
 import { Loader2 } from "lucide-react";
 import UpdatingModal from "./UpdatingModal";
 import Link from "next/link";
+import { useUserStore } from "@/store/useUserStore";
+import { redirect } from "next/navigation";
 
 interface ChangeNftProps {
   params: any
@@ -47,9 +49,9 @@ export default function ChangeNft({ params }: ChangeNftProps) {
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
+  const { user } = useUserStore()
 
-  const { data, isFetching } = useNft(tokenId);
-
+  const { data, isFetching, isFetched } = useNft(tokenId);
 
   const FormSchema = z.object(
     Object.fromEntries(
@@ -96,7 +98,17 @@ export default function ChangeNft({ params }: ChangeNftProps) {
     }
   }, [data]);
 
-  if (isFetching) {
+  useEffect(() => {
+    if (isFetched && data) {
+      if (data.data.ownerUsername === user?.UserName) {
+        return
+      } else {
+        redirect('/')
+      }
+    }
+  }, [isFetched])
+
+  if (isFetching || !isFetched) {
     return (
       <Loading
         className="flex justify-center mt-14"
