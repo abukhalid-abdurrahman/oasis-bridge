@@ -10,7 +10,7 @@ public sealed class NftPurchaseService(
     IHttpContextAccessor accessor,
     ISolShiftIntegrationService solShiftService) : INftPurchaseService
 {
-    public async Task<Result<string>> CreateAsync(Guid rwaId)
+    public async Task<Result<string>> CreateAsync(CreateNftPurchaseRequest request)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(CreateAsync), date);
@@ -23,13 +23,13 @@ public sealed class NftPurchaseService(
             RwaToken? existingRwa = await dbContext.RwaTokens
                 .Include(x => x.VirtualAccount)
                 .ThenInclude(x => x.Network)
-                .FirstOrDefaultAsync(x => x.Id == rwaId);
+                .FirstOrDefaultAsync(x => x.Id == request.RwaId);
             if (existingRwa is null)
                 return Result<string>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
 
-            VirtualAccount? buyer = await dbContext.VirtualAccounts.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UserId == accessor.GetId() &&
-                                          x.NetworkId == existingRwa.VirtualAccount.NetworkId);
+            WalletLinkedAccount? buyer = await dbContext.WalletLinkedAccounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.PublicKey == request.BuyerPubKey);
             if (buyer is null)
                 return Result<string>.Failure(
                     ResultPatternError.NotFound(Messages.CreateNftPurchaseBuyerAccountNotFound));

@@ -22,6 +22,8 @@ public record GetRwaTokenDetailResponse(
     string MintAccount,
     string TransactionHash,
     long Version,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
     string OwnerEmail,
     string OwnerUsername
 );

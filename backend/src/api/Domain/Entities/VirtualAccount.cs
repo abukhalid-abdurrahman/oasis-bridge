@@ -69,6 +69,5 @@ public sealed class VirtualAccount : BaseEntity
     public ICollection<RwaToken> RwaTokens { get; set; } = [];
 
     public ICollection<RwaTokenPriceHistory> RwaTokenPriceHistories { get; set; } = [];
-    public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransferBuyers { get; set; } = [];
     public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransferSellers { get; set; } = [];
 }
