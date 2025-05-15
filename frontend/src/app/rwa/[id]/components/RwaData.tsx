@@ -5,7 +5,7 @@ import Chart from "@/components/Chart";
 import Loading from "@/components/Loading";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { shortDescription } from "@/lib/scripts/script";
-import { useNft, useNftChanges } from "@/requests/getRequests";
+import { useRwa, useRwaChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,9 +17,9 @@ interface RwaDataProps {
 
 export default function RwaData({ params }: RwaDataProps) {
   const tokenId = JSON.parse(params.value)?.id;
-  const { data, isFetching } = useNft(tokenId);
+  const { data, isFetching } = useRwa(tokenId);
   const { data: sellBuyData, isFetching: isFetchingSellBuy } =
-    useNftChanges(tokenId);
+    useRwaChanges(tokenId);
   const [isAlldataOpen, setIsAlldataOpen] = useState(false)
   const [isPurchased, setIsPurchased] = useState(false)
 
@@ -39,7 +39,7 @@ export default function RwaData({ params }: RwaDataProps) {
         <div className="flex gap-5 shrink-0 lg:flex-col lg:gap-3 sm:w-full">
           <Image
             src={data.data.image}
-            alt="NFT"
+            alt="RWA"
             width={500}
             height={500}
             className="w-[100px] rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"

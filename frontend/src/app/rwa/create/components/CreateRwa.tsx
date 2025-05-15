@@ -34,9 +34,9 @@ import { ASSET_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { uploadFile } from "@/lib/scripts/script";
-import { DragAndDropUpload } from "@/app/nft/create/components/DragAndDropUpload";
-import InputAssetField from "@/app/nft/create/components/InputAssetField";
-import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
+import { DragAndDropUpload } from "@/app/rwa/create/components/DragAndDropUpload";
+import InputAssetField from "@/app/rwa/create/components/InputAssetField";
+import SelectAssetField from "@/app/rwa/create/components/SelectAssetField";
 import TokenizationModal from "./TokenizationModal";
 import DateAssetField from "./DateAssetField";
 import { Loader2 } from "lucide-react";
@@ -49,7 +49,7 @@ const LocationPickerModal = dynamic(
   }
 );
 
-export default function CreateNft() {
+export default function CreateRwa() {
   const [isSecondStep, setIsSecondStep] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
   const [coords, setCoords] = useState<{
@@ -143,7 +143,7 @@ export default function CreateNft() {
         >
           <DragAndDropUpload control={form.control} name="image" />
           <div className="w-1/2 md:w-full">
-            <PageTitle title="Create your own NFT" />
+            <PageTitle title="Create your own RWA" />
             <div
               className={`flex flex-col gap-2 firstStep ${
                 isSecondStep ? "hidden" : "block"

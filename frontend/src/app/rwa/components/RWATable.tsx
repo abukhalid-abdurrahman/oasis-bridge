@@ -20,9 +20,9 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
 import {
-  useNftChangesMultiple,
-  useNftMultiple,
-  useNfts,
+  useRwaChangesMultiple,
+  useRwaMultiple,
+  useRwas,
 } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import { RwasReq } from "@/lib/types";
@@ -30,7 +30,7 @@ import _ from "lodash";
 import Link from "next/link";
 import Filters from "./Filters";
 
-export default function NFTTable() {
+export default function RWATable() {
   const [tokenIds, setTokenIds] = useState<string[]>([]);
   const [reqParams, setReqParams] = useState<RwasReq>({
     assetType: null,
@@ -42,22 +42,22 @@ export default function NFTTable() {
     pageNumber: 1,
   });
 
-  const { data: nfts, isFetching: nftsFetching } = useNfts(reqParams);
-  const { data: nftMultiple, isFetching: nftMultipleFetching } =
-    useNftMultiple(tokenIds);
-  const { data: nftChangesMultiple, isFetching: nftChangesMultipleFetching } =
-    useNftChangesMultiple(tokenIds);
+  const { data: rwas, isFetching: rwasFetching } = useRwas(reqParams);
+  const { data: rwaMultiple, isFetching: rwaMultipleFetching } =
+    useRwaMultiple(tokenIds);
+  const { data: rwaChangesMultiple, isFetching: rwaChangesMultipleFetching } =
+    useRwaChangesMultiple(tokenIds);
 
   useEffect(() => {
-    if (nfts) {
-      const getAlltokenIds = (nfts: any) => {
-        return nfts?.data?.data.map((nft: any) => nft.tokenId);
+    if (rwas) {
+      const getAlltokenIds = (rwas: any) => {
+        return rwas?.data?.data.map((rwa: any) => rwa.tokenId);
       };
-      setTokenIds(getAlltokenIds(nfts));
+      setTokenIds(getAlltokenIds(rwas));
     }
-  }, [nfts]);
+  }, [rwas]);
 
-  const fullNfts = useMemo(() => {
+  const fullRwas = useMemo(() => {
     const normalize = (arr: any[]) => {
       return arr
         .filter(Boolean)
@@ -68,9 +68,9 @@ export default function NFTTable() {
         .filter((item) => item.tokenId !== undefined);
     };
 
-    const base = normalize(nftMultiple.map((nft) => nft?.data));
+    const base = normalize(rwaMultiple.map((rwa) => rwa?.data));
     const changes = normalize(
-      nftChangesMultiple.map((nft) => nft?.data?.[nft.data.length - 1])
+      rwaChangesMultiple.map((rwa) => rwa?.data?.[rwa.data.length - 1])
     );
 
     const combinedMap = new Map<string, any>();
@@ -88,28 +88,28 @@ export default function NFTTable() {
     }
 
     return Array.from(combinedMap.values());
-  }, [nfts, nftMultiple, nftChangesMultiple]);
+  }, [rwas, rwaMultiple, rwaChangesMultiple]);
 
   return (
     <div>
       <div className="w-full mb-5 flex justify-end text-sm">
         <Filters reqParams={reqParams} setReqParams={setReqParams} />
       </div>
-      {nftMultipleFetching.some((item) => item === true) ||
-      nftChangesMultipleFetching.some((item) => item === true) ||
-      nftsFetching ? (
+      {rwaMultipleFetching.some((item) => item === true) ||
+      rwaChangesMultipleFetching.some((item) => item === true) ||
+      rwasFetching ? (
         <Loading
           className="flex justify-center mt-14"
           classNameLoading="!border-white !border-r-transparent !w-14 !h-14"
         />
       ) : (
         <>
-          {fullNfts.length > 0 ? (
+          {fullRwas.length > 0 ? (
             <Table className="min-w-[965px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-primary">
                   <TableHead colSpan={2} className="w-[100px]">
-                    NFT
+                    RWA
                   </TableHead>
                   <TableHead className="text-right">Network</TableHead>
                   <TableHead className="text-right">Price</TableHead>
@@ -120,64 +120,64 @@ export default function NFTTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fullNfts.map((nft: any) => {
+                {fullRwas.map((rwa: any) => {
                   return (
                     <TableRow
-                      key={nft.tokenId}
+                      key={rwa.tokenId}
                       className="border-primary hover:bg-transparent"
                     >
                       <TableCell colSpan={2} className="font-medium py-3">
                         <div className="">
                           <Link
                             className="flex gap-3 items-center"
-                            href={`/nft/${nft.tokenId}`}
+                            href={`/rwa/${rwa.tokenId}`}
                           >
                             <Image
                               src={
-                                nft.image !== "string" ? nft.image : "/nft.avif"
+                                rwa.image !== "string" ? rwa.image : "/nft.avif"
                               }
-                              alt={nft.title}
+                              alt={rwa.title}
                               width={50}
                               height={50}
                               className="rounded-md"
                             />
                             <div className="flex flex-col">
-                              <p className="p">{nft.title}</p>
+                              <p className="p">{rwa.title}</p>
                               <p className="text-textGray">
-                                {shortDescription(nft.assetDescription)}
+                                {shortDescription(rwa.assetDescription)}
                               </p>
                             </div>
                           </Link>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        {nft.network}
+                        {rwa.network}
                       </TableCell>
                       <TableCell className="text-right">
-                        {nft.price}
+                        {rwa.price}
                         {/* <span className="text-red-600 text-xs flex items-center justify-end">
                         <span className="inline">
                           <ChevronDown size={15} />
                         </span>
-                        {nft.price.secondValue}
+                        {rwa.price.secondValue}
                       </span> */}
                       </TableCell>
                       <TableCell className="text-right">
-                        {nft.assetType}
+                        {rwa.assetType}
                       </TableCell>
                       {/* <TableCell className="text-right">
-                      {nft.geolocation}
+                      {rwa.geolocation}
                     </TableCell> */}
                       <TableCell className="text-right">
-                        {nft?.oldPrice - nft?.price || (
+                        {rwa?.oldPrice - rwa?.price || (
                           <>
                             <p className="p opacity-60">---</p>
                           </>
                         )}
-                        {nft?.oldPrice &&
+                        {rwa?.oldPrice &&
                           (() => {
                             const diff =
-                              ((nft.price - nft.oldPrice) / nft.oldPrice) * 100;
+                              ((rwa.price - rwa.oldPrice) / rwa.oldPrice) * 100;
                             const isPositive = diff > 0;
                             const isNeutral = diff === 0
                             const percentage = Math.abs(diff).toFixed(2) + "%";
@@ -205,7 +205,7 @@ export default function NFTTable() {
                       </TableCell>
                       <TableCell className="text-right space-x-2">
                         <Link
-                          href={`/nft/${nft.tokenId}`}
+                          href={`/rwa/${rwa.tokenId}`}
                           className={buttonVariants({
                             variant: "gray",
                             size: "sm",
@@ -224,15 +224,15 @@ export default function NFTTable() {
             </Table>
           ) : (
             <>
-              <h3 className="h3 text-center mt-20 opacity-60">There are no NFTs available yet.</h3>
+              <h3 className="h3 text-center mt-20 opacity-60">There are no RWAs available yet.</h3>
             </>
           )}
         </>
       )}
-      {nfts?.data?.totalPages > 1 && (
+      {rwas?.data?.totalPages > 1 && (
         <PaginationButtons
           className="mt-10"
-          pages={nfts.data.totalPages}
+          pages={rwas.data.totalPages}
           currentPage={reqParams.pageNumber}
           setCurrentPage={setReqParams}
         />

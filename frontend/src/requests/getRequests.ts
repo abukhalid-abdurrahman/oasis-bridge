@@ -55,16 +55,17 @@ const getUserVirtualAccounts = async () => {
   return res.data;
 };
 
-export const useUserVirtualAccounts = (token: string) => {
+export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
   return useQuery({
-    queryKey: [token, "user-accounts"],
+    queryKey: [token, 'user-accounts'],
     queryFn: () => getUserVirtualAccounts(),
     gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-  });
-};
+    enabled: isEnabled
+  })
+}
 
 // Get for Chaecking Virtual Accaount Balance
 const getVirtualAccountBalance = async (orderId: string) => {
@@ -107,8 +108,8 @@ export const useNetworks = () => {
   });
 };
 
-// Get all NFTs
-const getNfts = async (reqParams: RwasReq) => {
+// Get all RWAs
+const getRwas = async (reqParams: RwasReq) => {
   const res = await axiosInstance.get("/rwa", {
     params: {
       AssetType: reqParams.assetType,
@@ -123,26 +124,26 @@ const getNfts = async (reqParams: RwasReq) => {
   return res.data;
 };
 
-export const useNfts = (reqParams: any) => {
+export const useRwas = (reqParams: any) => {
   return useQuery({
     queryKey: ["rwas", reqParams],
-    queryFn: () => getNfts(reqParams),
+    queryFn: () => getRwas(reqParams),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
   });
 };
 
-// Get a specific NFT
-const getNft = async (tokenId: string) => {
+// Get a specific RWA
+const getRwa = async (tokenId: string) => {
   const res = await axiosInstance.get(`/rwa/${tokenId}`);
   return res.data;
 };
 
-export const useNft = (tokenId: string) => {
+export const useRwa = (tokenId: string) => {
   return useQuery({
-    queryKey: ["nft", tokenId],
-    queryFn: () => getNft(tokenId),
+    queryKey: ["rwa", tokenId],
+    queryFn: () => getRwa(tokenId),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
@@ -150,11 +151,11 @@ export const useNft = (tokenId: string) => {
 };
 
 // Example with multiple request
-export const useNftMultiple = (tokenIds: string[]) => {
+export const useRwaMultiple = (tokenIds: string[]) => {
   return useQueries({
     queries: tokenIds.map((id) => ({
-      queryKey: ["nft", "multiple", id],
-      queryFn: () => getNft(id),
+      queryKey: ["rwa", "multiple", id],
+      queryFn: () => getRwa(id),
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,
@@ -170,26 +171,26 @@ export const useNftMultiple = (tokenIds: string[]) => {
 };
 
 // Get Sell/Buy history and price change history
-const getNftChanges = async (tokenId: string) => {
+const getRwaChanges = async (tokenId: string) => {
   const res = await axiosInstance.get(`/rwa-price-histories/${tokenId}`);
   return res.data;
 };
 
-export const useNftChanges = (tokenId: string) => {
+export const useRwaChanges = (tokenId: string) => {
   return useQuery({
-    queryKey: ["nft-changes", tokenId],
-    queryFn: () => getNftChanges(tokenId),
+    queryKey: ["rwa-changes", tokenId],
+    queryFn: () => getRwaChanges(tokenId),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
   });
 };
 
-export const useNftChangesMultiple = (tokenIds: string[]) => {
+export const useRwaChangesMultiple = (tokenIds: string[]) => {
   return useQueries({
     queries: tokenIds.map((id) => ({
-      queryKey: ["nft-changes", "multiple", id],
-      queryFn: () => getNftChanges(id),
+      queryKey: ["rwa-changes", "multiple", id],
+      queryFn: () => getRwaChanges(id),
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,

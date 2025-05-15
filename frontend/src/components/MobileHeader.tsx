@@ -83,14 +83,14 @@ export default function MobileHeader({
                 Swap
               </Link>
               <Link
-                href="/nft"
+                href="/rwa"
                 className="w-full flex gap-2 items-center"
               >
                 <ChartCandlestick size={5} strokeWidth={1} className="mr-1" />
-                NFT Market
+                RWA Market
               </Link>
               <Link
-                href={`${user ? "/nft/create" : "?signin=true"}`}
+                href={`${user ? "/rwa/create" : "?signin=true"}`}
                 className="w-full flex gap-2 items-center"
               >
                 <ChevronsUp size={5} strokeWidth={1} className="mr-1" />

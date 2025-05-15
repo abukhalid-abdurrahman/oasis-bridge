@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "NFT Change",
+  title: "RWA",
 };
 
-export default function NftChangeLayout({
+export default function RwaLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

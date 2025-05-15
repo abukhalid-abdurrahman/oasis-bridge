@@ -29,7 +29,7 @@ import {
 import PageTitle from "@/components/PageTitle";
 import { useEffect, useMemo, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
-import { useNft, useRwaMe } from "@/requests/getRequests";
+import { useRwa, useRwaMe } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 import { shortDescription, uploadFile } from "@/lib/scripts/script";
@@ -39,11 +39,11 @@ import Link from "next/link";
 import { useUserStore } from "@/store/useUserStore";
 import { redirect } from "next/navigation";
 
-interface ChangeNftProps {
+interface ChangeRwaProps {
   params: any
 }
 
-export default function ChangeNft({ params }: ChangeNftProps) {
+export default function ChangeRwa({ params }: ChangeRwaProps) {
   const tokenId = JSON.parse(params.value).id
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
@@ -51,7 +51,7 @@ export default function ChangeNft({ params }: ChangeNftProps) {
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
   const { user } = useUserStore()
 
-  const { data, isFetching, isFetched } = useNft(tokenId);
+  const { data, isFetching, isFetched } = useRwa(tokenId);
 
   const FormSchema = z.object(
     Object.fromEntries(
