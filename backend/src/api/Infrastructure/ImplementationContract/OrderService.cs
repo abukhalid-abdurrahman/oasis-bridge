@@ -1,6 +1,4 @@
 using NetworkType = RadixBridge.Enums.NetworkType;
-using System.Transactions;
-using Infrastructure.Extensions;
 
 namespace Infrastructure.ImplementationContract;
 
@@ -71,7 +69,6 @@ public sealed class OrderService(
 
         if (virtualAccount is null)
         {
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
             Result<(string publicKey, string privateKey, string seedPhrase)> resultCreateAccount =
                 await withdrawBridge.CreateAccountAsync(token);
             if (!resultCreateAccount.IsSuccess)
@@ -144,14 +141,10 @@ public sealed class OrderService(
 
             logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
-            int orderSaveResult = await dbContext.SaveChangesAsync(token);
-            if (orderSaveResult != 0)
-            {
-                transactionScope.Complete();
-                return Result<CreateOrderResponse>.Success(new(newOrder.Id, Messages.CreateOrderSuccess));
-            }
-            return Result<CreateOrderResponse>.Failure(
-                ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<CreateOrderResponse>.Success(new(newOrder.Id, Messages.CreateOrderSuccess))
+                : Result<CreateOrderResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
         }
 
         if (request is { FromToken: Xrd, ToToken: Sol } or { FromToken: Sol, ToToken: Xrd })
@@ -186,10 +179,9 @@ public sealed class OrderService(
                 Result<TransactionResponse> withdrawTrRs = default!;
                 Result<TransactionResponse> depositTrRs = default!;
                 Result<TransactionResponse> abortTrRs;
-            try
-            {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
-                withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
+                try
+                {
+                    withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
                         virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
                     {
@@ -262,13 +254,10 @@ public sealed class OrderService(
             logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             int res = await dbContext.SaveChangesAsync(token);
-            if (res != 0)
-            {
-                transactionScope.Complete();
-                return Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id, "Order created"));
-            }
-            return Result<CreateOrderResponse>.Failure(
-                ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
+            return res != 0
+                ? Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id, "Order created"))
+                : Result<CreateOrderResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
         }
 
         logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
@@ -415,13 +404,8 @@ public sealed class OrderService(
             int res = 1;
             if (order.OrderStatus != OrderStatus.Expired)
             {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
                 order.OrderStatus = OrderStatus.Expired;
                 res = await dbContext.SaveChangesAsync(token);
-                if (res > 0)
-                {
-                    transactionScope.Complete();
-                }
             }
 
             logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
@@ -463,13 +447,8 @@ public sealed class OrderService(
                 _ => OrderStatus.NotFound
             };
 
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
             order.OrderStatus = orderStatus;
-            int updateResult = await dbContext.SaveChangesAsync(token);
-            if (updateResult > 0)
-            {
-                transactionScope.Complete();
-            }
+            await dbContext.SaveChangesAsync(token);
 
             logger.OperationCompleted(nameof(CheckBalanceAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
@@ -510,7 +489,6 @@ public sealed class OrderService(
             Result<TransactionResponse> abortTrRs;
             try
             {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
                 withdrawTrRs = await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address,
                     virtualAccount.PrivateKey);
                 if (!withdrawTrRs.IsSuccess)
@@ -578,12 +556,7 @@ public sealed class OrderService(
                 return Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
             }
 
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
-            int saveResult = await dbContext.SaveChangesAsync(token);
-            if (saveResult > 0)
-            {
-                transactionScope.Complete();
-            }
+            await dbContext.SaveChangesAsync(token);
 
             Result<decimal> nowBalance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
             if (!nowBalance.IsSuccess)
