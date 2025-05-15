@@ -188,7 +188,7 @@ public sealed class OrderService(
                 Result<TransactionResponse> abortTrRs;
             try
             {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
+                
                 withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
                         virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
@@ -257,7 +257,7 @@ public sealed class OrderService(
                     return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
                 }
             }
-
+            using var transactionScope = TransactionExtensions.CreateTransactionScope();
             await dbContext.Orders.AddAsync(newOrder, token);
             logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
@@ -356,7 +356,7 @@ public sealed class OrderService(
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(CheckBalanceAsync), date);
 
-
+        using var transactionScope = TransactionExtensions.CreateTransactionScope();
         Order? order = await dbContext.Orders.FirstOrDefaultAsync(x => x.Id == orderId, token);
         if (order is null)
         {
@@ -415,7 +415,7 @@ public sealed class OrderService(
             int res = 1;
             if (order.OrderStatus != OrderStatus.Expired)
             {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
+                
                 order.OrderStatus = OrderStatus.Expired;
                 res = await dbContext.SaveChangesAsync(token);
                 if (res > 0)
@@ -463,7 +463,6 @@ public sealed class OrderService(
                 _ => OrderStatus.NotFound
             };
 
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
             order.OrderStatus = orderStatus;
             int updateResult = await dbContext.SaveChangesAsync(token);
             if (updateResult > 0)
@@ -510,7 +509,6 @@ public sealed class OrderService(
             Result<TransactionResponse> abortTrRs;
             try
             {
-                using var transactionScope = TransactionExtensions.CreateTransactionScope();
                 withdrawTrRs = await withdrawBridge.WithdrawAsync(order.Amount, virtualAccount.Address,
                     virtualAccount.PrivateKey);
                 if (!withdrawTrRs.IsSuccess)
@@ -578,7 +576,6 @@ public sealed class OrderService(
                 return Result<CheckBalanceResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
             }
 
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
             int saveResult = await dbContext.SaveChangesAsync(token);
             if (saveResult > 0)
             {
