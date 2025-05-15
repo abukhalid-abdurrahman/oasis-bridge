@@ -30,7 +30,7 @@ public record PagedResponse<T> : BaseFilter
     /// <param name="totalRecords">The total number of records across all pages.</param>
     /// <param name="data">The data for the current page.</param>
     private PagedResponse(int pageSize, int pageNumber, int totalRecords, T? data)
-        : base(pageNumber, pageSize)
+        : base(pageSize, pageNumber)
     {
         Data = data;
         TotalRecords = totalRecords;

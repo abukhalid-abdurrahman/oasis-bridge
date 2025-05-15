@@ -11,6 +11,13 @@ public class RwaTokenController(IRwaTokenService service) : V1BaseController
     public async Task<IActionResult> GetDetailAsync(Guid id, CancellationToken token)
         => (await service.GetDetailAsync(id, token)).ToActionResult();
 
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetTokensCurrentOwnerAsync([FromQuery] RwaTokenOwnerFilter filter,
+        CancellationToken token)
+        => (await service.GetTokensOwnedByCurrentUserAsync(filter, token)).ToActionResult();
+
+
     [HttpGet]
     public async Task<IActionResult> GetAsync([FromQuery] RwaTokenFilter filter, CancellationToken token)
         => (await service.GetAllAsync(filter, token)).ToActionResult();

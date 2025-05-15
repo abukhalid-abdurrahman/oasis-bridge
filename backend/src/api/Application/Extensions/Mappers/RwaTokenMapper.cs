@@ -63,7 +63,9 @@ public static class RwaTokenMapper
             entity.Metadata,
             entity.MintAccount,
             entity.TransactionHash,
-            entity.Version);
+            entity.Version,
+            entity.VirtualAccount.User.Email,
+            entity.VirtualAccount.User.UserName);
 
     public static RwaToken ToEntity(this CreateRwaTokenRequest request, IHttpContextAccessor accessor,
         NftMintingResponse minting, Guid vaId)
