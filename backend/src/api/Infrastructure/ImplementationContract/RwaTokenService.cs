@@ -27,7 +27,7 @@ public sealed class RwaTokenService(
                 query = filter.SortBy switch
                 {
                     SortBy.Price => query.OrderBy(x => x.Price),
-                    SortBy.CreatedAt => query.OrderByDescending(x => x.CreatedAt),
+                    SortBy.CreatedAt =>query.OrderBy(x => x.CreatedAt),
                     _ => query
                 };
             }
@@ -93,6 +93,42 @@ public sealed class RwaTokenService(
             logger.OperationException(nameof(GetDetailAsync), ex.Message);
             logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             return Result<GetRwaTokenDetailResponse>
+                .Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+    }
+
+    public async Task<Result<PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>>>
+        GetTokensOwnedByCurrentUserAsync(RwaTokenOwnerFilter filter, CancellationToken token = default)
+    {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetTokensOwnedByCurrentUserAsync), date);
+        try
+        {
+            IQueryable<GetRwaTokenDetailResponse> query = dbContext.RwaTokens
+                .AsNoTracking()
+                .Include(x => x.VirtualAccount)
+                .ThenInclude(x => x.User)
+                .Include(x => x.VirtualAccount)
+                .ThenInclude(x => x.Network)
+                .Where(x => x.VirtualAccount.UserId == accessor.GetId())
+                .WhereIf(filter.RwaId != null, x => x.Id == filter.RwaId)
+                .Select(x => x.ToReadDetail());
+
+            int totalCount = await query.CountAsync(token);
+            PagedResponse<IEnumerable<GetRwaTokenDetailResponse>> response =
+                PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>.Create(filter.PageSize, filter.PageNumber,
+                    totalCount, query.Page(filter.PageNumber, filter.PageSize));
+            
+            logger.OperationCompleted(nameof(GetTokensOwnedByCurrentUserAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            logger.OperationException(nameof(GetTokensOwnedByCurrentUserAsync), ex.Message);
+            logger.OperationCompleted(nameof(GetTokensOwnedByCurrentUserAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>>
                 .Failure(ResultPatternError.InternalServerError(ex.Message));
         }
     }
