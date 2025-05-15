@@ -9,6 +9,7 @@ import { useNft, useNftChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import PurchaseButton from "@/components/PurchaseButton";
 
 interface RwaDataProps {
   params: any;
@@ -20,6 +21,7 @@ export default function RwaData({ params }: RwaDataProps) {
   const { data: sellBuyData, isFetching: isFetchingSellBuy } =
     useNftChanges(tokenId);
   const [isAlldataOpen, setIsAlldataOpen] = useState(false)
+  const [isPurchased, setIsPurchased] = useState(false)
 
   if (isFetching || isFetchingSellBuy) {
     return (
@@ -102,9 +104,7 @@ export default function RwaData({ params }: RwaDataProps) {
           >
             Check in Solana Explorer
           </Link>
-          <Button variant="green" size="lg">
-            Purchase
-          </Button>
+          <PurchaseButton tokenId={tokenId} setIsOpen={setIsPurchased} />
         </div>
       </div>
       <Button variant="gray" size="xl" className='col-span-3 lg:order-2' onClick={() => setIsAlldataOpen(true)}>
