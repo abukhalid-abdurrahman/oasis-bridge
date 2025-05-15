@@ -10,13 +10,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Button, buttonVariants } from "./ui/button";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
-  tokenizationFieldsAutomobiles,
+  getDefaultValuesFromFields,
   tokenizationFieldsBase,
-  tokenizationFieldsRealEstate,
 } from "@/lib/helpers/tokenizationFields";
 import {
   Select,
@@ -26,80 +25,108 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import PageTitle from "./PageTitle";
-import { useDropzone } from "react-dropzone";
-import { useCallback, useEffect, useState } from "react";
+} from "@/components/ui/select";
+import PageTitle from "@/components/PageTitle";
+import { useEffect, useMemo, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
-import { TokenizationField } from "@/lib/types";
+import { useNft, useRwaMe } from "@/requests/getRequests";
+import Loading from "@/components/Loading";
+import Image from "next/image";
+import { shortDescription, uploadFile } from "@/lib/scripts/script";
+import { Loader2 } from "lucide-react";
+import UpdatingModal from "./UpdatingModal";
+import Link from "next/link";
+import { useUserStore } from "@/store/useUserStore";
+import { redirect } from "next/navigation";
 
-export default function ChangeNft() {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [secondStep, setSecondStep] = useState(false);
-  const [selectedAssetType, setSelectedAssetType] = useState<string>("");
+interface ChangeNftProps {
+  params: any
+}
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  }, []);
+export default function ChangeNft({ params }: ChangeNftProps) {
+  const tokenId = JSON.parse(params.value).id
+  const [netAmount, setNetAmount] = useState<number | string>("");
+  const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
+  const [isUpdated, setIsUpdated] = useState(false);
+  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
+  const { user } = useUserStore()
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [],
-    },
-    multiple: false,
-  });
-
-  const getFieldsByAssetType = (type: string): TokenizationField[] => {
-    switch (type) {
-      case "Automobiles":
-        return tokenizationFieldsAutomobiles;
-      case "Real Estate":
-        return tokenizationFieldsRealEstate;
-      default:
-        return [];
-    }
-  };
-
-  const allFields: any[] = [
-    ...tokenizationFieldsBase,
-    ...getFieldsByAssetType(selectedAssetType),
-  ];
+  const { data, isFetching, isFetched } = useNft(tokenId);
 
   const FormSchema = z.object(
-    Object.fromEntries(allFields.map((field) => [field.name, field.validation]))
+    Object.fromEntries(
+      tokenizationFieldsBase
+        .filter((field) => field.name !== "image")
+        .map((field) => [field.name, field.validation])
+    )
   );
+
+  const defaultValues = getDefaultValuesFromFields(tokenizationFieldsBase);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues,
   });
 
-  const assetType = form.watch("asset_type");
+  const price = form.watch("price");
+  const royalty = form.watch("royalty");
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    setFormData(data);
+    setIsUpdated(true);
+  };
 
   useEffect(() => {
-    if (assetType) {
-      setSelectedAssetType(assetType);
+    if (price && royalty) {
+      setNetAmount(() => {
+        return (royalty * price) / 100;
+      });
+    } else {
+      setNetAmount("");
     }
-  }, [assetType]);
+  }, [price, royalty]);
+
+  useEffect(() => {
+    if (data) {
+      if (data.data.price && data.data.royalty) {
+        setExistedNetAmount(() => {
+          return (data.data.royalty * data.data.price) / 100;
+        });
+      } else {
+        setExistedNetAmount("");
+      }
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (isFetched && data) {
+      if (data.data.ownerUsername === user?.UserName) {
+        return
+      } else {
+        redirect('/')
+      }
+    }
+  }, [isFetched])
+
+  if (isFetching || !isFetched) {
+    return (
+      <Loading
+        className="flex justify-center mt-14"
+        classNameLoading="!border-white !border-r-transparent !w-14 !h-14"
+      />
+    );
+  }
 
   return (
     <>
-      <PageTitle title="Change NFT" />
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) => {
-            console.log(data);
-          })}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="flex gap-10 items-start lg:gap-5 md:flex-col-reverse"
         >
           <div className="w-1/2 md:w-full">
-            <div
-              className={`flex flex-col gap-2 firstStep ${
-                secondStep ? "hidden" : "block"
-              }`}
-            >
+            <PageTitle title="Update RWA" />
+            <div className="flex flex-col gap-2 firstStep">
               <FormField
                 control={form.control}
                 name="title"
@@ -132,7 +159,7 @@ export default function ChangeNft() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="uniqueIdentifier" {...field} />
+                      <Input placeholder="Unique Identifier" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -180,7 +207,7 @@ export default function ChangeNft() {
                 />
                 <FormField
                   control={form.control}
-                  name="Royalty"
+                  name="royalty"
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
@@ -195,17 +222,18 @@ export default function ChangeNft() {
                     type="number"
                     placeholder="Net amount"
                     disabled={true}
+                    value={netAmount}
                   />
                 </div>
               </div>
 
               <FormField
                 control={form.control}
-                name="owner_contact"
+                name="ownerContact"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="owner_contact" {...field} />
+                      <Input placeholder="Owner contact" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -214,23 +242,78 @@ export default function ChangeNft() {
 
               <FormField
                 control={form.control}
-                name="proofOfOwnershipDocumet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-white">
-                      Proof of Ownership Document
-                    </FormLabel>
-                    <FormControl>
-                      <Input id="picture" type="file" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="proofOfOwnershipDocument"
+                render={({ field }) => {
+                  const [isUploading, setIsUploading] = useState(false);
+
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-white">
+                        Proof of Ownership Document
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploading}
+                            className={
+                              isUploading ? "cursor-not-allowed opacity-50" : ""
+                            }
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+
+                              if (!file.type.startsWith("image/")) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be an image",
+                                });
+                                return;
+                              }
+
+                              const maxSizeInBytes = 10 * 1024 * 1024;
+                              if (file.size > maxSizeInBytes) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "File must be smaller than 10MB",
+                                });
+                                return;
+                              }
+
+                              try {
+                                setIsUploading(true);
+                                const uploadedUrl = await uploadFile(file);
+                                field.onChange(uploadedUrl);
+                              } catch (error) {
+                                form.setError("proofOfOwnershipDocument", {
+                                  type: "manual",
+                                  message: "Upload failed. Try again.",
+                                });
+                              } finally {
+                                setIsUploading(false);
+                              }
+                            }}
+                          />
+                          {isUploading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2
+                                className="animate-spin text-white"
+                                size={18}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
                 control={form.control}
-                name="asset_type"
+                name="assetType"
                 render={({ field }) => (
                   <FormItem>
                     <Select
@@ -246,7 +329,10 @@ export default function ChangeNft() {
                         <SelectGroup>
                           <SelectLabel>Asset Types</SelectLabel>
                           {ASSET_TYPES.map((item) => (
-                            <SelectItem key={item} value={item}>
+                            <SelectItem
+                              key={item}
+                              value={item.replace(/\s/g, "")}
+                            >
                               {item}
                             </SelectItem>
                           ))}
@@ -258,97 +344,24 @@ export default function ChangeNft() {
                 )}
               />
             </div>
-            <div
-              className={`flex flex-col gap-2 secondStep ${
-                secondStep ? "block" : "hidden"
-              }`}
+            <Button
+              variant="gray"
+              type="submit"
+              size="xl"
+              className="w-full mt-2"
             >
-              <h2 className="h2 mb-2 text-white border-b border-textGray pb-2">
-                Additional fields for {assetType}
-              </h2>
-              {getFieldsByAssetType(selectedAssetType).map((item) => (
-                <FormField
-                  key={item.name}
-                  control={form.control}
-                  name={item.name}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder={item.placeholder} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-
-            <div className="flex gap-2 mt-2">
-              <Button
-                onClick={() => {
-                  setSecondStep(false);
-                }}
-                variant="gray"
-                type="button"
-                size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
-              >
-                Prev Step
-              </Button>
-              <Button
-                onClick={async () => {
-                  const isValid = await form.trigger([
-                    "title",
-                    "assetDescription",
-                    "uniqueIdentifier",
-                    "network",
-                    "price",
-                    "Royalty",
-                    "owner_contact",
-                  ]);
-                  if (isValid) {
-                    setSecondStep(true);
-                  }
-                }}
-                variant="gray"
-                type="button"
-                size="xl"
-                className={`w-full ${secondStep ? "hidden" : "block"}`}
-              >
-                Next Step
-              </Button>
-              <Button
-                variant="gray"
-                type="submit"
-                size="xl"
-                className={`w-full ${secondStep ? "block" : "hidden"}`}
-              >
-                Save changes
-              </Button>
-            </div>
+              Update
+            </Button>
           </div>
           <div className="w-1/2 aspect-[3/2] rounded-2xl md:w-full md:aspect-auto">
-            <div
-              {...getRootProps()}
-              className="flex justify-center bg-textGray items-center border-2 border-dashed border-gray p-4 rounded-md text-center cursor-pointer hover:bg-gray-50 text-white h-full md:h-96 sm:h-72"
-            >
-              <input {...getInputProps()} />
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mx-auto max-h-64 rounded-md object-contain"
-                />
-              ) : (
-                <div className="flex flex-col gap-3 justify-center">
-                  <h2 className="h1">NFT Image</h2>
-                  {isDragActive ? (
-                    <p className="text-gray-500">Drop the files here ...</p>
-                  ) : (
-                    <p>Drag & drop an image here, or click to select one</p>
-                  )}
-                </div>
-              )}
+            <div className="relative aspect-[3/2] w-full max-w-full bg-neutral-700/50 rounded-2xl p-5 flex items-center justify-center overflow-hidden">
+              <Image
+                src={data.data.image}
+                alt={data.data.title}
+                width={350}
+                height={350}
+                className="object-contain !max-h-full !w-auto rounded-2xl"
+              />
             </div>
             <div className="flex flex-col gap-2 mt-2">
               <div
@@ -357,7 +370,8 @@ export default function ChangeNft() {
                   size: "lg",
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
-                <span className="text-gray-500">Version:</span> 1.1
+                <span className="text-gray-500">Version:</span>
+                {data.data.version}
               </div>
               <div
                 className={`${buttonVariants({
@@ -366,7 +380,7 @@ export default function ChangeNft() {
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
                 <span className="text-gray-500">IPFS CID:</span>{" "}
-                https://solana.com/ipfs
+                <Link href={data.data.image}>{shortDescription(data.data.image)}</Link>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <div
@@ -375,7 +389,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Price:</span> 34.4 SOL
+                  <span className="text-gray-500">Price:</span>
+                  {data.data.price}
                 </div>
                 <div
                   className={`${buttonVariants({
@@ -383,7 +398,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Royalty:</span> 2%
+                  <span className="text-gray-500">Royalty:</span>
+                  {data.data.royalty}%
                 </div>
                 <div
                   className={`${buttonVariants({
@@ -391,7 +407,8 @@ export default function ChangeNft() {
                     size: "lg",
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
-                  <span className="text-gray-500">Net Amout:</span> 2.4 SOL
+                  <span className="text-gray-500">Net Amout:</span>
+                  {existedNetAmount}
                 </div>
               </div>
               <div
@@ -406,6 +423,14 @@ export default function ChangeNft() {
           </div>
         </form>
       </Form>
+      {isUpdated && formData && (
+        <UpdatingModal
+          formData={formData}
+          setIsUpdated={setIsUpdated}
+          form={form}
+          tokenId={data.data.tokenId}
+        />
+      )}
     </>
   );
 }
