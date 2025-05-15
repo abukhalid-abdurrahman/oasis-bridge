@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { User } from "@/lib/types";
+import { useWalletStore } from "./useWalletStore";
 
 interface UserState {
   user: User | null;
