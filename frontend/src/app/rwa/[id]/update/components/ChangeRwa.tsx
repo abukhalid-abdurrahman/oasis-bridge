@@ -199,7 +199,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
-                        <Input type="number" placeholder="Price" {...field} />
+                        <Input type="number" placeholder="Price in zBTC" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -390,7 +390,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
                   <span className="text-gray-500">Price:</span>
-                  {data.data.price}
+                  {data.data.price} zBTC
                 </div>
                 <div
                   className={`${buttonVariants({

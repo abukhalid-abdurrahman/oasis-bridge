@@ -221,7 +221,7 @@ export default function CreateRwa() {
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
-                        <Input type="number" placeholder="Price" {...field} />
+                        <Input type="number" placeholder="Price in zBTC" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

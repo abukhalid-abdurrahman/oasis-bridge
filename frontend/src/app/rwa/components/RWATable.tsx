@@ -154,7 +154,7 @@ export default function RWATable() {
                         {rwa.network}
                       </TableCell>
                       <TableCell className="text-right">
-                        {rwa.price}
+                        {rwa.price} zBTC
                         {/* <span className="text-red-600 text-xs flex items-center justify-end">
                         <span className="inline">
                           <ChevronDown size={15} />

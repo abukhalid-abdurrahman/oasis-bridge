@@ -50,7 +50,7 @@ export default function RwaData({ params }: RwaDataProps) {
               Price
             </p>
             <h2 className="h1 text-green-500 font-bold sm:!text-2xl">
-              {data.data.price}
+              {data.data.price} zBTC
             </h2>
           </div>
         </div>

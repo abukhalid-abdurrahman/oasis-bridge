@@ -62,7 +62,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "price",
     placeholder: "Price",
     type: "number",
-    validation: z.coerce.number().min(1, { message: "Price is required" }),
+    validation: z.coerce.number({ message: "Price is required" }),
   },
   {
     name: "ownerContact",
