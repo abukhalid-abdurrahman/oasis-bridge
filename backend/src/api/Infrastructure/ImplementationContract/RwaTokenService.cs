@@ -75,6 +75,8 @@ public sealed class RwaTokenService(
             GetRwaTokenDetailResponse? rwaToken = await dbContext.RwaTokens
                 .AsNoTracking()
                 .Include(x => x.VirtualAccount)
+                .ThenInclude(x => x.User)
+                .Include(x => x.VirtualAccount)
                 .ThenInclude(x => x.Network)
                 .Where(x => x.Id == id)
                 .Select(x => x.ToReadDetail()).FirstOrDefaultAsync(token);
@@ -119,10 +121,10 @@ public sealed class RwaTokenService(
                 return Result<CreateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.NetworkNotFound));
 
             Guid? vaId = await (from u in dbContext.Users
-                                join va in dbContext.VirtualAccounts on u.Id equals va.UserId
-                                join n in dbContext.Networks on va.NetworkId equals n.Id
-                                where u.Id == userId && n.Name == request.Network
-                                select va.Id
+                    join va in dbContext.VirtualAccounts on u.Id equals va.UserId
+                    join n in dbContext.Networks on va.NetworkId equals n.Id
+                    where u.Id == userId && n.Name == request.Network
+                    select va.Id
                 ).FirstOrDefaultAsync(token);
             if (vaId is null)
                 return Result<CreateRwaTokenResponse>.Failure(
@@ -176,14 +178,14 @@ public sealed class RwaTokenService(
                 return Result<UpdateRwaTokenResponse>.Success();
 
             NftBurnRequest? nftBurnRequest = await (from va in dbContext.VirtualAccounts
-                                                    where va.Id == rwaToken.VirtualAccountId
-                                                    select new NftBurnRequest
-                                                    {
-                                                        MintAddress = rwaToken.MintAccount,
-                                                        OwnerPrivateKey = va.PrivateKey,
-                                                        OwnerPublicKey = va.PublicKey,
-                                                        OwnerSeedPhrase = va.SeedPhrase
-                                                    }).FirstOrDefaultAsync(token);
+                where va.Id == rwaToken.VirtualAccountId
+                select new NftBurnRequest
+                {
+                    MintAddress = rwaToken.MintAccount,
+                    OwnerPrivateKey = va.PrivateKey,
+                    OwnerPublicKey = va.PublicKey,
+                    OwnerSeedPhrase = va.SeedPhrase
+                }).FirstOrDefaultAsync(token);
             if (nftBurnRequest is null)
                 return Result<UpdateRwaTokenResponse>.Failure(
                     ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
