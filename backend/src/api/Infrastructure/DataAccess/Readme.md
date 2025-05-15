@@ -1,6 +1,6 @@
 # Database Migrations Guide
 
-This document provides instructions on how to manage database migrations and updates for the **OASIS Bridge** project.
+This document provides instructions on how to manage database migrations and updates for the **Quantum Street Exchange** project.
 
 ## Prerequisites
 

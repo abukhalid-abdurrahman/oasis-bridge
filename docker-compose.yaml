@@ -29,8 +29,8 @@ services:
       - internal_network
 
   db-migrator:
-    image: nazarovqurbonali/oasis-db-migrator:v4
-    container_name: db-migrator
+    image: nazarovqurbonali/quantum-db-migrator:v5
+    container_name: quantum-db-migrator
     platform: linux/arm64
     depends_on:
       - postgres
@@ -40,9 +40,9 @@ services:
       - ConnectionStrings__DefaultConnection=Server=localhost;Port=5432;Database=oasis_bridge_db;User Id=postgres;Password=123456;
     restart: "no"
 
-  oasisbridge:
-    image: nazarovqurbonali/oasis-bridge:v23
-    container_name: oasisbridge
+  quantum-exchange:
+    image: nazarovqurbonali/quantum-exchange:v25
+    container_name: quantum-exchange
     restart: always
     platform: linux/arm64
     healthcheck:
@@ -70,22 +70,22 @@ services:
     command: >
       sh -c '
       while true; do
-        HEALTH_STATUS=$$(docker inspect --format="{{.State.Health.Status}}" oasisbridge 2>/dev/null)
+        HEALTH_STATUS=$$(docker inspect --format="{{.State.Health.Status}}" quantum-exchange 2>/dev/null)
         if [ "$$HEALTH_STATUS" = "unhealthy" ]; then
-          echo "oasisbridge is unhealthy, restarting..."
-          docker restart oasisbridge
+          echo "quantum-exchange is unhealthy, restarting..."
+          docker restart quantum-exchange
         fi
         sleep 60
       done
       '
     depends_on:
-      - oasisbridge
+      - quantum-exchange
     networks:
       - internal_network
 
-  oasisbridge-frontend:
-    image: nazarovqurbonali/oasis-bridge-frontend:v17
-    container_name: oasisbridge-frontend
+  quantum-exchange-frontend:
+    image: nazarovqurbonali/quantum-exchange-frontend:v17
+    container_name: quantum-exchange-frontend
     restart: always
     platform: linux/arm64
     ports:
@@ -93,7 +93,7 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1
     depends_on:
-      - oasisbridge
+      - quantum-exchange
     networks:
       - internal_network
 
