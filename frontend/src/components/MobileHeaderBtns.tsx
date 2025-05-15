@@ -41,7 +41,7 @@ export default function MobileHeaderBtns() {
             <div className="flex items-center gap-4 mb-5">
               <Avatar className="w-12 h-12">
                 <AvatarImage src="/profile.svg" className="invert" />
-                <AvatarFallback className="">JJ</AvatarFallback>
+                <AvatarFallback className="">AV</AvatarFallback>
               </Avatar>
               <div className="">
                 <p className="font-semibold text-lg">{user.UserName}</p>

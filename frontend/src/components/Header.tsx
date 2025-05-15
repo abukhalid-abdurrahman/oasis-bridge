@@ -8,6 +8,7 @@ import HeaderBtns from "./HeaderBtns";
 import { buttonVariants } from "./ui/button";
 import MobileHeader from "./MobileHeader";
 import WalletConnect from "./WalletConnect";
+import CreateRwaLink from "./CreateRwaLink";
 
 export default async function Header({
   searchParams,
@@ -23,12 +24,15 @@ export default async function Header({
           <Link href="/" className="font-semibold">
             Quantum Street Bridge
           </Link>
-          <ul className="flex items-center gap-7">
+          <ul className="flex items-center gap-7 lg:gap-3">
             <li className="">
               <Link href="/">Swap</Link>
             </li>
             <li className="">
               <Link href="/nft">NFT Market</Link>
+            </li>
+            <li className="">
+              <CreateRwaLink />
             </li>
           </ul>
         </div>

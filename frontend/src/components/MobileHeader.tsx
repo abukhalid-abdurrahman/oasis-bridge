@@ -90,11 +90,11 @@ export default function MobileHeader({
                 NFT Market
               </Link>
               <Link
-                href={`${user ? "/create-nft" : "?signin=true"}`}
+                href={`${user ? "/nft/create" : "?signin=true"}`}
                 className="w-full flex gap-2 items-center"
               >
                 <ChevronsUp size={5} strokeWidth={1} className="mr-1" />
-                Create NFT
+                Create RWA
               </Link>
             </div>
           </nav>
