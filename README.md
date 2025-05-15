@@ -1,6 +1,7 @@
 # Quantum Street Exchange
 
-Quantum Street Exchange is a specialized RWA (Real World Asset) marketplace platform built on blockchain technology, allowing users to tokenize, buy, and sell real-world assets. The platform provides comprehensive tools for asset tokenization, ownership verification, and secure trading of physical assets through blockchain-based tokens. A key feature of the platform is the ability to purchase RWA tokens using zBTC, leveraging the Zeus Network's Bitcoin-to-Solana integration.
+Quantum Street exchange is an RWA (Real World Asset) platform built on Solana, allowing users to tokenise, fractionalise, buy and sell real world assets. Platform provides tools for asset tokenisation, ownership verification, and secure trading of physical assets. A key feature of the platform is the ability to purchase RWA tokens using zBTC, leveraging Zeus Network’s Bitcoin-to-Solana integration. 
+
 
 ## Project Overview
 
@@ -14,10 +15,6 @@ The platform focuses on two core functions:
    - Secure storage of ownership documents on IPFS
    - Tracking of price history and ownership transfers
 
-2. Cross-chain bridge between Solana and Radix networks:
-   - Seamless transfers of assets between SOL and XRD
-   - Secure transaction validation and processing
-   - Support for native tokens and wrapped assets
 
 Key features include:
 - Comprehensive RWA tokenization tools with support for various asset types
@@ -73,7 +70,7 @@ Quantum Street Exchange enables the tokenization of real-world assets as NFTs on
 - **Ownership Verification**: Documents and proofs stored on IPFS with references on the blockchain
 - **Price Management**: Ability for token owners to update prices and track price history
 - **Purchase Options**: Tokens can be purchased using SOL or zBTC tokens
-- **Royalties**: Support for creator royalties on secondary sales
+- **Royalties**: Support for royalties on secondary sales
 
 #### RWA Token API Endpoints:
 
@@ -665,6 +662,11 @@ The main application is accessible at: [http://31.222.229.159](http://31.222.229
 ```
 
 ## Bridge Operations
+
+2. Cross-chain bridge between Solana and Radix networks:
+   - Seamless transfers of assets between SOL and XRD
+   - Secure transaction validation and processing
+   - Support for native tokens and wrapped assets
 
 Quantum Street Bridge provides a unified interface for blockchain operations through its Bridge SDK:
 
