@@ -63,7 +63,6 @@ public sealed class OrderService(
 
         decimal convertedAmount = exchangeRate.Rate * request.Amount;
 
-
         VirtualAccount? virtualAccount = await dbContext.VirtualAccounts
             .AsNoTracking()
             .Include(x => x.Network)
@@ -186,11 +185,11 @@ public sealed class OrderService(
                 Result<TransactionResponse> withdrawTrRs = default!;
                 Result<TransactionResponse> depositTrRs = default!;
                 Result<TransactionResponse> abortTrRs;
-            try
-            {
-                
-                withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
-                        virtualAccount.PrivateKey);
+                try
+                {
+
+                    withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
+                            virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
                     {
                         logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
@@ -415,7 +414,6 @@ public sealed class OrderService(
             int res = 1;
             if (order.OrderStatus != OrderStatus.Expired)
             {
-                
                 order.OrderStatus = OrderStatus.Expired;
                 res = await dbContext.SaveChangesAsync(token);
                 if (res > 0)
