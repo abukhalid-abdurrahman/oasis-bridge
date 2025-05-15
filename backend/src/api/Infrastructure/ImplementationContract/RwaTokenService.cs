@@ -27,7 +27,7 @@ public sealed class RwaTokenService(
                 query = filter.SortBy switch
                 {
                     SortBy.Price => query.OrderBy(x => x.Price),
-                    SortBy.CreatedAt =>query.OrderBy(x => x.CreatedAt),
+                    SortBy.CreatedAt => query.OrderBy(x => x.CreatedAt),
                     _ => query
                 };
             }
@@ -118,7 +118,7 @@ public sealed class RwaTokenService(
             PagedResponse<IEnumerable<GetRwaTokenDetailResponse>> response =
                 PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>.Create(filter.PageSize, filter.PageNumber,
                     totalCount, query.Page(filter.PageNumber, filter.PageSize));
-            
+
             logger.OperationCompleted(nameof(GetTokensOwnedByCurrentUserAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
             return Result<PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>>.Success(response);

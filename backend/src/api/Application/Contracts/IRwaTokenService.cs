@@ -9,8 +9,8 @@ public interface IRwaTokenService
         GetDetailAsync(Guid id, CancellationToken token = default);
 
     Task<Result<PagedResponse<IEnumerable<GetRwaTokenDetailResponse>>>>
-        GetTokensOwnedByCurrentUserAsync(RwaTokenOwnerFilter filter,CancellationToken token = default);
-    
+        GetTokensOwnedByCurrentUserAsync(RwaTokenOwnerFilter filter, CancellationToken token = default);
+
     Task<Result<CreateRwaTokenResponse>>
         CreateAsync(CreateRwaTokenRequest request, CancellationToken token = default);
 
