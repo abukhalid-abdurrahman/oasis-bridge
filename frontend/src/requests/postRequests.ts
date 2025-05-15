@@ -128,3 +128,31 @@ export const mutateRwaToken = () => {
     onError: (error) => console.log('Error', error)
   })
 }
+
+// Post Rwa purchasing
+const postRwaPurchase = async(tokenId: string) => {
+  const res = await axiosInstance.post(`/nft-purchase`, tokenId)
+  return res.data
+}
+
+export const mutateRwaPurchase = () => {
+  return useMutation({
+    mutationFn: (req: string) => postRwaPurchase(req),
+    onSuccess: () => console.log('success'),
+    onError: (error) => console.log('Error', error)
+  })
+}
+
+// Post Rwa Signed transaction
+const postRwaTransaction = async(tokenId: string) => {
+  const res = await axiosInstance.post(`/nft-purchase`, tokenId)
+  return res.data
+}
+
+export const mutateRwaTransaction = () => {
+  return useMutation({
+    mutationFn: (req: string) => postRwaTransaction(req),
+    onSuccess: () => console.log('success'),
+    onError: (error) => console.log('Error', error)
+  })
+}

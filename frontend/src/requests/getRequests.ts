@@ -198,7 +198,7 @@ export const useNftMultiple = (tokenIds: string[]) => {
 
 // Get Sell/Buy history and price change history
 const getNftChanges = async (tokenId: string) => {
-  const res = await axiosInstance.get(`/rwa/${tokenId}/history`);
+  const res = await axiosInstance.get(`/rwa-price-histories/${tokenId}`);
   return res.data;
 };
 
@@ -231,11 +231,33 @@ export const useNftChangesMultiple = (tokenIds: string[]) => {
   });
 };
 
+// Get RWAs by user
+const getRwaMe = async (reqParams: any) => {
+  const res = await axiosInstance.get(`/rwa/me`, {
+    params: {
+      RwaId: reqParams.rwaId,
+      PageSize: reqParams.pageSize,
+      PageNumber: reqParams.pageNumber,
+    },
+  });
+  return res.data;
+};
+
+export const useRwaMe = (token: string, reqParams: any) => {
+  return useQuery({
+    queryKey: ["rwa-me", token],
+    queryFn: () => getRwaMe(reqParams),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};
+
 // Get linked wallets
 const getLinkedWallets = async () => {
   const res = await axiosInstance.get("/linked-accounts/me");
   return res.data;
-}
+};
 
 export const useLinkedWallets = (token: string) => {
   return useQuery({

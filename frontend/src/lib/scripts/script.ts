@@ -2,6 +2,7 @@ import { postFiles } from "@/requests/postRequests";
 import { PublicKey } from "@solana/web3.js";
 import Cookies from "js-cookie";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { Dispatch, SetStateAction } from "react";
 
 export const shortAddress = (address: string) => {
   if (address) {
@@ -9,8 +10,8 @@ export const shortAddress = (address: string) => {
   }
 };
 
-export const shortDescription = (description: string) => {
-  return `${description.slice(0, 30)}...`;
+export const shortDescription = (description: string, symbols?: number) => {
+  return `${description.slice(0, symbols || 30)}...`;
 };
 
 export const parseJwt = (token: string) => {
@@ -49,11 +50,14 @@ export const uploadFile = async (file: File): Promise<string> => {
     return res.data.data.fileUrl;
   } catch (error) {
     console.error("Upload failed", error);
-    return 'File upload failed';
+    return "File upload failed";
   }
 };
 
-export const getVisiblePages = (current: number, total: number): (number | "...")[] => {
+export const getVisiblePages = (
+  current: number,
+  total: number
+): (number | "...")[] => {
   const delta = 1;
   const range: (number | "...")[] = [];
   const left = current - delta;
@@ -68,4 +72,53 @@ export const getVisiblePages = (current: number, total: number): (number | "..."
     }
   }
   return range;
-}
+};
+
+export const calculatePercentageDifference = (
+  oldPrice: number,
+  newPrice: number
+) => {
+  if (!oldPrice || oldPrice === 0) return "0%";
+  const difference = ((newPrice - oldPrice) / oldPrice) * 100;
+  return `${Math.abs(difference).toFixed(2)}%`;
+};
+
+export const handleCopy = async (
+  string: string,
+  setCopied?: Dispatch<SetStateAction<boolean>>
+) => {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(string);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = string;
+      textArea.style.position = "absolute";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+    }
+
+    if (setCopied) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  } catch (err) {
+    console.error("Error copy:", err);
+  }
+};
+
+export const handleCopyAlt = (
+  key: string,
+  value: string,
+  setCopiedMap: Dispatch<SetStateAction<Record<string, boolean>>>
+) => {
+  navigator.clipboard.writeText(value);
+  setCopiedMap((prev) => ({ ...prev, [key]: true }));
+
+  setTimeout(() => {
+    setCopiedMap((prev) => ({ ...prev, [key]: false }));
+  }, 2000);
+};

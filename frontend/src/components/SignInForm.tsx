@@ -44,6 +44,7 @@ export default function SignInForm() {
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
     setErrorMessage("");
+
     submit.mutate(data, {
       onSuccess: (response) => {
         const { token, expiresAt, startTime } = response.data;
@@ -56,7 +57,14 @@ export default function SignInForm() {
           expires: expiresDate,
         });
 
-        router.back();
+        const referrer = document.referrer;
+        const currentOrigin = window.location.origin;
+
+        if (!referrer || !referrer.startsWith(currentOrigin)) {
+          router.push("/");
+        } else {
+          router.back();
+        }
       },
       onError: (error: any) => {
         setErrorMessage(error.response?.data.message || "An error occurred");
@@ -101,9 +109,7 @@ export default function SignInForm() {
             </>
           )}
         />
-        {errorMessage && (
-          <p className="p-sm text-red-500">{errorMessage}</p>
-        )}
+        {errorMessage && <p className="p-sm text-red-500">{errorMessage}</p>}
         <Button variant="gray" type="submit" size="xl" className="w-full">
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
