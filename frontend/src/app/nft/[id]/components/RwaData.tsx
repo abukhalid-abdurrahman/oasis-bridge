@@ -9,6 +9,7 @@ import { useNft, useNftChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import PurchaseButton from "@/components/PurchaseButton";
 
 interface RwaDataProps {
   params: any;
@@ -20,6 +21,7 @@ export default function RwaData({ params }: RwaDataProps) {
   const { data: sellBuyData, isFetching: isFetchingSellBuy } =
     useNftChanges(tokenId);
   const [isAlldataOpen, setIsAlldataOpen] = useState(false)
+  const [isPurchased, setIsPurchased] = useState(false)
 
   if (isFetching || isFetchingSellBuy) {
     return (
@@ -38,9 +40,9 @@ export default function RwaData({ params }: RwaDataProps) {
           <Image
             src={data.data.image}
             alt="NFT"
-            width={100}
-            height={100}
-            className="rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"
+            width={500}
+            height={500}
+            className="w-[100px] rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"
           />
           <div className="sm:flex sm:justify-between sm:mt-3 sm:mb-1">
             <h3 className="h1 sm:!text-2xl">{data.data.title}</h3>
@@ -102,9 +104,7 @@ export default function RwaData({ params }: RwaDataProps) {
           >
             Check in Solana Explorer
           </Link>
-          <Button variant="green" size="lg">
-            Purchase
-          </Button>
+          <PurchaseButton tokenId={tokenId} setIsOpen={setIsPurchased} />
         </div>
       </div>
       <Button variant="gray" size="xl" className='col-span-3 lg:order-2' onClick={() => setIsAlldataOpen(true)}>

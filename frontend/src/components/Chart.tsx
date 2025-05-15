@@ -63,7 +63,7 @@ export default function Chart({ className, data }: ChartProps) {
         ref={chartContainerRef}
       />
       {data.length <= 0 && (
-        <div className="absolute top-0 left-0 right-0 bottom-0 bg-neutral-900 w-full h-full flex justify-center items-center z-[1000000] p-5">
+        <div className="absolute top-0 left-0 right-0 bottom-0 bg-neutral-900 w-full h-full flex justify-center items-center z-[100] p-5">
           <h3 className="h3 text-textGray text-lg">
             There have been no changes in the RVA price yet
           </h3>
