@@ -23,6 +23,7 @@ public record GetRwaTokenDetailResponse(
     string TransactionHash,
     long Version,
     DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
     string OwnerEmail,
     string OwnerUsername
 );

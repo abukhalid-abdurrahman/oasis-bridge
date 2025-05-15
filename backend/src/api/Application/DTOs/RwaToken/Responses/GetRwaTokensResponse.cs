@@ -9,5 +9,6 @@ public readonly record struct GetRwaTokensResponse(
     GeoLocation? Geolocation,
     string Image,
     long Version,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt
 );
