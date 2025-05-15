@@ -6,7 +6,7 @@ public sealed class RwaTokenOwnershipTransfer : BaseEntity
     public RwaToken RwaToken { get; set; } = default!;
 
     public Guid BuyerWalletId { get; set; }
-    public VirtualAccount BuyerWallet { get; set; } = default!;
+    public WalletLinkedAccount BuyerWallet { get; set; } = default!;
 
     public Guid SellerWalletId { get; set; }
     public VirtualAccount SellerWallet { get; set; } = default!;

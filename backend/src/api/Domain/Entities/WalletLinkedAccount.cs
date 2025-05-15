@@ -41,4 +41,6 @@ public sealed class WalletLinkedAccount : BaseEntity
     /// This marks the moment the wallet became associated with the user.
     /// </summary>
     public DateTimeOffset LinkedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransferBuyers { get; set; } = [];
 }

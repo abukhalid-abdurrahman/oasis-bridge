@@ -8,5 +8,6 @@ public readonly record struct GetRwaTokensResponse(
     InsuranceStatus InsuranceStatus,
     GeoLocation? Geolocation,
     string Image,
-    long Version
+    long Version,
+    DateTimeOffset CreatedAt
 );

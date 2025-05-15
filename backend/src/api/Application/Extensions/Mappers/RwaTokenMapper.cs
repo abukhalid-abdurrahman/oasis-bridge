@@ -11,7 +11,8 @@ public static class RwaTokenMapper
             entity.InsuranceStatus,
             entity.Geolocation,
             entity.Image,
-            entity.Version);
+            entity.Version,
+            entity.CreatedAt);
 
     public static CreateRwaTokenResponse ToCreateResponse(this RwaToken entity)
         => new(
@@ -64,6 +65,7 @@ public static class RwaTokenMapper
             entity.MintAccount,
             entity.TransactionHash,
             entity.Version,
+            entity.CreatedAt,
             entity.VirtualAccount.User.Email,
             entity.VirtualAccount.User.UserName);
 
