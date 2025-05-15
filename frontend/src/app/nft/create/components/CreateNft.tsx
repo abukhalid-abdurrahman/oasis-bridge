@@ -40,6 +40,7 @@ import SelectAssetField from "@/app/nft/create/components/SelectAssetField";
 import TokenizationModal from "./TokenizationModal";
 import DateAssetField from "./DateAssetField";
 import { Loader2 } from "lucide-react";
+import { mutateRwaToken } from "@/requests/postRequests";
 
 const LocationPickerModal = dynamic(
   () => import("@/components/LocationPickerModal"),
@@ -57,8 +58,12 @@ export default function CreateNft() {
   } | null>(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isTokenized, setIsTokenized] = useState(false);
-  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
   const [netAmount, setNetAmount] = useState<number | string>("");
+  const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [tokenId, setTokenId] = useState("");
+
+  const submit = mutateRwaToken();
 
   const getFieldsByAssetType = (type: string): TokenizationField[] => {
     switch (type) {
@@ -92,8 +97,16 @@ export default function CreateNft() {
   const royalty = form.watch("royalty");
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    setFormData(data);
     setIsTokenized(true);
+    submit.mutate(data, {
+      onSuccess: (res) => {
+        setIsSuccessfullyDone(true);
+        setTokenId(res.data.tokenId);
+      },
+      onError: () => {
+        setIsError(true);
+      },
+    });
   };
 
   useEffect(() => {
@@ -436,9 +449,12 @@ export default function CreateNft() {
           setIsOpen={setIsMapOpen}
         />
       )}
-      {isTokenized && formData && (
+      {isTokenized && (
         <TokenizationModal
-          formData={formData}
+          isError={isError}
+          isSuccessfullyDone={isSuccessfullyDone}
+          setIsSuccessfullyDone={setIsSuccessfullyDone}
+          tokenId={tokenId}
           setIsTokenized={setIsTokenized}
           setIsSecondStep={setIsSecondStep}
           form={form}

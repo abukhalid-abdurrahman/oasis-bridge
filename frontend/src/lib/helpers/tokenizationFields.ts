@@ -9,10 +9,10 @@ import { TokenizationField } from "../types";
 
 export const tokenizationFieldsBase: TokenizationField[] = [
   {
-    name: 'image',
-    placeholder: 'Image',
-    type: 'string',
-    validation: z.string().url()
+    name: "image",
+    placeholder: "Image",
+    type: "string",
+    validation: z.string().url(),
   },
   {
     name: "title",
@@ -53,7 +53,10 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "royalty",
     placeholder: "Royalty",
     type: "number",
-    validation: z.coerce.number().min(1, { message: "Royalty is required" }),
+    validation: z.coerce
+      .number()
+      .min(1, { message: "Royalty is required" })
+      .max(100, { message: "Royalty must be no more than 100" }),
   },
   {
     name: "price",
@@ -71,7 +74,12 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "assetType",
     placeholder: "AssetType",
     type: "string",
-    validation: z.enum(ASSET_TYPES.map(asset => asset.replace(/\s/g,'')) as [string, ...string[]]),
+    validation: z.enum(
+      ASSET_TYPES.map((asset) => asset.replace(/\s/g, "")) as [
+        string,
+        ...string[]
+      ]
+    ),
   },
 ];
 
@@ -120,7 +128,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     type: "string",
     validation: z.string().min(1, { message: "Valuation Date is required" }),
     defaultValue: "",
-    HTMLType: 'date'
+    HTMLType: "date",
   },
   {
     name: "area",
@@ -135,14 +143,16 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     type: "string",
     validation: z.enum([...PROPERTY_TYPES] as [string, ...string[]]),
     defaultValue: "",
-    HTMLType: 'select',
-    selectItems: [...PROPERTY_TYPES]
+    HTMLType: "select",
+    selectItems: [...PROPERTY_TYPES],
   },
   {
     name: "constructionYear",
     placeholder: "Construction Year",
     type: "number",
-    validation: z.coerce.number().min(1, { message: "Construction year is required" }),
+    validation: z.coerce
+      .number()
+      .min(1, { message: "Construction year is required" }),
     defaultValue: "",
   },
   // {

@@ -1,14 +1,12 @@
 import Loading from "@/components/Loading";
 import Modal from "@/components/Modal";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { mutateRwaToken } from "@/requests/postRequests";
 import Image from "next/image";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 interface TokenizationModalProps {
-  formData: any;
   setIsTokenized: Dispatch<SetStateAction<boolean>>;
   setIsSecondStep: Dispatch<SetStateAction<boolean>>;
   form: UseFormReturn<
@@ -20,37 +18,29 @@ interface TokenizationModalProps {
       [x: string]: any;
     }
   >;
+  isError: boolean;
+  isSuccessfullyDone: boolean;
+  tokenId: string;
+  setIsSuccessfullyDone: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function TokenizationModal({
-  formData,
   setIsTokenized,
   setIsSecondStep,
   form,
+  isError,
+  isSuccessfullyDone,
+  tokenId,
+  setIsSuccessfullyDone,
 }: TokenizationModalProps) {
-  const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [tokenId, setTokenId] = useState('')
-
-  const submit = mutateRwaToken();
-  useEffect(() => {
-    submit.mutate(formData, {
-      onSuccess: (res) => {
-        setIsSuccessfullyDone(true);
-        setTokenId(res.data.tokenId)
-      },
-      onError: () => {
-        setIsError(true)
-      }
-    });
-  }, []);
-
   return (
     <Modal
       isNonClosable={!isError}
       isNonUrlModal
+      onCloseFunc={() => setIsTokenized(false)}
       className={`${
-        (!isSuccessfullyDone || isError) && "min-h-64 flex justify-center items-center"
+        (!isSuccessfullyDone || isError) &&
+        "min-h-64 flex justify-center items-center"
       }`}
     >
       <div className="flex flex-col items-center justify-center">
@@ -100,9 +90,7 @@ export default function TokenizationModal({
           </>
         )}
         {!isSuccessfullyDone && isError && (
-          <p className="p">
-            Something went wrong. Please try again later.
-          </p>
+          <p className="p">Something went wrong. Please try again later.</p>
         )}
       </div>
     </Modal>
