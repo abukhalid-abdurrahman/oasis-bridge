@@ -1,12 +1,10 @@
 import axiosInstance from "@/lib/axiosInstance";
-import { API } from "@/lib/constants";
 import { RwasReq } from "@/lib/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 // Get for Exchange Rate
 const getExchangeRate = async (fromToken: string, toToken: string) => {
-  const res = await axios.get(`${API}/exchange-rate`, {
+  const res = await axiosInstance.get(`/exchange-rate`, {
     headers: {
       "Content-Type": "application/json",
     },
@@ -30,7 +28,7 @@ export const useExchangeRate = (fromToken: string, toToken: string) => {
 
 // Get for Transaction Status
 const getTransactionStatus = async (transactionId: string) => {
-  const res = await axios.get(`${API}/transaction-status`, {
+  const res = await axiosInstance.get(`/transaction-status`, {
     headers: {
       "Content-Type": "application/json",
     },
@@ -50,31 +48,6 @@ export const useTransactionStatus = (transactionId: string) => {
     enabled: false,
   });
 };
-
-// Get for Virtual Account
-// const getVirtualAccount = async (fromNetwork: string, toNetwork: string) => {
-//   const res = await axios.get(`${API}/virtual-account`, {
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     params: {
-//       From: fromNetwork,
-//       To: toNetwork
-//     }
-//   })
-//   return res.data
-// }
-
-// export const useVirtualAccount = (fromNetwork: string, toNetwork: string) => {
-//   return useQuery({
-//     queryKey: [fromNetwork, toNetwork, 'virtual-account'],
-//     queryFn: () => getVirtualAccount(fromNetwork, toNetwork),
-//     refetchOnWindowFocus: false,
-//     refetchOnReconnect: false,
-//     refetchOnMount: false,
-//     enabled: false
-//   })
-// }
 
 // Get for User virtual Accounts
 const getUserVirtualAccounts = async () => {
@@ -116,7 +89,7 @@ export const useVirtualAccountBalance = (
 
 // Get Networks
 const getNetworks = async () => {
-  const res = await axios.get(`${API}/networks`, {
+  const res = await axiosInstance.get(`/networks`, {
     headers: {
       "Content-Type": "application/json",
     },

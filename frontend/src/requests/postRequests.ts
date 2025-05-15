@@ -1,13 +1,11 @@
 import axiosInstance from "@/lib/axiosInstance"
 import axiosInstanceForFiles from "@/lib/axiosInstanceForFiles"
-import { API } from "@/lib/constants"
 import { PostWallet } from "@/lib/types"
 import { useMutation } from "@tanstack/react-query"
-import axios from "axios"
 
 // Pot for Register User
 const postRegister = async (req: any) => {
-  const res = await axios.post(`${API}/auth/register`, req, {
+  const res = await axiosInstance.post(`/auth/register`, req, {
     headers: {
       "Content-Type": "application/json",
     }
@@ -25,7 +23,7 @@ export const mutateRegister = () => {
 
 // Post for Login User
 const postLogin = async (req: any) => {
-  const res = await axios.post(`${API}/auth/login`, req, {
+  const res = await axiosInstance.post(`/auth/login`, req, {
     headers: {
       "Content-Type": "application/json",
     }
@@ -59,7 +57,7 @@ export const mutateChangePassword = () => {
 
 // Post for Logout
 const postLogout = async (req: any) => {
-  const res = await axios.post(`${API}/logout`, req, {
+  const res = await axiosInstance.post(`/logout`, req, {
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${req.token}`
