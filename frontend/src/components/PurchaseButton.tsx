@@ -9,8 +9,7 @@ import {
 } from "@/requests/postRequests";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useState } from "react";
-import { Connection, Transaction } from "@solana/web3.js";
-import { SOLANA_NET } from "@/lib/constants";
+import { Transaction } from "@solana/web3.js";
 
 interface PurchaseButtonProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -25,6 +24,7 @@ export default function PurchaseButton({
   const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
   const [isError, setIsError] = useState(false);
   const [transactionId, setTransactionId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const purchase = mutateRwaPurchase();
   const submitTransaction = mutateRwaTransaction();
@@ -33,16 +33,17 @@ export default function PurchaseButton({
     setIsModalOpen(true);
     setIsError(false);
     setIsSuccessfullyDone(false);
+    setErrorMessage("");
 
     try {
       const provider = (window as any).solana;
       if (!provider || !provider.isPhantom) {
-        alert("Phantom wallet not found");
+        setErrorMessage("Phantom wallet not found");
         setIsError(true);
         return;
       }
 
-      await provider.connect();
+      const connectRes = await provider.connect();
 
       purchase.mutate(tokenId, {
         onSuccess: async (res) => {
@@ -52,33 +53,54 @@ export default function PurchaseButton({
               Buffer.from(txBase64, "base64")
             );
 
-            const signedTransaction = await provider.signTransaction(
-              transaction
-            );
+            const signedTransaction = await provider
+              .signTransaction(transaction)
+              .catch((err: any) => {
+                throw new Error(
+                  err?.message === "User rejected the request."
+                    ? "Transaction signing was cancelled"
+                    : err?.message || "Failed to sign transaction"
+                );
+              });
 
-            // const connection = new Connection(SOLANA_NET!);
-            // await connection.confirmTransaction(signature, "confirmed");
+            const rawTx = signedTransaction.serialize();
+            const txBase64Signed = Buffer.from(rawTx).toString("base64");
 
-            submitTransaction.mutate(Buffer.from(signedTransaction.serialize()).toString("base64"), {
+            submitTransaction.mutate(txBase64Signed, {
               onSuccess: (res) => {
                 setTransactionId(res.data);
                 setIsSuccessfullyDone(true);
               },
-              onError: () => {
+              onError: (err: any) => {
+                setErrorMessage(
+                  err?.response?.data?.error?.message ||
+                    "Transaction submission failed"
+                );
                 setIsError(true);
               },
             });
-          } catch (err) {
-            console.error(err);
+          } catch (err: any) {
+            console.error("Signing or submission error:", err);
+            setErrorMessage(err.message || "Something went wrong");
             setIsError(true);
           }
         },
-        onError: () => {
+        onError: (error: any) => {
+          console.error("Transaction fetch error:", error);
+          setErrorMessage(
+            error?.response?.data?.error?.message ||
+              "Could not prepare transaction"
+          );
           setIsError(true);
         },
       });
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Connection or general error:", err);
+      setErrorMessage(
+        err?.message === "User rejected the request."
+          ? "Wallet connection was cancelled"
+          : err?.message || "Something went wrong"
+      );
       setIsError(true);
     }
   };
@@ -95,7 +117,7 @@ export default function PurchaseButton({
           className={`${
             (!isSuccessfullyDone || isError) &&
             "min-h-64 flex justify-center items-center"
-          }`}
+          } relative z-[10000]`}
           onCloseFunc={() => setIsModalOpen(false)}
         >
           <div className="flex flex-col items-center justify-center">
@@ -140,7 +162,9 @@ export default function PurchaseButton({
               </>
             )}
             {!isSuccessfullyDone && isError && (
-              <p className="p text-black">Something went wrong. Please try again later.</p>
+              <p className="p text-black text-center max-w-sm whitespace-pre-line">
+                {errorMessage || "Something went wrong. Please try again later."}
+              </p>
             )}
           </div>
         </Modal>
