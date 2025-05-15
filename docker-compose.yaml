@@ -41,7 +41,7 @@ services:
     restart: "no"
 
   quantum-exchange:
-    image: nazarovqurbonali/quantum-exchange:v24
+    image: nazarovqurbonali/quantum-exchange:v25
     container_name: quantum-exchange
     restart: always
     platform: linux/arm64
