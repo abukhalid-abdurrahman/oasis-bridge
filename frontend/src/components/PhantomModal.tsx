@@ -65,11 +65,7 @@ export default function PhantomModal({
     renderContent();
 
   return (
-    <Modal
-      onCloseFunc={onClose}
-      isNonUrlModal
-      className="flex flex-col items-center justify-center text-black gap-7"
-    >
+    <div className="flex flex-col items-center justify-center text-black gap-7">
       <div
         className={`relative transition-all mt-10 mb-7 ${
           (publicKey || walletDenied || errorMessage) && "!mt-5 !mb-0"
@@ -104,6 +100,6 @@ export default function PhantomModal({
       >
         {buttonText}
       </Button>
-    </Modal>
+    </div>
   );
 }
