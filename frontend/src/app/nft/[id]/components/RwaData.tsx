@@ -38,9 +38,9 @@ export default function RwaData({ params }: RwaDataProps) {
           <Image
             src={data.data.image}
             alt="NFT"
-            width={100}
-            height={100}
-            className="rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"
+            width={500}
+            height={500}
+            className="w-[100px] rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"
           />
           <div className="sm:flex sm:justify-between sm:mt-3 sm:mb-1">
             <h3 className="h1 sm:!text-2xl">{data.data.title}</h3>
