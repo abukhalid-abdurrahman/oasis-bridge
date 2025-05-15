@@ -1,6 +1,6 @@
-# Docker Build Guide for OASIS Bridge
+# Docker Build Guide for Quantum Street Bridge
 
-This document provides full instructions to build, run, and push Docker images for the **OASIS Bridge** project, including file structure, ignore rules, and useful commands.
+This document provides full instructions to build, run, and push Docker images for the **Quantum Street Bridge** project, including file structure, ignore rules, and useful commands.
 
 ---
 
@@ -22,38 +22,48 @@ cd oasis-bridge
 ### Building the Docker Image
 To build the Docker image for the backend service using a specific Dockerfile, use the following command:
 ```sh
-docker build -f backend/deployments/Dockerfile.oasis_bridge -t username/oasis-bridge:vn .
+docker build -f backend/deployments/Dockerfile.quantum_exchange -t username/quantum_exchange:vn .
 ```
 ### Running the Docker Container
 To run the built image locally, use:
 ```sh
-docker run -d -p 8080:80 --name oasis-bridge-backend username/oasis-bridge:vn
+docker run -d -p 8080:80 --name quantum_exchange-backend username/quantum_exchange:vn
 ```
 ### Pushing the Image to Docker Hub
 Once built and tested, push the image to Docker Hub:
 ```sh
-docker push username/oasis-bridge:vn
+docker push username/quantum_exchange:vn
 ```
 
-# Docker Build Guide for OASIS Bridge Db Migrator
+# Docker Build Guide for Quantum Street Exchange Db Migrator
 
 ### Navigate to Project Root
+
 Before running any Docker commands, navigate to the root of the project:
+
 ```sh
 cd oasis-bridge
 ```
+
 ### Building the Docker Image
+
 To build the Docker image for the backend service using a specific Dockerfile, use the following command:
+
 ```sh
-docker build -f backend/deployments/Dockerfile.oasis_bridge_migration_db -t username/oasis-bridge-db-migrator:vn .
+docker build -f backend/deployments/Dockerfile.quantum_exchange_migrator_db -t username/quantum_exchange_migrator_db:vn .
 ```
 ### Running the Docker Container
+
 To run the built image locally, use:
+
 ```sh
-docker run -d -p 8080:80 --name oasis-bridge-backend-db-migrator username/oasis-bridge-db-migrator:vn
+docker run -d -p 8080:80 --name quantum_exchange_migrator_db username/quantum_exchange_migrator_db:vn
 ```
+
 ### Pushing the Image to Docker Hub
+
 Once built and tested, push the image to Docker Hub:
+
 ```sh
-docker push username/oasis-bridge-db-migrator:vn
+docker push username/quantum_exchange_migrator_db:vn
 ```
