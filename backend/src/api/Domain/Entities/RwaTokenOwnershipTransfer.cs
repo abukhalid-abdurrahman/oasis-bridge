@@ -14,6 +14,7 @@ public sealed class RwaTokenOwnershipTransfer : BaseEntity
     public decimal Price { get; set; }
     public DateTimeOffset TransactionDate { get; set; } = DateTimeOffset.UtcNow;
     public string TransactionHash { get; set; } = string.Empty;
+    public string TransactionSignature { get; set; } = string.Empty;
 
     public RwaTokenOwnershipTransferStatus TransferStatus { get; set; }
 }

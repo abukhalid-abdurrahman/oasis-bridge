@@ -43,7 +43,7 @@ public sealed class NftPurchaseService(
                 base58SecretKey = Base58.Encode(wallet.Account.PrivateKey);
             }
 
-
+            const string tokenMint = "91AgzqSfXnCq6AJm5CPPHL3paB25difEJ1TfSnrFKrf";
             Result<CreateTransactionResponse> resultOfTransaction =
                 await solShiftService.CreateTransactionAsync(new(
                     buyer.PublicKey,
@@ -51,7 +51,7 @@ public sealed class NftPurchaseService(
                     base58SecretKey,
                     existingRwa.MintAccount,
                     existingRwa.Price,
-                    null));
+                    tokenMint));
             if (!resultOfTransaction.IsSuccess)
                 return Result<string>.Failure(resultOfTransaction.Error);
 
@@ -71,6 +71,8 @@ public sealed class NftPurchaseService(
             };
 
             await dbContext.RwaTokenOwnershipTransfers.AddAsync(newObj);
+            logger.OperationCompleted(nameof(CreateAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return await dbContext.SaveChangesAsync() != 0
                 ? Result<string>.Success(transactionHash)
                 : Result<string>.Failure(ResultPatternError.InternalServerError(Messages.CreateNftPurchaseFailed));
@@ -85,14 +87,14 @@ public sealed class NftPurchaseService(
         }
     }
 
-    public async Task<Result<string>> SendAsync(string transactionHash)
+    public async Task<Result<string>> SendAsync(SendNftPurchaseTrRequest request)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         logger.OperationStarted(nameof(SendAsync), date);
         try
         {
             RwaTokenOwnershipTransfer? existingRwaTokenOwner = await dbContext.RwaTokenOwnershipTransfers
-                .FirstOrDefaultAsync(x => x.TransactionHash == transactionHash);
+                .FirstOrDefaultAsync(x => x.TransactionHash == request.TransactionHash);
             if (existingRwaTokenOwner is null)
                 return Result<string>.Failure(
                     ResultPatternError.NotFound(Messages.RwaTokenOwnershipTransferNotFound));
@@ -104,14 +106,16 @@ public sealed class NftPurchaseService(
                 return Result<string>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
 
             Result<SendTransactionResponse> resultOfSendTransaction =
-                await solShiftService.SendTransactionAsync(new(transactionHash));
+                await solShiftService.SendTransactionAsync(new(request.TransactionSignature));
             if (!resultOfSendTransaction.IsSuccess)
                 return Result<string>.Failure(resultOfSendTransaction.Error);
 
             existingRwaToken.VirtualAccountId = existingRwaTokenOwner.BuyerWalletId;
-            existingRwaTokenOwner.TransactionHash = resultOfSendTransaction.Value.Data.TransactionId;
+            existingRwaTokenOwner.TransactionSignature = resultOfSendTransaction.Value.Data.TransactionId;
             existingRwaTokenOwner.TransferStatus = RwaTokenOwnershipTransferStatus.Completed;
 
+            logger.OperationCompleted(nameof(SendAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
             return await dbContext.SaveChangesAsync() != 0
                 ? Result<string>.Success(resultOfSendTransaction.Value.Data.TransactionId)
                 : Result<string>.Failure(ResultPatternError.InternalServerError(Messages.SendNftPurchaseFailed));
