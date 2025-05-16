@@ -47,12 +47,12 @@ const getUserVirtualAccounts = async () => {
 
 export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
   return useQuery({
-    queryKey: [token, 'user-accounts'],
+    queryKey: [token, "user-accounts"],
     queryFn: () => getUserVirtualAccounts(),
     gcTime: 0,
-    enabled: isEnabled
-  })
-}
+    enabled: isEnabled,
+  });
+};
 
 // Get for Chaecking Virtual Accaount Balance
 const getVirtualAccountBalance = async (orderId: string) => {
@@ -105,6 +105,24 @@ export const useRwas = (reqParams: any) => {
   return useQuery({
     queryKey: ["rwas", reqParams],
     queryFn: () => getRwas(reqParams),
+  });
+};
+
+// Get my RWAs
+const getRwasMe = async (reqParams: RwasReq) => {
+  const res = await axiosInstance.get("/rwa/me", {
+    params: {
+      PageSize: reqParams.pageSize,
+      PageNumber: reqParams.pageNumber,
+    },
+  });
+  return res.data;
+};
+
+export const useRwasMe = (reqParams: any) => {
+  return useQuery({
+    queryKey: ["rwas", "me", reqParams],
+    queryFn: () => getRwasMe(reqParams),
   });
 };
 
