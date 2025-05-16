@@ -82,7 +82,7 @@ const getUserVirtualAccounts = async () => {
   return res.data;
 };
 
-export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
+export const useUserVirtualAccounts = (token: string) => {
   return useQuery({
     queryKey: [token, "user-accounts"],
     queryFn: () => getUserVirtualAccounts(),
@@ -90,7 +90,6 @@ export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    enabled: isEnabled,
   });
 };
 
@@ -239,15 +238,31 @@ const getRwaMe = async (reqParams: any) => {
       RwaId: reqParams.rwaId,
       PageSize: reqParams.pageSize,
       PageNumber: reqParams.pageNumber,
-    }
-  })
-  return res.data
-}
+    },
+  });
+  return res.data;
+};
 
 export const useRwaMe = (token: string, reqParams: any) => {
   return useQuery({
     queryKey: ["rwa-me", token],
     queryFn: () => getRwaMe(reqParams),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+};
+
+// Get linked wallets
+const getLinkedWallets = async () => {
+  const res = await axiosInstance.get("/linked-accounts/me");
+  return res.data;
+};
+
+export const useLinkedWallets = (token: string) => {
+  return useQuery({
+    queryKey: [token, "linked-wallets"],
+    queryFn: () => getLinkedWallets(),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
