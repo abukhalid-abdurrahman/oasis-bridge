@@ -1,22 +1,25 @@
 "use client";
 
-import { chartExample } from "@/lib/helpers/chartExample";
 import { format } from "date-fns";
 import { AreaSeries, createChart, LineStyle } from "lightweight-charts";
 import { useEffect, useMemo, useRef } from "react";
 
 interface ChartProps {
-  className?: string;
+  firstData: any;
   data: any;
+  className?: string;
 }
 
-export default function Chart({ className, data }: ChartProps) {
+export default function Chart({ className, data, firstData }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const convertedData = useMemo(() => {
-    return data.map((item: any) => {
+    const allData = [{...firstData}, ...data];
+    return allData.map((item: any) => {
+      const date = item?.createdAt || item?.changedAt;
+      const price = item?.price || item?.newPrice
       return {
-        time: format(new Date(item.changedAt), "yyyy-MM-dd"),
-        value: item.newPrice,
+        time: format(new Date(date), "yyyy-MM-dd"),
+        value: price,
       };
     });
   }, [data]);
@@ -62,13 +65,6 @@ export default function Chart({ className, data }: ChartProps) {
         className="w-full h-full flex justify-center items-center lg:h-96"
         ref={chartContainerRef}
       />
-      {data.length <= 0 && (
-        <div className="absolute top-0 left-0 right-0 bottom-0 bg-neutral-900 w-full h-full flex justify-center items-center z-[100] p-5">
-          <h3 className="h3 text-textGray text-lg">
-            There have been no changes in the RVA price yet
-          </h3>
-        </div>
-      )}
     </div>
   );
 }

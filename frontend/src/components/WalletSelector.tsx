@@ -26,36 +26,40 @@ export default function WalletSelector({
       isNonUrlModal
       className="flex flex-col justify-center text-black"
     >
-      <h3 className="h3 mb-7">Choose your wallet</h3>
-      <div className="w-full">
-        {walletsForConnection.map((wallet) => (
-          <div
-            key={wallet.id}
-            className={`${buttonVariants({
-              variant: "empty",
-              size: "xxl",
-            })} !p-3 h-auto w-full !justify-between cursor-pointer`}
-            onClick={() => {
-              setWhatWallet(wallet.walletName)
-              connectPhantomWallet(publicKey)
-            }}
-          >
-            <div className="flex gap-5 items-center">
-              <Image
-                src={wallet.img}
-                alt={wallet.walletName}
-                width={35}
-                height={35}
-              />
-              <p className="p">{wallet.walletName}</p>
-            </div>
-            <div className="">
-              <p className="text:sm opacity-50">{wallet.detectingFn()}</p>
-            </div>
+      {!whatWallet && (
+        <>
+          <h3 className="h3 mb-7">Choose your wallet</h3>
+          <div className="w-full">
+            {walletsForConnection.map((wallet) => (
+              <div
+                key={wallet.id}
+                className={`${buttonVariants({
+                  variant: "empty",
+                  size: "xxl",
+                })} !p-3 h-auto w-full !justify-between cursor-pointer`}
+                onClick={() => {
+                  setWhatWallet(wallet.walletName);
+                  connectPhantomWallet(publicKey);
+                }}
+              >
+                <div className="flex gap-5 items-center">
+                  <Image
+                    src={wallet.img}
+                    alt={wallet.walletName}
+                    width={35}
+                    height={35}
+                  />
+                  <p className="p">{wallet.walletName}</p>
+                </div>
+                <div className="">
+                  <p className="text:sm opacity-50">{wallet.detectingFn()}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      {whatWallet === 'Phantom' && (
+        </>
+      )}
+      {whatWallet === "Phantom" && (
         <PhantomModal
           errorMessage={errorMessage}
           setWalletDenied={setWalletDenied}

@@ -8,23 +8,26 @@ import {
   mutateRwaTransaction,
 } from "@/requests/postRequests";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useState } from "react";
-import { Transaction } from "@solana/web3.js";
+import { useState } from "react";
+import { Connection, Transaction } from "@solana/web3.js";
+import { useWalletStore } from "@/store/useWalletStore";
+import { SOLANA_NET } from "@/lib/constants";
 
 interface PurchaseButtonProps {
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
   tokenId: string;
+  usageInMarketPage?: boolean;
 }
 
 export default function PurchaseButton({
-  setIsOpen,
   tokenId,
+  usageInMarketPage,
 }: PurchaseButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
   const [isError, setIsError] = useState(false);
   const [transactionId, setTransactionId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const { publicKey } = useWalletStore();
 
   const purchase = mutateRwaPurchase();
   const submitTransaction = mutateRwaTransaction();
@@ -43,57 +46,76 @@ export default function PurchaseButton({
         return;
       }
 
+      if (!publicKey) {
+        setIsError(true);
+        setErrorMessage("Please connect your wallet firstly.");
+        return;
+      }
+
       const connectRes = await provider.connect();
 
-      purchase.mutate(tokenId, {
-        onSuccess: async (res) => {
-          try {
-            const txBase64 = res.data;
-            const transaction = Transaction.from(
-              Buffer.from(txBase64, "base64")
+      purchase.mutate(
+        {
+          rwaId: tokenId,
+          buyerPubKey: publicKey,
+        },
+        {
+          onSuccess: async (res) => {
+            try {
+              const connection = new Connection(SOLANA_NET!, "confirmed");
+              const txBase64 = res.data;
+              const transaction = Transaction.from(
+                Buffer.from(txBase64, "base64")
+              );
+
+              const signedTransaction = await provider
+                .signTransaction(transaction)
+                .catch((err: any) => {
+                  throw new Error(
+                    err?.message === "User rejected the request."
+                      ? "Transaction signing was cancelled"
+                      : err?.message || "Failed to sign transaction"
+                  );
+                });
+
+              const rawTx = signedTransaction.serialize();
+              const txBase64Signed = Buffer.from(rawTx).toString("base64");
+
+              submitTransaction.mutate(
+                {
+                  transactionHash: txBase64,
+                  transactionSignature: txBase64Signed,
+                },
+                {
+                  onSuccess: (res) => {
+                    setTransactionId(res.data);
+                    setIsSuccessfullyDone(true);
+                  },
+                  onError: (err: any) => {
+                    setErrorMessage(
+                      err?.response?.data?.error?.message ||
+                        "Transaction submission failed"
+                    );
+                    setIsError(true);
+                  },
+                }
+              );
+            } catch (err: any) {
+              console.error("Signing or submission error:", err);
+              setErrorMessage(err.message || "Something went wrong");
+              setIsError(true);
+            }
+          },
+          onError: (error: any) => {
+            console.error("Transaction fetch error:", error);
+            setErrorMessage(
+              error?.response?.data?.error?.message ||
+                "Could not prepare transaction"
             );
-
-            const signedTransaction = await provider
-              .signTransaction(transaction)
-              .catch((err: any) => {
-                throw new Error(
-                  err?.message === "User rejected the request."
-                    ? "Transaction signing was cancelled"
-                    : err?.message || "Failed to sign transaction"
-                );
-              });
-
-            const rawTx = signedTransaction.serialize();
-            const txBase64Signed = Buffer.from(rawTx).toString("base64");
-
-            submitTransaction.mutate(txBase64Signed, {
-              onSuccess: (res) => {
-                setTransactionId(res.data);
-                setIsSuccessfullyDone(true);
-              },
-              onError: (err: any) => {
-                setErrorMessage(
-                  err?.response?.data?.error?.message ||
-                    "Transaction submission failed"
-                );
-                setIsError(true);
-              },
-            });
-          } catch (err: any) {
-            console.error("Signing or submission error:", err);
-            setErrorMessage(err.message || "Something went wrong");
             setIsError(true);
-          }
-        },
-        onError: (error: any) => {
-          console.error("Transaction fetch error:", error);
-          setErrorMessage(
-            error?.response?.data?.error?.message ||
-              "Could not prepare transaction"
-          );
-          setIsError(true);
-        },
-      });
+          },
+        }
+      );
     } catch (err: any) {
       console.error("Connection or general error:", err);
       setErrorMessage(
@@ -107,7 +129,11 @@ export default function PurchaseButton({
 
   return (
     <>
-      <Button variant="green" size="lg" onClick={handlePurchase}>
+      <Button
+        variant="green"
+        size={`${usageInMarketPage ? "sm" : "lg"}`}
+        onClick={handlePurchase}
+      >
         Purchase
       </Button>
       {isModalOpen && (
@@ -131,7 +157,7 @@ export default function PurchaseButton({
                   height={100}
                   className="mt-5 sm:w-20"
                 />
-                <h2 className="h2 my-5 !block">
+                <h2 className="h2 my-5 !block text-black">
                   You have successfully purchased your RWA
                 </h2>
                 <div className="flex gap-[5px] mb-[10px] w-full mt-5">
@@ -153,7 +179,7 @@ export default function PurchaseButton({
                   size="xl"
                   onClick={() => {
                     setIsSuccessfullyDone(false);
-                    setIsOpen(false);
+                    setIsModalOpen(false);
                   }}
                   className="w-full mt-2"
                 >
@@ -163,7 +189,8 @@ export default function PurchaseButton({
             )}
             {!isSuccessfullyDone && isError && (
               <p className="p text-black text-center max-w-sm whitespace-pre-line">
-                {errorMessage || "Something went wrong. Please try again later."}
+                {errorMessage ||
+                  "Something went wrong. Please try again later."}
               </p>
             )}
           </div>

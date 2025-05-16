@@ -1,15 +1,10 @@
 import axiosInstance from "@/lib/axiosInstance";
-import { API } from "@/lib/constants";
 import { RwasReq } from "@/lib/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 // Get for Exchange Rate
 const getExchangeRate = async (fromToken: string, toToken: string) => {
-  const res = await axios.get(`${API}/exchange-rate`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  const res = await axiosInstance.get(`/exchange-rate`, {
     params: {
       fromToken: fromToken,
       toToken: toToken,
@@ -22,18 +17,13 @@ export const useExchangeRate = (fromToken: string, toToken: string) => {
   return useQuery({
     queryKey: [fromToken, toToken, "exchange-rate"],
     queryFn: () => getExchangeRate(fromToken, toToken),
-    refetchOnWindowFocus: false,
     refetchInterval: 300000,
-    // enabled: !!token
   });
 };
 
 // Get for Transaction Status
 const getTransactionStatus = async (transactionId: string) => {
-  const res = await axios.get(`${API}/transaction-status`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  const res = await axiosInstance.get(`/transaction-status`, {
     params: {
       transactionId: transactionId,
     },
@@ -45,36 +35,9 @@ export const useTransactionStatus = (transactionId: string) => {
   return useQuery({
     queryKey: [transactionId, "transaction-id"],
     queryFn: () => getTransactionStatus(transactionId),
-    refetchOnWindowFocus: false,
-    // initialData: true
     enabled: false,
   });
 };
-
-// Get for Virtual Account
-// const getVirtualAccount = async (fromNetwork: string, toNetwork: string) => {
-//   const res = await axios.get(`${API}/virtual-account`, {
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     params: {
-//       From: fromNetwork,
-//       To: toNetwork
-//     }
-//   })
-//   return res.data
-// }
-
-// export const useVirtualAccount = (fromNetwork: string, toNetwork: string) => {
-//   return useQuery({
-//     queryKey: [fromNetwork, toNetwork, 'virtual-account'],
-//     queryFn: () => getVirtualAccount(fromNetwork, toNetwork),
-//     refetchOnWindowFocus: false,
-//     refetchOnReconnect: false,
-//     refetchOnMount: false,
-//     enabled: false
-//   })
-// }
 
 // Get for User virtual Accounts
 const getUserVirtualAccounts = async () => {
@@ -82,16 +45,14 @@ const getUserVirtualAccounts = async () => {
   return res.data;
 };
 
-export const useUserVirtualAccounts = (token: string) => {
+export const useUserVirtualAccounts = (isEnabled: boolean, token: string) => {
   return useQuery({
-    queryKey: [token, "user-accounts"],
+    queryKey: [token, 'user-accounts'],
     queryFn: () => getUserVirtualAccounts(),
     gcTime: 0,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-  });
-};
+    enabled: isEnabled
+  })
+}
 
 // Get for Chaecking Virtual Accaount Balance
 const getVirtualAccountBalance = async (orderId: string) => {
@@ -107,20 +68,13 @@ export const useVirtualAccountBalance = (
     queryKey: [orderId, "virtual-account-balance"],
     queryFn: () => getVirtualAccountBalance(orderId),
     gcTime: 0,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
     enabled: !!orderId && !!completed,
   });
 };
 
 // Get Networks
 const getNetworks = async () => {
-  const res = await axios.get(`${API}/networks`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const res = await axiosInstance.get(`/networks`);
   return res.data;
 };
 
@@ -128,14 +82,11 @@ export const useNetworks = () => {
   return useQuery({
     queryKey: ["networks"],
     queryFn: () => getNetworks(),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 };
 
-// Get all NFTs
-const getNfts = async (reqParams: RwasReq) => {
+// Get all RWAs
+const getRwas = async (reqParams: RwasReq) => {
   const res = await axiosInstance.get("/rwa", {
     params: {
       AssetType: reqParams.assetType,
@@ -150,41 +101,32 @@ const getNfts = async (reqParams: RwasReq) => {
   return res.data;
 };
 
-export const useNfts = (reqParams: any) => {
+export const useRwas = (reqParams: any) => {
   return useQuery({
     queryKey: ["rwas", reqParams],
-    queryFn: () => getNfts(reqParams),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
+    queryFn: () => getRwas(reqParams),
   });
 };
 
-// Get a specific NFT
-const getNft = async (tokenId: string) => {
+// Get a specific RWA
+const getRwa = async (tokenId: string) => {
   const res = await axiosInstance.get(`/rwa/${tokenId}`);
   return res.data;
 };
 
-export const useNft = (tokenId: string) => {
+export const useRwa = (tokenId: string) => {
   return useQuery({
-    queryKey: ["nft", tokenId],
-    queryFn: () => getNft(tokenId),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
+    queryKey: ["rwa", tokenId],
+    queryFn: () => getRwa(tokenId),
   });
 };
 
 // Example with multiple request
-export const useNftMultiple = (tokenIds: string[]) => {
+export const useRwaMultiple = (tokenIds: string[]) => {
   return useQueries({
     queries: tokenIds.map((id) => ({
-      queryKey: ["nft", "multiple", id],
-      queryFn: () => getNft(id),
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
+      queryKey: ["rwa", "multiple", id],
+      queryFn: () => getRwa(id),
       enabled: !!tokenIds,
     })),
     combine: (results) => {
@@ -197,29 +139,23 @@ export const useNftMultiple = (tokenIds: string[]) => {
 };
 
 // Get Sell/Buy history and price change history
-const getNftChanges = async (tokenId: string) => {
+const getRwaChanges = async (tokenId: string) => {
   const res = await axiosInstance.get(`/rwa-price-histories/${tokenId}`);
   return res.data;
 };
 
-export const useNftChanges = (tokenId: string) => {
+export const useRwaChanges = (tokenId: string) => {
   return useQuery({
-    queryKey: ["nft-changes", tokenId],
-    queryFn: () => getNftChanges(tokenId),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
+    queryKey: ["rwa-changes", tokenId],
+    queryFn: () => getRwaChanges(tokenId),
   });
 };
 
-export const useNftChangesMultiple = (tokenIds: string[]) => {
+export const useRwaChangesMultiple = (tokenIds: string[]) => {
   return useQueries({
     queries: tokenIds.map((id) => ({
-      queryKey: ["nft-changes", "multiple", id],
-      queryFn: () => getNftChanges(id),
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
+      queryKey: ["rwa-changes", "multiple", id],
+      queryFn: () => getRwaChanges(id),
       enabled: !!tokenIds,
     })),
     combine: (results) => {
@@ -247,9 +183,6 @@ export const useRwaMe = (token: string, reqParams: any) => {
   return useQuery({
     queryKey: ["rwa-me", token],
     queryFn: () => getRwaMe(reqParams),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 };
 
@@ -263,8 +196,5 @@ export const useLinkedWallets = (token: string) => {
   return useQuery({
     queryKey: [token, "linked-wallets"],
     queryFn: () => getLinkedWallets(),
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 };

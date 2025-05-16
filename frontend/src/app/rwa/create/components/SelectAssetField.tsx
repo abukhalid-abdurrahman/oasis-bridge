@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PROPERTY_TYPES } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
@@ -46,8 +45,8 @@ export default function SelectAssetField({ item, form }: SelectAssetFieldProps) 
             </FormControl>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>{item.placeholder}s</SelectLabel>
-                {PROPERTY_TYPES.map((type) => (
+                <SelectLabel>{item.placeholder}</SelectLabel>
+                {item.selectItems?.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>

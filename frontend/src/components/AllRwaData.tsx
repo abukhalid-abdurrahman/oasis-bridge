@@ -33,7 +33,12 @@ export default function AllRwaData({ data, setIsOpen }: AllRwaDataProps) {
   const sortedData = useMemo(() => {
     if (!data) return;
 
-    const excludedKeys = ["tokenId", "ownerEmail", "ownerUsername"];
+    const excludedKeys = [
+      "tokenId",
+      "ownerEmail",
+      "ownerUsername",
+      "ownerContact",
+    ];
 
     return Object.fromEntries(
       Object.entries(data).filter(([key]) => !excludedKeys.includes(key))

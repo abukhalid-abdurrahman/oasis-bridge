@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { shortAddress } from "@/lib/scripts/script";
 import { useLinkedWallets } from "@/requests/getRequests";
 import { useUserStore } from "@/store/useUserStore";
-import { use } from "react";
 
 export default function LinkedWallets() {
   const { user } = useUserStore();

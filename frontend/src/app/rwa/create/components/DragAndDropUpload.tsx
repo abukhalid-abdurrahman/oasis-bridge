@@ -69,7 +69,7 @@ export function DragAndDropUpload({ control, name }: DragAndDropProps) {
                     />
                   ) : (
                     <div className="flex flex-col gap-3 justify-center text-white">
-                      <h2 className="h1">NFT Image</h2>
+                      <h2 className="h1">RWA Image</h2>
                       <p className="p">{isDragActive ? "Drop the file here..." : "Drag & drop or click to upload"}</p>
                     </div>
                   )}

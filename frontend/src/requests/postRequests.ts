@@ -1,43 +1,29 @@
 import axiosInstance from "@/lib/axiosInstance"
 import axiosInstanceForFiles from "@/lib/axiosInstanceForFiles"
-import { API } from "@/lib/constants"
 import { PostWallet } from "@/lib/types"
 import { useMutation } from "@tanstack/react-query"
-import axios from "axios"
 
 // Pot for Register User
 const postRegister = async (req: any) => {
-  const res = await axios.post(`${API}/auth/register`, req, {
-    headers: {
-      "Content-Type": "application/json",
-    }
-  })
+  const res = await axiosInstance.post(`/auth/register`, req)
   return res.data
 }
 
 export const mutateRegister = () => {
   return useMutation({
     mutationFn: (req: any) => postRegister(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
 // Post for Login User
 const postLogin = async (req: any) => {
-  const res = await axios.post(`${API}/auth/login`, req, {
-    headers: {
-      "Content-Type": "application/json",
-    }
-  })
+  const res = await axiosInstance.post(`/auth/login`, req)
   return res.data
 }
 
 export const mutateLogin = () => {
   return useMutation({
     mutationFn: (req: any) => postLogin(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -51,28 +37,19 @@ const postChangePassword = async (req: any) => {
 export const mutateChangePassword = () => {
   return useMutation({
     mutationFn: (req: any) => postChangePassword(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
 
 // Post for Logout
 const postLogout = async (req: any) => {
-  const res = await axios.post(`${API}/logout`, req, {
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${req.token}`
-    }
-  })
+  const res = await axiosInstance.post(`/logout`, req)
   return res.data
 }
 
 export const mutateLogout = () => {
   return useMutation({
     mutationFn: (req: any) => postLogout(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -85,8 +62,6 @@ const postOrders = async (req: any) => {
 export const mutateOrders = () => {
   return useMutation({
     mutationFn: (req: any) => postOrders(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -95,7 +70,6 @@ export const mutateOrders = () => {
 export const postFiles = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
-
   const res = await axiosInstanceForFiles.post(`/files/upload`, formData);
   return res.data;
 };
@@ -110,8 +84,6 @@ const postWallet = async (req: any) => {
 export const mutateWallet = () => {
   return useMutation({
     mutationFn: (req: PostWallet) => postWallet(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -124,35 +96,29 @@ const postRwaToken = async(req: any) => {
 export const mutateRwaToken = () => {
   return useMutation({
     mutationFn: (req: any) => postRwaToken(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
 // Post Rwa purchasing
-const postRwaPurchase = async(tokenId: string) => {
-  const res = await axiosInstance.post(`/nft-purchase`, tokenId)
+const postRwaPurchase = async(req: string) => {
+  const res = await axiosInstance.post(`/nft-purchase`, req)
   return res.data
 }
 
 export const mutateRwaPurchase = () => {
   return useMutation({
-    mutationFn: (req: string) => postRwaPurchase(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
+    mutationFn: (req: any) => postRwaPurchase(req),
   })
 }
 
 // Post Rwa Signed transaction
-const postRwaTransaction = async(tokenId: string) => {
-  const res = await axiosInstance.post(`/nft-purchase`, tokenId)
+const postRwaTransaction = async(req: any) => {
+  const res = await axiosInstance.post(`/nft-purchase/send`, req)
   return res.data
 }
 
 export const mutateRwaTransaction = () => {
   return useMutation({
-    mutationFn: (req: string) => postRwaTransaction(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
+    mutationFn: (req: any) => postRwaTransaction(req),
   })
 }

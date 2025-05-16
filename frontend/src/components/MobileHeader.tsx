@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu, X } from "lucide-react";
+import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu } from "lucide-react";
 import { Button, buttonVariants } from "./ui/button";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
@@ -83,18 +83,18 @@ export default function MobileHeader({
                 Swap
               </Link>
               <Link
-                href="/nft"
+                href="/rwa"
                 className="w-full flex gap-2 items-center"
               >
                 <ChartCandlestick size={5} strokeWidth={1} className="mr-1" />
-                NFT Market
+                RWA Market
               </Link>
               <Link
-                href={`${user ? "/create-nft" : "?signin=true"}`}
+                href={`${user ? "/rwa/create" : "?signin=true"}`}
                 className="w-full flex gap-2 items-center"
               >
                 <ChevronsUp size={5} strokeWidth={1} className="mr-1" />
-                Create NFT
+                Create RWA
               </Link>
             </div>
           </nav>

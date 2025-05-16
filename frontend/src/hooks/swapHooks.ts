@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { CryptoOption, defaultSelectedFrom, defaultSelectedNetwork, defaultSelectedTo, SelectedCrypto } from "@/lib/cryptoOptions";
+import { useState } from "react";
+import { defaultSelectedFrom, defaultSelectedTo, SelectedCrypto } from "@/lib/cryptoOptions";
 
 export function useSwap() {
   const [selectedNetwork, setSelectedNetwork] = useState();

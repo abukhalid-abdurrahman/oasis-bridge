@@ -1,16 +1,15 @@
 import Loading from "@/components/Loading";
 import Modal from "@/components/Modal";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { mutateRwaToken } from "@/requests/postRequests";
+import { mutateRwaUpdate } from "@/requests/putRequests";
 import Image from "next/image";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
-interface TokenizationModalProps {
+interface UpdatingModalProps {
   formData: any;
-  setIsTokenized: Dispatch<SetStateAction<boolean>>;
-  setIsSecondStep: Dispatch<SetStateAction<boolean>>;
+  setIsUpdated: Dispatch<SetStateAction<boolean>>;
   form: UseFormReturn<
     {
       [x: string]: any;
@@ -20,24 +19,23 @@ interface TokenizationModalProps {
       [x: string]: any;
     }
   >;
+  tokenId: string
 }
 
-export default function TokenizationModal({
+export default function UpdatingModal({
   formData,
-  setIsTokenized,
-  setIsSecondStep,
+  setIsUpdated,
   form,
-}: TokenizationModalProps) {
+  tokenId
+}: UpdatingModalProps) {
   const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [tokenId, setTokenId] = useState('')
 
-  const submit = mutateRwaToken();
+  const submit = mutateRwaUpdate(tokenId);
   useEffect(() => {
     submit.mutate(formData, {
       onSuccess: (res) => {
         setIsSuccessfullyDone(true);
-        setTokenId(res.data.tokenId)
       },
       onError: () => {
         setIsError(true)
@@ -52,6 +50,7 @@ export default function TokenizationModal({
       className={`${
         (!isSuccessfullyDone || isError) && "min-h-64 flex justify-center items-center"
       }`}
+      onCloseFunc={() => setIsUpdated(false)}
     >
       <div className="flex flex-col items-center justify-center">
         {!isSuccessfullyDone && !isError && <Loading />}
@@ -65,7 +64,7 @@ export default function TokenizationModal({
               className="mt-5 sm:w-20"
             />
             <h2 className="h2 my-5 !block">
-              You have successfully created your NFT
+              You have successfully updated your RWA
             </h2>
             <div
               className={`${buttonVariants({
@@ -75,7 +74,7 @@ export default function TokenizationModal({
             >
               <p className="sm:text-sm xxs:text-xs">You can check it here:</p>
               <Link
-                href={`/nft/${tokenId}`}
+                href={`/rwa/${tokenId}`}
                 className={`${buttonVariants({
                   variant: "gray",
                   size: "xl",
@@ -88,8 +87,7 @@ export default function TokenizationModal({
               variant="gray"
               size="xl"
               onClick={() => {
-                setIsTokenized(false);
-                setIsSecondStep(false);
+                setIsUpdated(false);
                 setIsSuccessfullyDone(false);
                 form.reset();
               }}

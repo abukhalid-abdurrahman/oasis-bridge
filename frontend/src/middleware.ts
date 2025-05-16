@@ -11,9 +11,10 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (!isAuthenticated && pathname === "/profile") {
+  if (!isAuthenticated && pathname !== "/") {
     const url = new URL("/", req.url);
     url.searchParams.set("signin", "true");
+    url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
@@ -21,5 +22,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/profile", "/"],
+  matcher: ["/((?!_next|public|api|favicon.ico|.*\\..*).*)"],
 };

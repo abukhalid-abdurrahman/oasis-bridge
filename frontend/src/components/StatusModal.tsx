@@ -1,5 +1,5 @@
 import { useVirtualAccountBalance } from "@/requests/getRequests";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import Modal from "./Modal";
 import CopyBtn from "./CopyBtn";

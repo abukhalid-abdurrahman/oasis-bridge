@@ -2,23 +2,21 @@
 
 import Header from "@/components/Header";
 import { searchParams } from "@/lib/types";
-import ChangeNft from "./components/ChangeNFT";
+import RWATable from "./components/RWATable";
 
 export default async function page({
   searchParams,
-  params,
 }: {
   searchParams: Promise<searchParams>;
-  params: any;
 }) {
   return (
-    <div className="max-w-[1200px] mx-auto">
+    <>
       <Header searchParams={searchParams} />
-      <div className="mt-24 xl:px-5 md:mt-14 md:!px-0 sm:!mt-10">
+      <div className="max-w-[1200px] mx-auto pb-10 md:py-10 xl:px-5 md:!px-0 text-white">
         <div className="mx-auto">
-          <ChangeNft params={params} />
+          <RWATable />
         </div>
       </div>
-    </div>
+    </>
   );
 }
