@@ -147,7 +147,9 @@ export class ShiftService {
   async sendSignedTransaction(dto: SendSignedTransactionDto) {
     try {
       const buffer = Buffer.from(dto.signedTransaction, 'base64');
-      const transactionId = await connection.sendRawTransaction(buffer);
+      const transactionId = await connection.sendRawTransaction(buffer, {
+        skipPreflight: true,
+      });
       return {
         status: 'success',
         message: 'Transaction sent successfully.',
