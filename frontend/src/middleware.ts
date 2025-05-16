@@ -14,6 +14,7 @@ export function middleware(req: NextRequest) {
   if (!isAuthenticated && pathname !== "/") {
     const url = new URL("/", req.url);
     url.searchParams.set("signin", "true");
+    url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 

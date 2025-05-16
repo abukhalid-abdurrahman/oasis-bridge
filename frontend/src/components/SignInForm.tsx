@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { mutateLogin } from "@/requests/postRequests";
 import LoadingAlt from "./LoadingAlt";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { parseJwt } from "@/lib/scripts/script";
 import Cookies from "js-cookie";
@@ -14,10 +14,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { AxiosError } from "axios";
 
 export default function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   const [isLoading, setIsLoading] = useState(false);
   const setUser = useUserStore((state) => state.setUser);
   const [errorMessage, setErrorMessage] = useState("");
@@ -56,15 +57,8 @@ export default function SignInForm() {
         Cookies.set("oasisToken", token, {
           expires: expiresDate,
         });
-
-        const referrer = document.referrer;
-        const currentOrigin = window.location.origin;
-
-        if (!referrer || !referrer.startsWith(currentOrigin)) {
-          router.push("/");
-        } else {
-          router.back();
-        }
+        
+        router.push(callbackUrl)
       },
       onError: (error: any) => {
         setErrorMessage(error.response?.data.message || "An error occurred");
