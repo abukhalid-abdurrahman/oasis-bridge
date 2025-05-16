@@ -9,7 +9,5 @@ const putRwa = async (tokenId: string, req: any) => {
 export const mutateRwaUpdate = (tokenId: string) => {
   return useMutation({
     mutationFn: (req: any) => putRwa(tokenId, req),
-    onSuccess: () => console.log("Success"),
-    onError: (error) => console.log("Error", error),
   });
 };

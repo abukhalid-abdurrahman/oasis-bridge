@@ -5,37 +5,25 @@ import { useMutation } from "@tanstack/react-query"
 
 // Pot for Register User
 const postRegister = async (req: any) => {
-  const res = await axiosInstance.post(`/auth/register`, req, {
-    headers: {
-      "Content-Type": "application/json",
-    }
-  })
+  const res = await axiosInstance.post(`/auth/register`, req)
   return res.data
 }
 
 export const mutateRegister = () => {
   return useMutation({
     mutationFn: (req: any) => postRegister(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
 // Post for Login User
 const postLogin = async (req: any) => {
-  const res = await axiosInstance.post(`/auth/login`, req, {
-    headers: {
-      "Content-Type": "application/json",
-    }
-  })
+  const res = await axiosInstance.post(`/auth/login`, req)
   return res.data
 }
 
 export const mutateLogin = () => {
   return useMutation({
     mutationFn: (req: any) => postLogin(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -49,28 +37,19 @@ const postChangePassword = async (req: any) => {
 export const mutateChangePassword = () => {
   return useMutation({
     mutationFn: (req: any) => postChangePassword(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
 
 // Post for Logout
 const postLogout = async (req: any) => {
-  const res = await axiosInstance.post(`/logout`, req, {
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${req.token}`
-    }
-  })
+  const res = await axiosInstance.post(`/logout`, req)
   return res.data
 }
 
 export const mutateLogout = () => {
   return useMutation({
     mutationFn: (req: any) => postLogout(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -83,8 +62,6 @@ const postOrders = async (req: any) => {
 export const mutateOrders = () => {
   return useMutation({
     mutationFn: (req: any) => postOrders(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -93,7 +70,6 @@ export const mutateOrders = () => {
 export const postFiles = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
-
   const res = await axiosInstanceForFiles.post(`/files/upload`, formData);
   return res.data;
 };
@@ -108,8 +84,6 @@ const postWallet = async (req: any) => {
 export const mutateWallet = () => {
   return useMutation({
     mutationFn: (req: PostWallet) => postWallet(req),
-    onSuccess: () => console.log('Success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -122,8 +96,6 @@ const postRwaToken = async(req: any) => {
 export const mutateRwaToken = () => {
   return useMutation({
     mutationFn: (req: any) => postRwaToken(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -136,8 +108,6 @@ const postRwaPurchase = async(req: string) => {
 export const mutateRwaPurchase = () => {
   return useMutation({
     mutationFn: (req: any) => postRwaPurchase(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
   })
 }
 
@@ -150,7 +120,5 @@ const postRwaTransaction = async(req: any) => {
 export const mutateRwaTransaction = () => {
   return useMutation({
     mutationFn: (req: any) => postRwaTransaction(req),
-    onSuccess: () => console.log('success'),
-    onError: (error) => console.log('Error', error)
   })
 }
