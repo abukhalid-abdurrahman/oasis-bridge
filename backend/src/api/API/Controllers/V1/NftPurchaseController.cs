@@ -8,6 +8,6 @@ public sealed class NftPurchaseController(INftPurchaseService nftPurchaseService
         => (await nftPurchaseService.CreateAsync(request)).ToActionResult();
 
     [HttpPost("send")]
-    public async Task<IActionResult> SendAsync([FromBody] string transactionHash)
-        => (await nftPurchaseService.SendAsync(transactionHash)).ToActionResult();
+    public async Task<IActionResult> SendAsync([FromBody] SendNftPurchaseTrRequest request)
+        => (await nftPurchaseService.SendAsync(request)).ToActionResult();
 }
