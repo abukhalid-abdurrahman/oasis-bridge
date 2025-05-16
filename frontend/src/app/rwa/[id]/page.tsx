@@ -14,7 +14,7 @@ export default async function page({
   return (
     <>
       <Header searchParams={searchParams} />
-      <div className="max-w-[1200px] md:my-10 xl:px-5 md:!px-0 mt-40 lg:mt-10 sm:!mb-0 sm:pb-5">
+      <div className="max-w-[1200px] mt-16 md:mt-10 xl:px-5 md:!px-0 lg:mt-10 sm:!mb-0 sm:pb-5">
         <div className="mx-auto">
           <RwaData params={params} />
         </div>

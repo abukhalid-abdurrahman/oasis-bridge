@@ -1,5 +1,6 @@
-'use client'
+"use client";
 
+import Loading from "@/components/Loading";
 import {
   Table,
   TableBody,
@@ -7,51 +8,73 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
+import { shortAddress } from "@/lib/scripts/script";
+import { useRwaPurchaseHistory } from "@/requests/getRequests";
+import { format } from "date-fns";
 
-export default function SellBuyData({ data }: { data: any[] }) {
-  const isEmpty = !data || data.length === 0;
+interface SellBuyDataProps {
+  tokenId: string;
+}
+
+export default function SellBuyData({ tokenId }: SellBuyDataProps) {
+  const { data, isFetching } = useRwaPurchaseHistory(tokenId);
 
   return (
-    <div className="mt-10 p-6 bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800">
-      <h2 className="text-2xl font-semibold mb-6 text-white">
-        Sell / Buy History
-      </h2>
-      <div className="rounded-xl overflow-hidden border border-zinc-800">
-        <Table>
-          <TableHeader className="bg-zinc-900">
-            <TableRow className='hover:bg-transparent'>
-              <TableHead className="text-zinc-400 uppercase tracking-wider text-sm">Type</TableHead>
-              <TableHead className="text-zinc-400 uppercase tracking-wider text-sm">Price</TableHead>
-              <TableHead className="text-zinc-400 uppercase tracking-wider text-sm">Amount</TableHead>
-              <TableHead className="text-zinc-400 uppercase tracking-wider text-sm">Date</TableHead>
+    <div className="mt-16 text-white">
+      <h3 className="h3">Sell / Buy History</h3>
+      <Table className="mt-5">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-textGray">
+            <TableHead className="uppercase tracking-wider text-sm px-0">
+              Type
+            </TableHead>
+            <TableHead className="uppercase tracking-wider text-sm px-0">
+              Price
+            </TableHead>
+            <TableHead className="uppercase tracking-wider text-sm px-0">
+              Token
+            </TableHead>
+            <TableHead className="uppercase tracking-wider text-sm px-0">
+              Buyer
+            </TableHead>
+            <TableHead className="uppercase tracking-wider text-sm px-0 text-right">
+              Date
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {!data?.data.length ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={5} className="text-center py-8 px-0 text-textGray">
+                No purchases or sales yet.
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isEmpty ? (
-              <TableRow className='hover:bg-transparent'>
-                <TableCell colSpan={4} className="text-center text-zinc-500 py-8">
-                  No purchases or sales yet.
+          ) : (
+            data.data.map((row: any, i: number) => (
+              <TableRow key={i} className="hover:bg-transparent">
+                <TableCell
+                  className={`px-0 ${
+                    row.type === "Buy"
+                      ? "text-rose-400"
+                      : "text-emerald-400"
+                  }`}
+                >
+                  Buy
+                </TableCell>
+                <TableCell className=" py-5 px-0">
+                  {row.price}
+                </TableCell>
+                <TableCell className=" py-5 px-0">zBTC</TableCell>
+                <TableCell className=" py-5 px-0">{shortAddress(row.buyerPublicKey)}</TableCell>
+                <TableCell className="text-zinc-500 py-5 px-0 text-right">
+                  {format(new Date(row.transactionDate), "yyyy-MM-dd")}
                 </TableCell>
               </TableRow>
-            ) : (
-              data.map((row, i) => (
-                <TableRow
-                  key={i}
-                  className="hover:bg-zinc-900 transition-colors"
-                >
-                  <TableCell className={row.type === 'Buy' ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'}>
-                    {row.type}
-                  </TableCell>
-                  <TableCell className="text-zinc-200 py-5">{row.asset}</TableCell>
-                  <TableCell className="text-zinc-200 py-5">{row.amount}</TableCell>
-                  <TableCell className="text-zinc-500 py-5">{row.date}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
-  )
+  );
 }

@@ -216,3 +216,17 @@ export const useLinkedWallets = (token: string) => {
     queryFn: () => getLinkedWallets(),
   });
 };
+
+
+// Get purchase history
+const getRwaPurchaseHistory = async (tokenId: string) => {
+  const res = await axiosInstance.get(`/nft-purchase-ownership-histories/${tokenId}`)
+  return res.data
+}
+
+export const useRwaPurchaseHistory = (tokenId: string) => {
+  return useQuery({
+    queryKey: ["rwa-purchase-history", tokenId],
+    queryFn: () => getRwaPurchaseHistory(tokenId),
+  });
+}
