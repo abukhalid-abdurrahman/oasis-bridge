@@ -4,6 +4,7 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  TransactionInstruction,
 } from '@solana/web3.js';
 import {
   createTransferInstruction,
@@ -45,6 +46,15 @@ export class ShiftService {
       const blockhash = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash.blockhash;
       transaction.feePayer = buyer;
+      transaction.add(
+        new TransactionInstruction({
+          keys: [],
+          programId: new PublicKey(
+            'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+          ),
+          data: Buffer.from(`purchase:${buyerPubkey}:${nftMint}`),
+        }),
+      );
 
       if (tokenMint) {
         const token = new PublicKey(tokenMint);
