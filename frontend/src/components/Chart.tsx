@@ -12,17 +12,39 @@ interface ChartProps {
 
 export default function Chart({ className, data, firstData }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const firstChangedData = useMemo(() => {
+    return {
+      time: format(new Date(firstData.createdAt), "yyyy-MM-dd"),
+      value: data?.[0]?.oldPrice,
+    };
+  }, [data, firstData]);
+
   const convertedData = useMemo(() => {
-    const allData = [{...firstData}, ...data];
-    return allData.map((item: any) => {
-      const date = item?.createdAt || item?.changedAt;
-      const price = item?.price || item?.newPrice
-      return {
-        time: format(new Date(date), "yyyy-MM-dd"),
-        value: price,
-      };
-    });
-  }, [data]);
+    if (!data || data.length === 0) {
+      const date = firstData?.createdAt || firstData?.changedAt;
+      const price = firstData?.price || firstData?.newPrice;
+
+      return [
+        {
+          time: format(new Date(date), "yyyy-MM-dd"),
+          value: price,
+        },
+      ];
+    } else {
+      const allData = [...data];
+      const result = allData.map((item: any) => {
+        const date = item?.createdAt || item?.changedAt;
+        const price = item?.price || item?.newPrice;
+        return {
+          time: format(new Date(date), "yyyy-MM-dd"),
+          value: price,
+        };
+      });
+
+      result.unshift(firstChangedData);
+      return result;
+    }
+  }, [data, firstData, firstChangedData]);
 
   useEffect(() => {
     const chart = createChart(chartContainerRef.current!, {
@@ -52,7 +74,7 @@ export default function Chart({ className, data, firstData }: ChartProps) {
       bottomColor: "rgba(12, 18, 59, 0.1)",
     });
 
-    candleSeries.setData(convertedData);
+    candleSeries.setData(convertedData as any);
 
     chart.timeScale().fitContent();
 
