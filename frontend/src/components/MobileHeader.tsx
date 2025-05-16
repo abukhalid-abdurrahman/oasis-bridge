@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu } from "lucide-react";
+import { ArrowLeftRight, ChartCandlestick, ListCheck, ListPlus, Menu } from "lucide-react";
 import { Button, buttonVariants } from "./ui/button";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
@@ -48,7 +48,7 @@ export default function MobileHeader({
 
   return (
     <>
-      <header className="justify-between items-center py-4 w-full text-white hidden md:flex">
+      <header className="justify-between items-center py-4 px-5 w-full text-white hidden lg:flex md:!px-0">
         <Link href="/" className="text-lg font-semibold">
           Quantum Street Bridge
         </Link>
@@ -93,8 +93,15 @@ export default function MobileHeader({
                 href={`${user ? "/rwa/create" : "?signin=true"}`}
                 className="w-full flex gap-2 items-center"
               >
-                <ChevronsUp size={5} strokeWidth={1} className="mr-1" />
+                <ListPlus size={5} strokeWidth={1} className="mr-1" />
                 Create RWA
+              </Link>
+              <Link
+                href={`${user ? "/rwa/me" : "?signin=true"}`}
+                className="w-full flex gap-2 items-center"
+              >
+                <ListCheck size={5} strokeWidth={1} className="mr-1" />
+                My RWAs
               </Link>
             </div>
           </nav>

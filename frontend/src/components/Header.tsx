@@ -8,6 +8,7 @@ import HeaderBtns from "./HeaderBtns";
 import MobileHeader from "./MobileHeader";
 import WalletConnect from "./WalletConnect";
 import CreateRwaLink from "./CreateRwaLink";
+import MyRwaLink from "./MyRwaLink";
 
 export default async function Header({
   searchParams,
@@ -18,7 +19,7 @@ export default async function Header({
 
   return (
     <>
-      <header className="flex justify-between items-center text-white py-4 mb-10 w-full xl:px-5 md:hidden">
+      <header className="flex justify-between items-center text-white py-4 mb-10 w-full xl:px-5 lg:hidden">
         <div className="flex items-center gap-7">
           <Link href="/" className="font-semibold">
             Quantum Street Bridge
@@ -32,6 +33,9 @@ export default async function Header({
             </li>
             <li className="">
               <CreateRwaLink />
+            </li>
+            <li className="">
+              <MyRwaLink />
             </li>
           </ul>
         </div>
