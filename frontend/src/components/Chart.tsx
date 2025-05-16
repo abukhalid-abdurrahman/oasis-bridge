@@ -6,14 +6,16 @@ import { AreaSeries, createChart, LineStyle } from "lightweight-charts";
 import { useEffect, useMemo, useRef } from "react";
 
 interface ChartProps {
-  className?: string;
+  firstData: any;
   data: any;
+  className?: string;
 }
 
-export default function Chart({ className, data }: ChartProps) {
+export default function Chart({ className, data, firstData }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const convertedData = useMemo(() => {
-    return data.map((item: any) => {
+    const allData = [...data]
+    return allData.map((item: any) => {
       return {
         time: format(new Date(item.changedAt), "yyyy-MM-dd"),
         value: item.newPrice,
