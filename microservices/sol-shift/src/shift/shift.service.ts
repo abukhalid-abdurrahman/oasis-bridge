@@ -5,6 +5,7 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
   TransactionInstruction,
+  SendTransactionError,
 } from '@solana/web3.js';
 import {
   createTransferInstruction,
@@ -148,27 +149,40 @@ export class ShiftService {
     try {
       const buffer = Buffer.from(dto.signedTransaction, 'base64');
       const transactionId = await connection.sendRawTransaction(buffer);
+
       return {
         status: 'success',
         message: 'Transaction sent successfully.',
         code: HttpStatus.OK,
         data: {
-          transactionId: transactionId,
+          transactionId,
         },
       };
-    } catch (error) {
-      if (error.message) {
-        throw new BadRequestException({
-          status: 'error',
-          message: error.message,
-          code: HttpStatus.BAD_REQUEST,
-        });
+    } catch (error: any) {
+      if (
+        error instanceof SendTransactionError &&
+        error.message?.includes('already been processed')
+      ) {
+        const decodedTx = Transaction.from(
+          Buffer.from(dto.signedTransaction, 'base64'),
+        );
+        const signatureBuffer = decodedTx.signatures[0]?.signature;
+        const txId = signatureBuffer ? bs58.encode(signatureBuffer) : 'unknown';
+
+        return {
+          status: 'warning',
+          message: 'Transaction was already processed.',
+          code: HttpStatus.OK,
+          data: {
+            transactionId: txId,
+          },
+        };
       }
 
-      throw new InternalServerErrorException({
+      throw new BadRequestException({
         status: 'error',
-        message: 'Transaction sending failed.',
-        code: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message,
+        code: HttpStatus.BAD_REQUEST,
       });
     }
   }
