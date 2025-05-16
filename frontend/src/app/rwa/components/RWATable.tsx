@@ -203,7 +203,7 @@ export default function RWATable() {
                           })()}
                       </TableCell>
                       <TableCell className="text-right space-x-2">
-                        {rwa.ownerUsername === user!.UserName && (
+                        {rwa.ownerUsername === user!?.UserName && (
                           <Link
                             href={`/rwa/${rwa.tokenId}/update`}
                             className={buttonVariants({
