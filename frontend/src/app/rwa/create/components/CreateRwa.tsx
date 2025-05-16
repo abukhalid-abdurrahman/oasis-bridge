@@ -432,7 +432,6 @@ export default function CreateRwa() {
                 type="submit"
                 size="xl"
                 className={`w-full ${isSecondStep ? "block" : "hidden"}`}
-                onClick={() => setIsTokenized(true)}
               >
                 Mint RWA
               </Button>

@@ -144,7 +144,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "area",
     placeholder: "Area",
     type: "number",
-    validation: z.number().min(1, { message: "Area is required" }),
+    validation: z.coerce.number().min(1, { message: "Area is required" }),
     defaultValue: "",
   },
   {
@@ -160,13 +160,13 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "constructionYear",
     placeholder: "Construction Year",
     type: "number",
-    validation: z
+    validation: z.coerce
       .number()
       .min(1, { message: "Construction year is required" }),
     defaultValue: "",
   },
   {
-    name: "insurance_status",
+    name: "insuranceStatus",
     placeholder: "Insurance Status",
     type: "string",
     validation: z.enum([...INSURANSE_STATUSES] as [string, ...string[]]),

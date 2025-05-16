@@ -45,7 +45,7 @@ export default function SelectAssetField({ item, form }: SelectAssetFieldProps) 
             </FormControl>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>{item.placeholder}s</SelectLabel>
+                <SelectLabel>{item.placeholder}</SelectLabel>
                 {item.selectItems?.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
