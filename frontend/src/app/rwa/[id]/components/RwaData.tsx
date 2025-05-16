@@ -8,9 +8,8 @@ import { shortDescription } from "@/lib/scripts/script";
 import { useRwa, useRwaChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PurchaseButton from "@/components/PurchaseButton";
-import SellBuyData from "./SellBuyData";
 
 interface RwaDataProps {
   params: any;

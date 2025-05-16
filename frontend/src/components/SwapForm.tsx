@@ -7,7 +7,6 @@ import Image from "next/image";
 import CryptoModal from "./CryptoModal";
 import StatusModal from "./StatusModal";
 import CryptoAddressModal from "./CryptoAddressModal";
-// import Button from "./Button";
 
 import { useSwap } from "@/hooks/swapHooks";
 import { useExchangeRate } from "@/requests/getRequests";

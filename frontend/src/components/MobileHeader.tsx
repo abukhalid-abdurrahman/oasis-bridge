@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu, X } from "lucide-react";
+import { ArrowLeftRight, ChartCandlestick, ChevronsUp, Menu } from "lucide-react";
 import { Button, buttonVariants } from "./ui/button";
 import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";

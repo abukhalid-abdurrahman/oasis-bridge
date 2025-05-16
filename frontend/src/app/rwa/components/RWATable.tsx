@@ -14,7 +14,7 @@ import {
   shortDescription,
 } from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
 import {
   useRwaChangesMultiple,

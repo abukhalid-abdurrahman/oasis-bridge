@@ -27,9 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PageTitle from "@/components/PageTitle";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ASSET_TYPES } from "@/lib/constants";
-import { useRwa, useRwaMe } from "@/requests/getRequests";
+import { useRwa } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 import { shortDescription, uploadFile } from "@/lib/scripts/script";

@@ -12,7 +12,7 @@ import CountdownTimer from "./CountdownTimer";
 import { VirtualAddressMesages } from "@/lib/helpers/virtualAddressMessages";
 import { SelectedCrypto } from "@/lib/cryptoOptions";
 import { useUserStore } from "@/store/useUserStore";
-import { Button, buttonVariants } from "./ui/button";
+import { buttonVariants } from "./ui/button";
 
 interface StatusModalProps {
   setIsStatusModalOpen: any;

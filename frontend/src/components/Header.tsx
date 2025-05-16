@@ -5,7 +5,6 @@ import SignInModal from "./SignInModal";
 import SignUpModal from "./SignUpModal";
 import { searchParams } from "@/lib/types";
 import HeaderBtns from "./HeaderBtns";
-import { buttonVariants } from "./ui/button";
 import MobileHeader from "./MobileHeader";
 import WalletConnect from "./WalletConnect";
 import CreateRwaLink from "./CreateRwaLink";

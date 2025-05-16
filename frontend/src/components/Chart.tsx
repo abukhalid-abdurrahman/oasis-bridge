@@ -1,6 +1,5 @@
 "use client";
 
-import { chartExample } from "@/lib/helpers/chartExample";
 import { format } from "date-fns";
 import { AreaSeries, createChart, LineStyle } from "lightweight-charts";
 import { useEffect, useMemo, useRef } from "react";

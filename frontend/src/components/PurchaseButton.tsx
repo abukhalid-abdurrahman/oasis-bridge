@@ -8,7 +8,7 @@ import {
   mutateRwaTransaction,
 } from "@/requests/postRequests";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { Connection, Transaction } from "@solana/web3.js";
 import { useWalletStore } from "@/store/useWalletStore";
 import { SOLANA_NET } from "@/lib/constants";

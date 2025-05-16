@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Modal from "./Modal";
 import { Button } from "./ui/button";
 import { useEffect } from "react";
 import Loading from "./Loading";
