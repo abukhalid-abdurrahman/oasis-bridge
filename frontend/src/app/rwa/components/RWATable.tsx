@@ -27,6 +27,7 @@ import _ from "lodash";
 import Link from "next/link";
 import Filters from "./Filters";
 import { useUserStore } from "@/store/useUserStore";
+import PurchaseButton from "@/components/PurchaseButton";
 
 export default function RWATable() {
   const { user } = useUserStore();
@@ -223,9 +224,7 @@ export default function RWATable() {
                         >
                           Details
                         </Link>
-                        <Button variant="green" size="sm">
-                          Purchase
-                        </Button>
+                        <PurchaseButton usageInMarketPage={true} tokenId={rwa.tokenId} />
                       </TableCell>
                     </TableRow>
                   );

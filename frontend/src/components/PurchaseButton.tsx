@@ -15,10 +15,12 @@ import { SOLANA_NET } from "@/lib/constants";
 
 interface PurchaseButtonProps {
   tokenId: string;
+  usageInMarketPage?: boolean;
 }
 
 export default function PurchaseButton({
   tokenId,
+  usageInMarketPage,
 }: PurchaseButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
@@ -47,7 +49,7 @@ export default function PurchaseButton({
       if (!publicKey) {
         setIsError(true);
         setErrorMessage("Please connect your wallet firstly.");
-        return
+        return;
       }
 
       const connectRes = await provider.connect();
@@ -79,22 +81,25 @@ export default function PurchaseButton({
               const rawTx = signedTransaction.serialize();
               const txBase64Signed = Buffer.from(rawTx).toString("base64");
 
-              submitTransaction.mutate({
-                transactionHash: txBase64,
-                transactionSignature: txBase64Signed
-              }, {
-                onSuccess: (res) => {
-                  setTransactionId(res.data);
-                  setIsSuccessfullyDone(true);
+              submitTransaction.mutate(
+                {
+                  transactionHash: txBase64,
+                  transactionSignature: txBase64Signed,
                 },
-                onError: (err: any) => {
-                  setErrorMessage(
-                    err?.response?.data?.error?.message ||
-                      "Transaction submission failed"
-                  );
-                  setIsError(true);
-                },
-              });
+                {
+                  onSuccess: (res) => {
+                    setTransactionId(res.data);
+                    setIsSuccessfullyDone(true);
+                  },
+                  onError: (err: any) => {
+                    setErrorMessage(
+                      err?.response?.data?.error?.message ||
+                        "Transaction submission failed"
+                    );
+                    setIsError(true);
+                  },
+                }
+              );
             } catch (err: any) {
               console.error("Signing or submission error:", err);
               setErrorMessage(err.message || "Something went wrong");
@@ -124,7 +129,11 @@ export default function PurchaseButton({
 
   return (
     <>
-      <Button variant="green" size="lg" onClick={handlePurchase}>
+      <Button
+        variant="green"
+        size={`${usageInMarketPage ? "sm" : "lg"}`}
+        onClick={handlePurchase}
+      >
         Purchase
       </Button>
       {isModalOpen && (
