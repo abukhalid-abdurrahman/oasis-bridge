@@ -17,3 +17,4 @@ export const ASSET_TYPES = [
 ] as const;
 
 export const PROPERTY_TYPES = ["Residential", "Commercial", "Land"];
+export const INSURANSE_STATUSES = ['Active', 'Expired', 'Pending', 'Cancelled']

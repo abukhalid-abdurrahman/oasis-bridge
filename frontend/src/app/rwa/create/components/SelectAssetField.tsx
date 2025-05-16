@@ -47,7 +47,7 @@ export default function SelectAssetField({ item, form }: SelectAssetFieldProps) 
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>{item.placeholder}s</SelectLabel>
-                {PROPERTY_TYPES.map((type) => (
+                {item.selectItems?.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>

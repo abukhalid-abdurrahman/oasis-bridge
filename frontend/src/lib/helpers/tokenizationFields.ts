@@ -1,8 +1,7 @@
 import { z, ZodObject, ZodTypeAny } from "zod";
 import {
-  ACCEPTED_DOCUMENT_TYPES,
   ASSET_TYPES,
-  MAX_FILE_SIZE,
+  INSURANSE_STATUSES,
   PROPERTY_TYPES,
 } from "../constants";
 import { TokenizationField } from "../types";
@@ -12,7 +11,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "image",
     placeholder: "Image",
     type: "string",
-    validation: z.string().url(),
+    validation: z.string().url({ message: "Image is required" }),
   },
   {
     name: "title",
@@ -30,12 +29,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "proofOfOwnershipDocument",
     placeholder: "Proof of ownership document",
     type: "file",
-    validation: z.string().url(),
-    // .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
-    // .refine(
-    //   (file) => ACCEPTED_DOCUMENT_TYPES.includes(file?.type),
-    //   "Only .jpg, .jpeg, .png and .webp .pdf formats are supported."
-    // ),
+    validation: z.string().url({ message: "Proof of ownership document is required" }),
   },
   {
     name: "uniqueIdentifier",
@@ -62,7 +56,9 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "price",
     placeholder: "Price",
     type: "number",
-    validation: z.coerce.number({ message: "Price is required" }),
+    validation: z.coerce
+      .number()
+      .min(0.0001, { message: "The price must be above 0.0001" }),
   },
   {
     name: "ownerContact",
@@ -95,7 +91,14 @@ export const tokenizationFieldsAutomobiles: TokenizationField[] = [
     name: "geolocation",
     placeholder: "Geolocation",
     type: "string",
-    validation: z.any(),
+    validation: z.any().refine(
+      (val) => {
+        return val !== null && val !== undefined && val !== "";
+      },
+      {
+        message: "Geolocation is required",
+      }
+    ),
     defaultValue: "",
   },
   {
@@ -119,7 +122,14 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "geolocation",
     placeholder: "Asset Location (Geolocation / Country)",
     type: "string",
-    validation: z.any(),
+    validation: z.any().refine(
+      (val) => {
+        return val !== null && val !== undefined && val !== "";
+      },
+      {
+        message: "Geolocation is required",
+      }
+    ),
     defaultValue: "",
   },
   {
@@ -134,7 +144,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "area",
     placeholder: "Area",
     type: "number",
-    validation: z.coerce.number().min(1, { message: "Area is required" }),
+    validation: z.number().min(1, { message: "Area is required" }),
     defaultValue: "",
   },
   {
@@ -150,18 +160,20 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "constructionYear",
     placeholder: "Construction Year",
     type: "number",
-    validation: z.coerce
+    validation: z
       .number()
       .min(1, { message: "Construction year is required" }),
     defaultValue: "",
   },
-  // {
-  //   name: "insurance_status",
-  //   placeholder: "Insurance Status",
-  //   type: "string",
-  //   validation: z.string().min(1, { message: "Insurance Status is required" }),
-  //   defaultValue: "",
-  // },
+  {
+    name: "insurance_status",
+    placeholder: "Insurance Status",
+    type: "string",
+    validation: z.enum([...INSURANSE_STATUSES] as [string, ...string[]]),
+    defaultValue: "",
+    HTMLType: "select",
+    selectItems: [...INSURANSE_STATUSES],
+  },
 ];
 
 export const getZodSchemaFromFields = (
