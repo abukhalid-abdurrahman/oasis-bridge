@@ -38,18 +38,20 @@ import UpdatingModal from "./UpdatingModal";
 import Link from "next/link";
 import { useUserStore } from "@/store/useUserStore";
 import { redirect } from "next/navigation";
+import AllRwaData from "@/components/AllRwaData";
 
 interface ChangeRwaProps {
-  params: any
+  params: any;
 }
 
 export default function ChangeRwa({ params }: ChangeRwaProps) {
-  const tokenId = JSON.parse(params.value).id
+  const tokenId = JSON.parse(params.value).id;
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
   const [isUpdated, setIsUpdated] = useState(false);
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
-  const { user } = useUserStore()
+  const [isAlldataOpen, setIsAlldataOpen] = useState(false);
+  const { user } = useUserStore();
 
   const { data, isFetching, isFetched } = useRwa(tokenId);
 
@@ -101,12 +103,12 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
   useEffect(() => {
     if (isFetched && data) {
       if (data.data.ownerUsername === user?.UserName) {
-        return
+        return;
       } else {
-        redirect('/')
+        redirect("/");
       }
     }
-  }, [isFetched])
+  }, [isFetched]);
 
   if (isFetching || !isFetched) {
     return (
@@ -199,7 +201,11 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
-                        <Input type="number" placeholder="Price in zBTC" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="Price in zBTC"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -380,9 +386,11 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
                 <span className="text-gray-500">IPFS CID:</span>{" "}
-                <Link href={data.data.image}>{shortDescription(data.data.image)}</Link>
+                <Link href={data.data.image}>
+                  {shortDescription(data.data.image)}
+                </Link>
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 md:flex-wrap">
                 <div
                   className={`${buttonVariants({
                     variant: "gray",
@@ -401,15 +409,15 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   <span className="text-gray-500">Royalty:</span>
                   {data.data.royalty}%
                 </div>
-                <div
-                  className={`${buttonVariants({
-                    variant: "gray",
-                    size: "lg",
-                  })} !px-5 !w-full flex justify-between flex-wrap`}
-                >
-                  <span className="text-gray-500">Net Amout:</span>
-                  {existedNetAmount}
-                </div>
+              </div>
+              <div
+                className={`${buttonVariants({
+                  variant: "gray",
+                  size: "lg",
+                })} !px-5 !w-full flex justify-between flex-wrap`}
+              >
+                <span className="text-gray-500">Net Amout:</span>
+                {existedNetAmount}
               </div>
               <div
                 className={`${buttonVariants({
@@ -419,6 +427,15 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
               >
                 <span className="text-gray-500">State:</span> Listed
               </div>
+              <Button
+                variant="gray"
+                size="default"
+                type="button"
+                onClick={() => setIsAlldataOpen(true)}
+                className="!px-5 !w-full flex justify-center flex-wrap cursor-pointer"
+              >
+                Show all information
+              </Button>
             </div>
           </div>
         </form>
@@ -430,6 +447,9 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
           form={form}
           tokenId={data.data.tokenId}
         />
+      )}
+      {isAlldataOpen && (
+        <AllRwaData data={data.data} setIsOpen={setIsAlldataOpen} />
       )}
     </>
   );
