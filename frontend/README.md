@@ -17,15 +17,21 @@ Before you begin, ensure you have:
 In root directury run
 
 ```bash
-docker build -t oasis-front .
+docker build -t app-name .
 ```
 
 ---
 
 ## 🚀 Run the Container
 
-In root directury run
+In root directury run. For devnet
 
 ```bash
-docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1 app-name
+docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1 -e NEXT_PUBLIC_SOLANA_NET=https://api.devnet.solana.com app-name
+```
+
+or for mainnet
+
+```bash
+docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1 -e NEXT_PUBLIC_SOLANA_NET=https://api.mainnet-beta.solana.com app-name
 ```
