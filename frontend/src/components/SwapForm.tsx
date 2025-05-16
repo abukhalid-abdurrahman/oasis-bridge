@@ -146,7 +146,7 @@ export default function SwapForm() {
                     e.key !== "Backspace" &&
                     e.key !== "Delete"
                   ) {
-                    e.preventDefault(); // Блокируем ввод всех нечисловых символов
+                    e.preventDefault();
                   }
                 }}
                 {...register("fromAmount", {

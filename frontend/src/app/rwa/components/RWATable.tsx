@@ -4,16 +4,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
 import {
-  calculatePercentageDifference,
   shortDescription,
 } from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -29,8 +26,10 @@ import { RwasReq } from "@/lib/types";
 import _ from "lodash";
 import Link from "next/link";
 import Filters from "./Filters";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function RWATable() {
+  const { user } = useUserStore();
   const [tokenIds, setTokenIds] = useState<string[]>([]);
   const [reqParams, setReqParams] = useState<RwasReq>({
     assetType: null,
@@ -179,7 +178,7 @@ export default function RWATable() {
                             const diff =
                               ((rwa.price - rwa.oldPrice) / rwa.oldPrice) * 100;
                             const isPositive = diff > 0;
-                            const isNeutral = diff === 0
+                            const isNeutral = diff === 0;
                             const percentage = Math.abs(diff).toFixed(2) + "%";
 
                             return (
@@ -195,7 +194,7 @@ export default function RWATable() {
                                 {isPositive && (
                                   <ChevronUp size={15} className="inline" />
                                 )}
-                                {(!isPositive && !isNeutral) && (
+                                {!isPositive && !isNeutral && (
                                   <ChevronDown size={15} className="inline" />
                                 )}
                                 {percentage}
@@ -204,6 +203,17 @@ export default function RWATable() {
                           })()}
                       </TableCell>
                       <TableCell className="text-right space-x-2">
+                        {rwa.ownerUsername === user!.UserName && (
+                          <Link
+                            href={`/rwa/${rwa.tokenId}/update`}
+                            className={buttonVariants({
+                              variant: "gray",
+                              size: "sm",
+                            })}
+                          >
+                            Update
+                          </Link>
+                        )}
                         <Link
                           href={`/rwa/${rwa.tokenId}`}
                           className={buttonVariants({
@@ -224,7 +234,9 @@ export default function RWATable() {
             </Table>
           ) : (
             <>
-              <h3 className="h3 text-center mt-20 opacity-60">There are no RWAs available yet.</h3>
+              <h3 className="h3 text-center mt-20 opacity-60">
+                There are no RWAs available yet.
+              </h3>
             </>
           )}
         </>

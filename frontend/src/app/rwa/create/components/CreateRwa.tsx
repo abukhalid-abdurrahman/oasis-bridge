@@ -143,7 +143,7 @@ export default function CreateRwa() {
         >
           <DragAndDropUpload control={form.control} name="image" />
           <div className="w-1/2 md:w-full">
-            <PageTitle title="Create your own RWA" />
+            <PageTitle title="Create your Decentrlised Trust Agreement RWA" />
             <div
               className={`flex flex-col gap-2 firstStep ${
                 isSecondStep ? "hidden" : "block"
@@ -434,7 +434,7 @@ export default function CreateRwa() {
                 className={`w-full ${isSecondStep ? "block" : "hidden"}`}
                 onClick={() => setIsTokenized(true)}
               >
-                Tokenize
+                Mint RWA
               </Button>
             </div>
           </div>
