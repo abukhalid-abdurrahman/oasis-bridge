@@ -35,7 +35,7 @@ export default function RwaData({ params }: RwaDataProps) {
     <>
       <div className="grid grid-cols-3 gap-10 lg:gap-10 lg:flex lg:flex-col-reverse">
         <Chart
-          firstData={data}
+          firstData={data.data}
           data={sellBuyData.data}
           className="col-span-2 lg:col-span-1 lg:order-1"
         />
