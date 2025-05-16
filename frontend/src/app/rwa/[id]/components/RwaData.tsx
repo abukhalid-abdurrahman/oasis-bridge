@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import PurchaseButton from "@/components/PurchaseButton";
+import SellBuyData from "./SellBuyData";
 
 interface RwaDataProps {
   params: any;
@@ -123,7 +124,7 @@ export default function RwaData({ params }: RwaDataProps) {
           <AllRwaData setIsOpen={setIsAlldataOpen} data={data.data} />
         )}
       </div>
-      {/* <SellBuyData data={simulatedData} /> */}
+      <SellBuyData tokenId={tokenId} />
     </>
   );
 }
