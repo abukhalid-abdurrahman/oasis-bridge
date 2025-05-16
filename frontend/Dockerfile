@@ -9,6 +9,7 @@ RUN npm install --frozen-lockfile --force
 COPY . .
 
 ENV NEXT_PUBLIC_API_URL=NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SOLANA_NET=NEXT_PUBLIC_SOLANA_NET
 
 RUN npm run build
 
