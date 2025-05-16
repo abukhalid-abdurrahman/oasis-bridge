@@ -21,6 +21,7 @@ import bs58 from 'bs58';
 import { CreateTransactionDto } from './dto/createTransaction.dto';
 import { TransactionResponseDto } from './dto/transactionResponse.dto';
 import { SendSignedTransactionDto } from './dto/sendSignedTransaction.dt';
+import { SPL_LAMPROTS } from 'src/lib/constants';
 
 @Injectable()
 export class ShiftService {
@@ -78,7 +79,7 @@ export class ShiftService {
             buyerToken.address,
             sellerToken.address,
             buyer,
-            price,
+            price * SPL_LAMPROTS,
           ),
         );
       } else {
