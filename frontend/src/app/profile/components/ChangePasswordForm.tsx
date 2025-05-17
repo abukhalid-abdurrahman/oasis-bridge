@@ -55,7 +55,7 @@ export default function ChangePasswordForm() {
         setIsLoading(false);
       },
       onError: (error: any) => {
-        setErrorMessage(error.response.data.error.message);
+        setErrorMessage(error.response?.data?.error?.message || 'An error occurred');
       },
     });
   };

@@ -19,6 +19,7 @@ interface TokenizationModalProps {
     }
   >;
   isError: boolean;
+  errorMessage: string;
   isSuccessfullyDone: boolean;
   tokenId: string;
   setIsSuccessfullyDone: Dispatch<SetStateAction<boolean>>;
@@ -29,6 +30,7 @@ export default function TokenizationModal({
   setIsSecondStep,
   form,
   isError,
+  errorMessage,
   isSuccessfullyDone,
   tokenId,
   setIsSuccessfullyDone,
@@ -89,9 +91,7 @@ export default function TokenizationModal({
             </Button>
           </>
         )}
-        {!isSuccessfullyDone && isError && (
-          <p className="p">Something went wrong. Please try again later.</p>
-        )}
+        {!isSuccessfullyDone && isError && <p className="p">{errorMessage}</p>}
       </div>
     </Modal>
   );

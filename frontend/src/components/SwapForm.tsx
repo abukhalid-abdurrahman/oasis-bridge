@@ -110,7 +110,7 @@ export default function SwapForm() {
           setResponseData(response);
         },
         onError: (error: any) => {
-          setOrderError(error.response.data.error.message);
+          setOrderError(error.response?.data?.error?.message || 'An error occurred');
         },
       });
       setIsCryptoAddressModalOpen(true);
