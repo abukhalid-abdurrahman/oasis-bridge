@@ -61,7 +61,7 @@ export default function SignInForm() {
         router.push(callbackUrl)
       },
       onError: (error: any) => {
-        setErrorMessage(error.response?.data.message || "An error occurred");
+        setErrorMessage(error.response?.data?.error?.message || "An error occurred");
       },
       onSettled: () => {
         setIsLoading(false);

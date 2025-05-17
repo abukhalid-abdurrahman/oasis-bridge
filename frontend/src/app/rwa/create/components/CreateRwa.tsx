@@ -61,6 +61,7 @@ export default function CreateRwa() {
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [tokenId, setTokenId] = useState("");
 
   const submit = mutateRwaToken();
@@ -98,13 +99,19 @@ export default function CreateRwa() {
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setIsTokenized(true);
+    setIsError(false);
+    setErrorMessage("");
     submit.mutate(data, {
       onSuccess: (res) => {
         setIsSuccessfullyDone(true);
         setTokenId(res.data.tokenId);
       },
-      onError: () => {
+      onError: (error: any) => {
         setIsError(true);
+        setErrorMessage(
+          error.response?.data?.error?.message ||
+            "Something went wrong. Please try again later."
+        );
       },
     });
   };
@@ -221,7 +228,11 @@ export default function CreateRwa() {
                   render={({ field }) => (
                     <FormItem className="w-1/3">
                       <FormControl>
-                        <Input type="number" placeholder="Price in zBTC" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="Price in zBTC"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -450,6 +461,7 @@ export default function CreateRwa() {
       )}
       {isTokenized && (
         <TokenizationModal
+          errorMessage={errorMessage}
           isError={isError}
           isSuccessfullyDone={isSuccessfullyDone}
           setIsSuccessfullyDone={setIsSuccessfullyDone}

@@ -62,7 +62,7 @@ export default function SignUpForm() {
         setIsLoading(false);
       },
       onError: (error: any) => {
-        setErrorMessage(error.response?.data.message || "An error occurred");
+        setErrorMessage(error.response?.data?.error?.message || "An error occurred");
       },
     });
   };
