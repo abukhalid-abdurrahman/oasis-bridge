@@ -23,7 +23,7 @@ export default function SellBuyData({ tokenId }: SellBuyDataProps) {
   return (
     <div className="mt-16 text-white">
       <h3 className="h3">Sell / Buy History</h3>
-      <Table className="mt-5">
+      <Table className="mt-5 xs:min-w-[480px] xs:overflow-x-auto">
         <TableHeader>
           <TableRow className="hover:bg-transparent border-textGray">
             <TableHead className="uppercase tracking-wider text-sm px-0">
