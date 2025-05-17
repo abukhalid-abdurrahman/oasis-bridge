@@ -1,50 +1,56 @@
 namespace Infrastructure.ImplementationContract;
 
+/// <summary>
+/// Service responsible for handling CRUD operations related to Network Tokens.
+/// Implements logging and validation logic, and interacts with the database context.
+/// </summary>
 public sealed class NetworkTokenService(
     DataContext dbContext,
     IHttpContextAccessor accessor,
     ILogger<NetworkTokenService> logger) : INetworkTokenService
 {
     /// <summary>
-    /// Retrieves a paged list of network tokens based on the provided filter.
+    /// Retrieves a paginated list of network tokens based on the provided filter criteria.
     /// </summary>
+    /// <param name="filter">Filter containing symbol, description, and pagination parameters.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>Paginated result of network tokens.</returns>
     public async Task<Result<PagedResponse<IEnumerable<GetNetworkTokenResponse>>>> GetNetworkTokensAsync(
         NetworkTokenFilter filter, CancellationToken token = default)
     {
-        logger.LogInformation("Starting GetNetworkTokensAsync at {Time}", DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetNetworkTokensAsync), date);
 
-        logger.LogInformation("Building query for network tokens using filters: Symbol = {Symbol}, Description = {Description}",
-            filter.Symbol, filter.Description);
         IQueryable<GetNetworkTokenResponse> query = dbContext.NetworkTokens
             .AsNoTracking()
             .ApplyFilter(filter.Symbol, x => x.Symbol)
             .ApplyFilter(filter.Description, x => x.Description)
             .Select(x => x.ToRead());
 
-        logger.LogInformation("Counting total network tokens matching the filter criteria.");
         int totalCount = await query.CountAsync(token);
-        logger.LogInformation("Total count of network tokens: {TotalCount}", totalCount);
 
-        logger.LogInformation("Applying pagination: PageNumber = {PageNumber}, PageSize = {PageSize}",
-            filter.PageNumber, filter.PageSize);
-        var pagedResult = PagedResponse<IEnumerable<GetNetworkTokenResponse>>.Create(
-            filter.PageSize,
-            filter.PageNumber,
-            totalCount,
-            query.Page(filter.PageNumber, filter.PageSize));
+        PagedResponse<IEnumerable<GetNetworkTokenResponse>> pagedResult =
+            PagedResponse<IEnumerable<GetNetworkTokenResponse>>.Create(
+                filter.PageSize,
+                filter.PageNumber,
+                totalCount,
+                query.Page(filter.PageNumber, filter.PageSize));
 
-        logger.LogInformation("Finishing GetNetworkTokensAsync at {Time}", DateTimeOffset.UtcNow);
+        logger.OperationCompleted(nameof(GetNetworkTokensAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         return Result<PagedResponse<IEnumerable<GetNetworkTokenResponse>>>.Success(pagedResult);
     }
 
     /// <summary>
-    /// Retrieves detailed information about a specific network token.
+    /// Retrieves detailed information about a specific network token by its unique identifier.
     /// </summary>
-    public async Task<Result<GetNetworkTokenDetailResponse>> GetNetworkTokenDetailAsync(Guid networkTokenId, CancellationToken token)
+    /// <param name="networkTokenId">Unique identifier of the network token.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>Detailed information of the requested network token, if found.</returns>
+    public async Task<Result<GetNetworkTokenDetailResponse>> GetNetworkTokenDetailAsync(Guid networkTokenId,
+        CancellationToken token)
     {
-        logger.LogInformation("Starting GetNetworkTokenDetailAsync for NetworkTokenId: {NetworkTokenId} at {Time}", networkTokenId, DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(GetNetworkTokenDetailAsync), date);
 
         GetNetworkTokenDetailResponse? networkToken = await dbContext.NetworkTokens
             .AsNoTracking()
@@ -52,127 +58,157 @@ public sealed class NetworkTokenService(
             .Select(x => x.ToReadDetail())
             .FirstOrDefaultAsync(token);
 
-        if (networkToken is not null)
-        {
-            logger.LogInformation("Successfully retrieved details for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<GetNetworkTokenDetailResponse>.Success(networkToken);
-        }
-        else
-        {
-            logger.LogWarning("Network token not found for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<GetNetworkTokenDetailResponse>.Failure(ResultPatternError.NotFound("Network Token not found"));
-        }
+        logger.OperationCompleted(nameof(GetNetworkTokenDetailAsync), DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow - date);
+
+        return networkToken is not null
+            ? Result<GetNetworkTokenDetailResponse>.Success(networkToken)
+            : Result<GetNetworkTokenDetailResponse>.Failure(ResultPatternError.NotFound(Messages.NetworkTokenNotFound));
     }
 
     /// <summary>
-    /// Creates a new network token.
+    /// Creates a new network token if one does not already exist with the same symbol and network.
     /// </summary>
-    public async Task<Result<CreateNetworkTokenResponse>> CreateNetworkTokenAsync(CreateNetworkTokenRequest request, CancellationToken token)
+    /// <param name="request">Request object containing token data.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>The result of the creation operation, including the new token's ID if successful.</returns>
+    public async Task<Result<CreateNetworkTokenResponse>> CreateNetworkTokenAsync(CreateNetworkTokenRequest request,
+        CancellationToken token)
     {
-        logger.LogInformation("Starting CreateNetworkTokenAsync at {Time}", DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(CreateNetworkTokenAsync), date);
 
-        logger.LogInformation("Checking if network token with Symbol = {Symbol} and NetworkId = {NetworkId} already exists.", request.Symbol, request.NetworkId);
         bool tokenExists = await dbContext.NetworkTokens
             .AnyAsync(x => x.Symbol == request.Symbol && x.NetworkId == request.NetworkId, token);
         if (tokenExists)
         {
-            logger.LogWarning("Network token already exists with Symbol: {Symbol} on NetworkId: {NetworkId}.", request.Symbol, request.NetworkId);
-            return Result<CreateNetworkTokenResponse>.Failure(ResultPatternError.Conflict("Network Token already exists"));
+            logger.OperationCompleted(nameof(CreateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+
+            return Result<CreateNetworkTokenResponse>.Failure(
+                ResultPatternError.Conflict(Messages.NetworkTokenAlreadyExist));
         }
 
-        logger.LogInformation("Mapping CreateNetworkTokenRequest to NetworkToken entity.");
-        NetworkToken newToken = request.ToEntity(accessor);
-        logger.LogInformation("Adding new network token entity to the database.");
-        await dbContext.NetworkTokens.AddAsync(newToken, token);
-        int res = await dbContext.SaveChangesAsync(token);
+        try
+        {
+            NetworkToken newNetworkToken = request.ToEntity(accessor);
+            await dbContext.NetworkTokens.AddAsync(newNetworkToken, token);
 
-        if (res != 0)
-        {
-            logger.LogInformation("Network token created successfully with ID: {NetworkTokenId}", newToken.Id);
-            return Result<CreateNetworkTokenResponse>.Success(new CreateNetworkTokenResponse(newToken.Id));
+            logger.OperationCompleted(nameof(CreateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<CreateNetworkTokenResponse>.Success(new(newNetworkToken.Id))
+                : Result<CreateNetworkTokenResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.CreateNetworkTokenFailed));
         }
-        else
+        catch (Exception ex)
         {
-            logger.LogError("Failed to save new network token to the database.");
-            return Result<CreateNetworkTokenResponse>.Failure(ResultPatternError.InternalServerError("Data not saved"));
+            logger.OperationException(nameof(CreateNetworkTokenAsync), ex.Message);
+            logger.OperationCompleted(nameof(CreateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<CreateNetworkTokenResponse>.Failure(
+                ResultPatternError.InternalServerError(Messages.CreateNetworkTokenFailed));
         }
     }
 
     /// <summary>
-    /// Updates an existing network token.
+    /// Updates an existing network token by its identifier.
+    /// Ensures that the symbol remains unique within the same network context.
     /// </summary>
-    public async Task<Result<UpdateNetworkTokenResponse>> UpdateNetworkTokenAsync(Guid networkTokenId, UpdateNetworkTokenRequest request, CancellationToken token = default)
+    /// <param name="networkTokenId">Identifier of the token to update.</param>
+    /// <param name="request">Update request payload.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>The result of the update operation.</returns>
+    public async Task<Result<UpdateNetworkTokenResponse>> UpdateNetworkTokenAsync(Guid networkTokenId,
+        UpdateNetworkTokenRequest request, CancellationToken token = default)
     {
-        logger.LogInformation("Starting UpdateNetworkTokenAsync for NetworkTokenId: {NetworkTokenId} at {Time}", networkTokenId, DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(UpdateNetworkTokenAsync), date);
 
-        logger.LogInformation("Retrieving network token with ID: {NetworkTokenId} from database.", networkTokenId);
-        NetworkToken? networkToken = await dbContext.NetworkTokens.FirstOrDefaultAsync(x => x.Id == networkTokenId, token);
+        NetworkToken? networkToken =
+            await dbContext.NetworkTokens.FirstOrDefaultAsync(x => x.Id == networkTokenId, token);
         if (networkToken is null)
         {
-            logger.LogWarning("Network token not found for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<UpdateNetworkTokenResponse>.Failure(ResultPatternError.NotFound("Network Token not found"));
+            logger.OperationCompleted(nameof(UpdateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<UpdateNetworkTokenResponse>.Failure(
+                ResultPatternError.NotFound(Messages.NetworkTokenNotFound));
         }
 
-        // Check if new symbol is provided and differs from current one
         if (!string.IsNullOrEmpty(request.Symbol) && request.Symbol != networkToken.Symbol)
         {
-            logger.LogInformation("Checking if new symbol {NewSymbol} is already in use for the same network.", request.Symbol);
             bool symbolExists = await dbContext.NetworkTokens
-                .AnyAsync(x => x.Symbol == request.Symbol && x.NetworkId == networkToken.NetworkId && x.Id != networkTokenId, token);
+                .AnyAsync(
+                    x => x.Symbol == request.Symbol && x.NetworkId == networkToken.NetworkId && x.Id != networkTokenId,
+                    token);
             if (symbolExists)
             {
-                logger.LogWarning("Network token symbol {NewSymbol} already exists.", request.Symbol);
-                return Result<UpdateNetworkTokenResponse>.Failure(ResultPatternError.Conflict("Network Token symbol already exists"));
+                logger.OperationCompleted(nameof(UpdateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<UpdateNetworkTokenResponse>.Failure(
+                    ResultPatternError.Conflict(Messages.NetworkTokenAlreadyExist));
             }
         }
 
-        logger.LogInformation("Mapping update request to network token entity.");
-        networkToken.ToEntity(accessor, request);
-        int res = await dbContext.SaveChangesAsync(token);
+        try
+        {
+            networkToken.ToEntity(accessor, request);
 
-        if (res != 0)
-        {
-            logger.LogInformation("Network token updated successfully for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<UpdateNetworkTokenResponse>.Success(new UpdateNetworkTokenResponse(networkTokenId));
+            logger.OperationCompleted(nameof(UpdateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<UpdateNetworkTokenResponse>.Success(new(networkTokenId))
+                : Result<UpdateNetworkTokenResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.UpdateNetworkTokenFailed));
         }
-        else
+        catch (Exception ex)
         {
-            logger.LogError("Failed to update network token for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<UpdateNetworkTokenResponse>.Failure(ResultPatternError.InternalServerError("Couldn't update Network Token"));
+            logger.OperationException(nameof(UpdateNetworkTokenAsync), ex.Message);
+            logger.OperationCompleted(nameof(UpdateNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<UpdateNetworkTokenResponse>.Failure(
+                ResultPatternError.InternalServerError(Messages.UpdateNetworkTokenFailed));
         }
     }
 
     /// <summary>
-    /// Deletes a network token.
+    /// Marks a network token as deleted.
     /// </summary>
-    public async Task<Result<DeleteNetworkTokenResponse>> DeleteNetworkTokenAsync(Guid networkTokenId, CancellationToken token = default)
+    /// <param name="networkTokenId">Identifier of the token to delete.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>The result of the deletion operation.</returns>
+    public async Task<Result<DeleteNetworkTokenResponse>> DeleteNetworkTokenAsync(Guid networkTokenId,
+        CancellationToken token = default)
     {
-        logger.LogInformation("Starting DeleteNetworkTokenAsync for NetworkTokenId: {NetworkTokenId} at {Time}", networkTokenId, DateTimeOffset.UtcNow);
-        token.ThrowIfCancellationRequested();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(DeleteNetworkTokenAsync), date);
 
-        logger.LogInformation("Retrieving network token with ID: {NetworkTokenId}", networkTokenId);
-        NetworkToken? networkToken = await dbContext.NetworkTokens.FirstOrDefaultAsync(x => x.Id == networkTokenId, token);
+        NetworkToken? networkToken =
+            await dbContext.NetworkTokens.FirstOrDefaultAsync(x => x.Id == networkTokenId, token);
         if (networkToken is null)
         {
-            logger.LogWarning("Network token not found for NetworkTokenId: {NetworkTokenId}", networkTokenId);
-            return Result<DeleteNetworkTokenResponse>.Failure(ResultPatternError.NotFound("Network Token not found"));
+            logger.OperationCompleted(nameof(DeleteNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<DeleteNetworkTokenResponse>.Failure(
+                ResultPatternError.NotFound(Messages.NetworkTokenNotFound));
         }
 
-        logger.LogInformation("Mapping network token entity for deletion.");
-        networkToken.ToEntity(accessor);
-        int res = await dbContext.SaveChangesAsync(token);
-
-        if (res != 0)
+        try
         {
-            logger.LogInformation("Network token with ID: {NetworkTokenId} deleted successfully.", networkTokenId);
-            return Result<DeleteNetworkTokenResponse>.Success(new DeleteNetworkTokenResponse(networkTokenId));
+            networkToken.ToEntity(accessor);
+            return await dbContext.SaveChangesAsync(token) != 0
+                ? Result<DeleteNetworkTokenResponse>.Success(new(networkTokenId))
+                : Result<DeleteNetworkTokenResponse>.Failure(
+                    ResultPatternError.InternalServerError(Messages.DeleteNetworkTokenFailed));
         }
-        else
+        catch (Exception ex)
         {
-            logger.LogError("Failed to delete network token with ID: {NetworkTokenId}", networkTokenId);
-            return Result<DeleteNetworkTokenResponse>.Failure(ResultPatternError.InternalServerError("Couldn't delete Network Token"));
+            logger.OperationException(nameof(DeleteNetworkTokenAsync), ex.Message);
+            logger.OperationCompleted(nameof(DeleteNetworkTokenAsync), DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow - date);
+            return Result<DeleteNetworkTokenResponse>.Failure(
+                ResultPatternError.InternalServerError(Messages.DeleteNetworkTokenFailed));
         }
     }
 }

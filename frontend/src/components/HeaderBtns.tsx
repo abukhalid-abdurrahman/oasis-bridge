@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/useUserStore";
 import Link from "next/link";
-import Button from "./Button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Button, buttonVariants } from "./ui/button";
+import { useWalletStore } from "@/store/useWalletStore";
 
 export default function HeaderBtns() {
   const router = useRouter();
   const { user, logout, setUser } = useUserStore();
+  const { disconnectWallet } = useWalletStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,31 +27,37 @@ export default function HeaderBtns() {
   return (
     <>
       {!user ? (
-        <Link href="?signin=true" className="btn btn-sm">
+        <Link
+          href="?signin=true"
+          className={buttonVariants({ variant: "gray", size: "default" })}
+        >
           Sign In
         </Link>
       ) : (
         <>
-          <Link href="/profile" className="btn btn-sm flex gap-[8px] sm:gap-[5px]">
-            <Image 
-              src='/profile.svg'
+          <Link
+            href="/profile"
+            className={buttonVariants({ variant: "gray", size: "default" })}
+          >
+            <Image
+              src="/profile.svg"
               alt={user.UserName}
               width={21}
               height={21}
             />
             {user.UserName}
           </Link>
-          <Button className="px-[10px]" onClick={() => {
-            logout();
-            localStorage.removeItem("user");
-            router.push('/');
-          }}>
-            <Image 
-              src='/logout.svg'
-              alt='Logout'
-              width={24}
-              height={24}
-            />
+          <Button
+            variant="gray"
+            size="icon"
+            onClick={() => {
+              logout();
+              disconnectWallet();
+              localStorage.removeItem("user");
+              router.push("/");
+            }}
+          >
+            <Image src="/logout.svg" alt="Logout" width={24} height={24} />
           </Button>
         </>
       )}

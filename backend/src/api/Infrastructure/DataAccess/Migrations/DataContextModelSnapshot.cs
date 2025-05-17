@@ -470,6 +470,266 @@ namespace Infrastructure.DataAccess.Migrations
                     b.ToTable("RoleClaims");
                 });
 
+            modelBuilder.Entity("Domain.Entities.RwaToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("Area")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("AssetDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("AssetType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ConstructionYear")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeletedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("InsuranceStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MintAccount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("MintAccountType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OwnerContact")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ProofOfOwnershipDocument")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PropertyType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Royalty")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UniqueIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("UpdatedByIp")
+                        .HasColumnType("text[]");
+
+                    b.Property<DateOnly>("ValuationDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("VirtualAccountId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VirtualAccountId");
+
+                    b.ToTable("RwaTokens");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaTokenOwnershipTransfer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BuyerWalletId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeletedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("RwaTokenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerWalletId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("TransactionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TransactionHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionSignature")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TransferStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("UpdatedByIp")
+                        .HasColumnType("text[]");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerWalletId");
+
+                    b.HasIndex("RwaTokenId");
+
+                    b.HasIndex("SellerWalletId");
+
+                    b.ToTable("RwaTokenOwnershipTransfers");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaTokenPriceHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeletedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("NewPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("OldPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RwaTokenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("UpdatedByIp")
+                        .HasColumnType("text[]");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("RwaTokenId");
+
+                    b.ToTable("RwaTokenPriceHistories");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -970,6 +1230,70 @@ namespace Infrastructure.DataAccess.Migrations
                     b.ToTable("VirtualAccounts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.WalletLinkedAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeletedByIp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("UpdatedByIp")
+                        .HasColumnType("text[]");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NetworkId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WalletLinkedAccounts");
+                });
+
             modelBuilder.Entity("Domain.Entities.AccountBalance", b =>
                 {
                     b.HasOne("Domain.Entities.NetworkToken", "NetworkToken")
@@ -1047,6 +1371,86 @@ namespace Infrastructure.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaToken", b =>
+                {
+                    b.HasOne("Domain.Entities.VirtualAccount", "VirtualAccount")
+                        .WithMany("RwaTokens")
+                        .HasForeignKey("VirtualAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Domain.ValueObjects.GeoLocation", "Geolocation", b1 =>
+                        {
+                            b1.Property<Guid>("RwaTokenId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("Latitude");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("Longitude");
+
+                            b1.HasKey("RwaTokenId");
+
+                            b1.ToTable("RwaTokens");
+
+                            b1.WithOwner()
+                                .HasForeignKey("RwaTokenId");
+                        });
+
+                    b.Navigation("Geolocation");
+
+                    b.Navigation("VirtualAccount");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaTokenOwnershipTransfer", b =>
+                {
+                    b.HasOne("Domain.Entities.WalletLinkedAccount", "BuyerWallet")
+                        .WithMany("RwaTokenOwnershipTransferBuyers")
+                        .HasForeignKey("BuyerWalletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.RwaToken", "RwaToken")
+                        .WithMany("RwaTokenOwnershipTransfers")
+                        .HasForeignKey("RwaTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.VirtualAccount", "SellerWallet")
+                        .WithMany("RwaTokenOwnershipTransferSellers")
+                        .HasForeignKey("SellerWalletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BuyerWallet");
+
+                    b.Navigation("RwaToken");
+
+                    b.Navigation("SellerWallet");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaTokenPriceHistory", b =>
+                {
+                    b.HasOne("Domain.Entities.VirtualAccount", "Owner")
+                        .WithMany("RwaTokenPriceHistories")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.RwaToken", "RwaToken")
+                        .WithMany("RwaTokenPriceHistories")
+                        .HasForeignKey("RwaTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("RwaToken");
                 });
 
             modelBuilder.Entity("Domain.Entities.UserClaim", b =>
@@ -1131,6 +1535,25 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.WalletLinkedAccount", b =>
+                {
+                    b.HasOne("Domain.Entities.Network", "Network")
+                        .WithMany("WalletLinkedAccounts")
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("WalletLinkedAccounts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Network");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.ExchangeRate", b =>
                 {
                     b.Navigation("Orders");
@@ -1141,6 +1564,8 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("NetworkTokens");
 
                     b.Navigation("VirtualAccounts");
+
+                    b.Navigation("WalletLinkedAccounts");
                 });
 
             modelBuilder.Entity("Domain.Entities.NetworkToken", b =>
@@ -1153,6 +1578,13 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("RoleClaims");
 
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RwaToken", b =>
+                {
+                    b.Navigation("RwaTokenOwnershipTransfers");
+
+                    b.Navigation("RwaTokenPriceHistories");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -1170,11 +1602,24 @@ namespace Infrastructure.DataAccess.Migrations
                     b.Navigation("UserVerificationCodes");
 
                     b.Navigation("VirtualAccounts");
+
+                    b.Navigation("WalletLinkedAccounts");
                 });
 
             modelBuilder.Entity("Domain.Entities.VirtualAccount", b =>
                 {
                     b.Navigation("Balances");
+
+                    b.Navigation("RwaTokenOwnershipTransferSellers");
+
+                    b.Navigation("RwaTokenPriceHistories");
+
+                    b.Navigation("RwaTokens");
+                });
+
+            modelBuilder.Entity("Domain.Entities.WalletLinkedAccount", b =>
+                {
+                    b.Navigation("RwaTokenOwnershipTransferBuyers");
                 });
 #pragma warning restore 612, 618
         }

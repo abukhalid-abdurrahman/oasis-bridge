@@ -12,6 +12,7 @@ import CountdownTimer from "./CountdownTimer";
 import { VirtualAddressMesages } from "@/lib/helpers/virtualAddressMessages";
 import { SelectedCrypto } from "@/lib/cryptoOptions";
 import { useUserStore } from "@/store/useUserStore";
+import { buttonVariants } from "./ui/button";
 
 interface StatusModalProps {
   setIsStatusModalOpen: any;
@@ -44,7 +45,7 @@ export default function CryptoAddressModal({
     data: balanceData,
     refetch: balanceRefetch,
     isError: balanceError,
-    isFetching: balanceFetching
+    isFetching: balanceFetching,
   } = useVirtualAccountBalance(orderId!, isOpen);
   const user = useUserStore((state) => state.user);
   // const { data } = useVirtualAccount(fromNetwork, toNetwork);
@@ -80,9 +81,9 @@ export default function CryptoAddressModal({
 
   useEffect(() => {
     if (!balanceData) return;
-  
+
     const status = balanceData.data.status;
-  
+
     if (status === "InsufficientFunds") {
       setShowAddress(true);
       setIsOpen(true);
@@ -130,7 +131,9 @@ export default function CryptoAddressModal({
   return (
     <Modal
       isNonUrlModal={true}
-      className={`${(!showAddress || !timeLeft || orderError || balanceError) && "min-h-64"}`}
+      className={`${
+        (!showAddress || !timeLeft || orderError || balanceError) && "min-h-64"
+      }`}
       onCloseFunc={onClose}
       isNonClosable={!showAddress && !balanceError && !orderError}
       // isNonClosable={!orderId && !showAddress && !orderError}
@@ -152,7 +155,7 @@ export default function CryptoAddressModal({
             <p className="p text-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               Something went wrong. Please try again later.
             </p>
-          ): (
+          ) : (
             <p className="p text-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               {orderError}
             </p>
@@ -175,7 +178,13 @@ export default function CryptoAddressModal({
               <p className="text-textGray p-sm text-center mt-2">{message}</p>
             )}
             <div className="flex gap-[5px] mt-5">
-              <div className="flex gap-2 bg-gray py-3 px-5 rounded-xl justify-between items-center flex-1 relative">
+              {/* <div className="flex gap-2 bg-gray py-3 px-5 rounded-xl justify-between items-center flex-1 relative">
+                <p className="sm:text-sm sm:absolute sm:-top-[21px] sm:left-0">
+                  Your {fromNetwork.token} virtual account:
+                </p>
+                <p className="">{shortAddress(address!)}</p>
+              </div> */}
+              <div className={`${buttonVariants({ variant: 'empty', size: 'xl' })} flex gap-2 bg-gray py-3 px-5 rounded-xl justify-between items-center flex-1 relative`}>
                 <p className="sm:text-sm sm:absolute sm:-top-[21px] sm:left-0">
                   Your {fromNetwork.token} virtual account:
                 </p>

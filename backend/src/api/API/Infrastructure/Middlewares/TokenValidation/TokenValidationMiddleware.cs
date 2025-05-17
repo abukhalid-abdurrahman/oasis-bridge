@@ -1,19 +1,42 @@
 namespace API.Infrastructure.Middlewares.TokenValidation;
 
-public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
+/// <summary>
+/// Middleware to validate tokens in incoming HTTP requests.
+/// If the request is to an ignored URL, it bypasses token validation.
+/// Otherwise, it validates the user's authentication status and token version.
+/// </summary>
+public class TokenValidationMiddleware
 {
+    private readonly RequestDelegate _next;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+
+    /// <summary>
+    /// Constructor for TokenValidationMiddleware.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="serviceScopeFactory">Factory to create service scopes for database access.</param>
+    public TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
+    {
+        _next = next;
+        _serviceScopeFactory = serviceScopeFactory;
+    }
+
+    /// <summary>
+    /// Invokes the token validation logic for each HTTP request.
+    /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
         string requestPath = context.Request.Path.ToString().ToLower().TrimEnd('/');
+
         if (IgnoreUrl.IgnoreUrls.Contains(requestPath))
         {
-            await next(context);
+            await _next(context);
             return;
         }
 
         if (context.User.Identity is { IsAuthenticated: true })
         {
-            await using var scope = serviceScopeFactory.CreateAsyncScope();
+            await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
             DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
             string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
@@ -35,9 +58,12 @@ public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactor
             }
         }
 
-        await next(context);
+        await _next(context);
     }
 
+    /// <summary>
+    /// Writes an error response when token validation fails.
+    /// </summary>
     private static async Task WriteErrorResponse(HttpContext context, string message)
     {
         try
@@ -57,7 +83,8 @@ public class TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactor
         }
         catch (Exception ex)
         {
-            var logger = context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
+            ILogger<TokenValidationMiddleware> logger =
+                context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
             logger.LogError(ex, "Failed to write error response");
         }
     }

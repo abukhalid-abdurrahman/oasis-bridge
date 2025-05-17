@@ -1,0 +1,1 @@
+export const SPL_LAMPROTS: number = 100000000

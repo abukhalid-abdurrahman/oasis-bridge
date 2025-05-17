@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Button } from "./ui/button";
+import { handleCopy } from "@/lib/scripts/script";
 
 interface CopyBtnProps {
   address: string;
@@ -10,37 +12,18 @@ interface CopyBtnProps {
 export default function CopyBtn({ address }: CopyBtnProps) {
   const [copied, setCopied] = useState(false);
 
-const handleCopy = async () => {
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(address); // ✅ Основной метод
-    } else {
-      const textArea = document.createElement("textarea"); // ⏪ Фолбэк для Mac
-      textArea.value = address;
-      textArea.style.position = "absolute";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-    }
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    console.error("Error copy:", err);
-  }
-};
-
   return (
     <div className="relative">
-      <button
-        className="flex justify-center gap-2 bg-gray w-[51px] h-[51px] rounded-xl items-center 
+      <Button
+        variant='empty' size='icon'
+        className="flex justify-center gap-2 bg-gray w-[48px] h-[48px] rounded-xl items-center 
         aspect-square sm:w-[46px] sm:h-[46px] hover:bg-darkGray transition-all"
-        onClick={handleCopy}
+        onClick={() => {
+          handleCopy(address, setCopied)
+        }}
       >
         <Image src="/copy.svg" alt="copy" width={22} height={22} className="xxs:w-5" />
-      </button>
+      </Button>
 
       {/* Всплывающее уведомление */}
       {copied && (

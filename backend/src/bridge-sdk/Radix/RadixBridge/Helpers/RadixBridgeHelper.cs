@@ -5,21 +5,14 @@ namespace RadixBridge.Helpers;
 /// </summary>
 public static class RadixBridgeHelper
 {
-    // Static logger instance for detailed logging.
-    // Note: In production, consider using dependency injection for logging.
-    private static readonly ILogger Logger = LoggerFactory.Create(_ => { })
-        .CreateLogger("RadixBridgeHelper");
+    public const string StokeNet = "stokenet";
+    public const string MainNet = "mainnet";
 
-    // Constants representing the network identifiers for StokeNet and MainNet.
-    public const string StokeNet = "stokenet"; // The network identifier for StokeNet.
-    public const string MainNet = "mainnet"; // The network identifier for MainNet.
-
-    // Constants representing the XRD resource addresses for StokeNet and MainNet.
     public const string MainNetXrdAddress =
-        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"; // MainNet XRD address.
+        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd";
 
     public const string StokeNetXrdAddress =
-        "resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc"; // StokeNet XRD address.
+        "resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc";
 
     /// <summary>
     /// Generates a private key from the provided mnemonic (seed phrase).
@@ -28,25 +21,8 @@ public static class RadixBridgeHelper
     /// <param name="mnemonic">The mnemonic (seed phrase) used to derive the private key.</param>
     /// <returns>The generated private key associated with the mnemonic.</returns>
     public static PrivateKey GetPrivateKey(Mnemonic mnemonic)
-    {
-        Logger.LogInformation("Starting GetPrivateKey with the provided mnemonic.");
+        => new(SHA256.Create().ComputeHash(mnemonic.DeriveSeed()), Curve.ED25519);
 
-        // Create a SHA256 hash of the mnemonic-derived seed.
-        Logger.LogInformation("Creating SHA256 instance.");
-        using SHA256 sha256 = SHA256.Create();
-
-        Logger.LogInformation("Deriving seed from mnemonic.");
-        byte[] seed = mnemonic.DeriveSeed();
-
-        Logger.LogInformation("Computing SHA256 hash of the seed.");
-        byte[] seed32Bytes = sha256.ComputeHash(seed);
-
-        Logger.LogInformation("Hash computed. Deriving private key using ED25519 curve.");
-        PrivateKey privateKey = new(seed32Bytes, Curve.ED25519);
-
-        Logger.LogInformation("Private key successfully derived.");
-        return privateKey;
-    }
 
     /// <summary>
     /// Generates a random nonce, typically used for transaction uniqueness.
@@ -54,13 +30,38 @@ public static class RadixBridgeHelper
     /// </summary>
     /// <returns>A random nonce value as a uint.</returns>
     public static uint RandomNonce()
+        => (uint)RandomNumberGenerator.GetInt32(int.MaxValue);
+
+    /// <summary>
+    /// Sends a request to retrieve construction metadata, such as the current epoch, for a given network.
+    /// </summary>
+    /// <param name="client">The HTTP client used to send the request.</param>
+    /// <param name="options">The Radix technical account bridge options.</param>
+    /// <returns>A task representing the operation. The task result contains the current epoch response, or null if the request fails.</returns>
+    public static async Task<CurrentEpochResponse?> GetConstructionMetadata(this HttpClient client,
+        RadixTechnicalAccountBridgeOptions options)
     {
-        Logger.LogInformation("Starting RandomNonce generation using RandomNumberGenerator.");
+        try
+        {
+            var data = new
+            {
+                network = options.NetworkId == 0x01
+                    ? MainNet
+                    : StokeNet
+            };
 
-        // Generate a random integer and return it as a uint to ensure it's non-negative.
-        uint nonce = (uint)RandomNumberGenerator.GetInt32(int.MaxValue);
 
-        Logger.LogInformation("Nonce generated: {Nonce}", nonce);
-        return nonce;
+            Result<CurrentEpochResponse?> response = await HttpClientHelper.PostAsync<object, CurrentEpochResponse>(
+                client,
+                $"{options.HostUri}/core/lts/transaction/construction",
+                data
+            );
+
+            return response.Value;
+        }
+        catch
+        {
+            return default;
+        }
     }
 }

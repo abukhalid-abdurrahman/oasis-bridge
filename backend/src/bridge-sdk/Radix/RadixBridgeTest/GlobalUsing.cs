@@ -8,3 +8,5 @@ global using RadixBridgeTest.Services;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using BuildingBlocks.Extensions.ResultPattern;
+global using BuildingBlocks.Extensions.Http;
+

@@ -15,25 +15,28 @@ export default function TanstackProvider({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const setUser = useUserStore((state) => state.setUser)
-  const router = useRouter()
+  const setUser = useUserStore((state) => state.setUser);
+  const router = useRouter();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false
-      }
+        retry: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        refetchOnMount: false,
+      },
     },
     queryCache: new QueryCache({
       onError: (err: any) => {
         if (err?.response.status === 401) {
-          removeUser(setUser, router)
+          removeUser(setUser, router);
         }
       },
     }),
     mutationCache: new MutationCache({
       onError: (err: any) => {
         if (err.response.status === 401) {
-          removeUser(setUser, router)
+          removeUser(setUser, router);
         }
       },
     }),

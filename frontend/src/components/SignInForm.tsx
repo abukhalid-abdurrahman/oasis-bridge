@@ -1,48 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import Button from "./Button";
 import Link from "next/link";
 import { mutateLogin } from "@/requests/postRequests";
 import LoadingAlt from "./LoadingAlt";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUserStore } from "@/store/useUserStore";
 import { parseJwt } from "@/lib/scripts/script";
 import Cookies from "js-cookie";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 export default function SignInForm() {
-  const router = useRouter()
+  const router = useRouter();
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   const [isLoading, setIsLoading] = useState(false);
   const setUser = useUserStore((state) => state.setUser);
-  const [errorMessage, setErrorMessage] = useState('')
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const FormSchema = z.object({
+    email: z.string().email({
+      message: "Invalid email address",
+    }),
+    password: z.string().min(6, {
+      message: "Password must be at least 6 characters long",
+    }),
+  });
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   const submit = mutateLogin();
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
-    setErrorMessage('')
+    setErrorMessage("");
+
     submit.mutate(data, {
       onSuccess: (response) => {
         const { token, expiresAt, startTime } = response.data;
         const expiresDate = new Date(expiresAt);
         const { Id, UserName, Email } = parseJwt(token);
-        
+
         setUser({ token, expiresAt, startTime, Id, UserName, Email });
-  
+
         Cookies.set("oasisToken", token, {
           expires: expiresDate,
         });
-  
-        router.push("/");
+        
+        router.push(callbackUrl)
       },
       onError: (error: any) => {
-        setErrorMessage(error.response.data.error.message);
+        setErrorMessage(error.response?.data.message || "An error occurred");
       },
       onSettled: () => {
         setIsLoading(false);
@@ -51,60 +70,49 @@ export default function SignInForm() {
   };
 
   return (
-    <form 
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col items-center gap-[10px] w-full"
-    >
-      <div className="w-full">
-        <input
-          className={`input w-full ${errors.email ? "border border-red-500" : ""}`}
-          type="email"
-          placeholder="Email"
-          {...register("email", {
-            required: "This field is required",
-            pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-              message: "Invalid email address",
-            },
-          })}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col items-center gap-[10px] w-full"
+      >
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <>
+              <FormItem className="w-full">
+                <FormControl>
+                  <Input placeholder="Email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </>
+          )}
         />
-        {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email.message as any}</p>
-        )}
-      </div>
-
-      <div className="w-full">
-        <input
-          className={`input w-full ${errors.password ? "border border-red-500" : ""}`}
-          type="password"
-          placeholder="Password"
-          {...register("password", {
-            required: "This field is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters long",
-            },
-          })}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <>
+              <FormItem className="w-full">
+                <FormControl>
+                  <Input placeholder="Password" type='password' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </>
+          )}
         />
-        {errors.password && (
-          <p className="text-red-500 text-sm mt-1">{errors.password.message as any}</p>
-        )}
-      </div>
+        {errorMessage && <p className="p-sm text-red-500">{errorMessage}</p>}
+        <Button variant="gray" type="submit" size="xl" className="w-full">
+          {isLoading ? "Signing in..." : "Sign In"}
+        </Button>
+        <Link href="?signup=true" className="text-sm text-blue-600">
+          Create account
+        </Link>
 
-      {errorMessage && (
-        <p className="p-sm text-red-500 text-center py-2">{errorMessage}</p>
-      )}
-
-      <Button className="btn-lg w-full" type="submit" disabled={isLoading}>
-        {isLoading ? "Signing in..." : "Sign In"}
-      </Button>
-
-      <Link href="?signup=true" className="text-sm text-blue-600">
-        Create account
-      </Link>
-
-      {/* Показываем индикатор загрузки только когда идет запрос */}
-      {isLoading && <LoadingAlt />}
-    </form>
+        {isLoading && <LoadingAlt />}
+      </form>
+    </Form>
   );
 }
