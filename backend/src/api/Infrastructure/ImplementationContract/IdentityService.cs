@@ -70,7 +70,8 @@ public sealed class IdentityService(
         {
             logger.OperationException(nameof(RegisterAsync), ex.Message);
             logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - start);
-            return Result<RegisterResponse>.Failure(ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
+            return Result<RegisterResponse>.Failure(
+                ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
         }
     }
 
@@ -78,34 +79,42 @@ public sealed class IdentityService(
     {
         const decimal minAmount = 0.1m;
 
-        Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> createRes =
-            radixBridge.CreateAccountAsync();
-        if (!createRes.IsSuccess) return BaseResult.Failure(createRes.Error);
-
-        var account = createRes.Value;
-
-        Result<TransactionResponse> depositRes =
-            await radixBridge.DepositAsync(minAmount, account.PublicKey.ToString());
-        if (!depositRes.IsSuccess) return BaseResult.Failure(depositRes.Error);
-
-        Result<string> addressRes =
-            radixBridge.GetAddressAsync(account.PublicKey, AddressType.Account, NetworkType.Test, token);
-        if (!addressRes.IsSuccess) return BaseResult.Failure(addressRes.Error);
-
-        VirtualAccount radixAccount = new()
+        try
         {
-            UserId = userId,
-            PrivateKey = account.PrivateKey.RawHex(),
-            PublicKey = account.PublicKey.ToString(),
-            SeedPhrase = account.SeedPhrase,
-            CreatedBy = accessor.GetId(),
-            CreatedByIp = accessor.GetRemoteIpAddress(),
-            Address = addressRes.Value!,
-            NetworkId = await GetNetworkIdAsync(Networks.Radix, token),
-            NetworkType = Domain.Enums.NetworkType.Radix,
-        };
+            Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> createRes =
+                radixBridge.CreateAccountAsync();
+            if (!createRes.IsSuccess) return BaseResult.Failure(createRes.Error);
 
-        await dbContext.VirtualAccounts.AddAsync(radixAccount, token);
+            var account = createRes.Value;
+
+            Result<string> addressRes =
+                radixBridge.GetAddressAsync(account.PublicKey, AddressType.Account, NetworkType.Test, token);
+            if (!addressRes.IsSuccess) return BaseResult.Failure(addressRes.Error);
+
+
+            Result<TransactionResponse> depositRes =
+                await radixBridge.DepositAsync(minAmount, addressRes.Value!);
+            if (!depositRes.IsSuccess) return BaseResult.Failure(depositRes.Error);
+
+
+            VirtualAccount radixAccount = new()
+            {
+                UserId = userId,
+                PrivateKey = account.PrivateKey.RawHex(),
+                PublicKey = account.PublicKey.ToString(),
+                SeedPhrase = account.SeedPhrase,
+                Address = addressRes.Value!,
+                NetworkId = await GetNetworkIdAsync(Networks.Radix, token),
+                NetworkType = Domain.Enums.NetworkType.Radix,
+            };
+
+            await dbContext.VirtualAccounts.AddAsync(radixAccount, token);
+        }
+        catch (Exception ex)
+        {
+            BaseResult.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+
         return BaseResult.Success();
     }
 
@@ -128,8 +137,6 @@ public sealed class IdentityService(
             PrivateKey = account.PrivateKey,
             PublicKey = account.PublicKey,
             SeedPhrase = account.SeedPhrase,
-            CreatedBy = accessor.GetId(),
-            CreatedByIp = accessor.GetRemoteIpAddress(),
             Address = account.PublicKey,
             NetworkId = await GetNetworkIdAsync(Networks.Solana, token),
             NetworkType = Domain.Enums.NetworkType.Solana,
