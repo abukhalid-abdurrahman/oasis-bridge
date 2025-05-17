@@ -1,3 +1,4 @@
+using NetworkType = RadixBridge.Enums.NetworkType;
 using Role = Domain.Entities.Role;
 
 namespace Infrastructure.ImplementationContract;
@@ -8,11 +9,14 @@ namespace Infrastructure.ImplementationContract;
 /// Implements the IIdentityService interface.
 /// </summary>
 public sealed class IdentityService(
+    ILogger<IdentityService> logger,
     DataContext dbContext,
     IHttpContextAccessor accessor,
     IEmailService emailService,
-    ILogger<IdentityService> logger,
-    IConfiguration configuration) : IIdentityService
+    IConfiguration configuration,
+    ISolanaBridge solanaBridge, //use for all bridge factory pattern
+    IRadixBridge radixBridge
+) : IIdentityService
 {
     /// <summary>
     /// Registers a new user.
@@ -28,67 +32,147 @@ public sealed class IdentityService(
     public async Task<Result<RegisterResponse>> RegisterAsync(RegisterRequest request,
         CancellationToken token = default)
     {
-        DateTimeOffset date = DateTimeOffset.UtcNow;
-        logger.OperationStarted(nameof(RegisterAsync), date);
+        DateTimeOffset start = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(RegisterAsync), start);
 
-        bool checkExisting = await dbContext.Users.IgnoreQueryFilters()
-            .AnyAsync(x => x.UserName == request.UserName || x.Email == request.EmailAddress, token);
-        if (checkExisting)
-        {
-            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+        if (await dbContext.Users.IgnoreQueryFilters()
+                .AnyAsync(x => x.UserName == request.UserName || x.Email == request.EmailAddress, token))
             return Result<RegisterResponse>.Failure(ResultPatternError.AlreadyExist(Messages.UserAlreadyExist));
-        }
 
-        Role? existingRole = await dbContext.Roles.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Name == Roles.User, token);
-        if (existingRole is null)
-        {
-            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+        Role? role = await dbContext.Roles.AsNoTracking().FirstOrDefaultAsync(x => x.Name == Roles.User, token);
+        if (role is null)
             return Result<RegisterResponse>.Failure(ResultPatternError.NotFound(Messages.RoleNotFound));
-        }
 
         User user = request.ToEntity(accessor);
+        UserRole userRole = CreateUserRole(user.Id, role.Id);
 
-        UserRole userRole = new()
-        {
-            UserId = user.Id,
-            RoleId = existingRole.Id,
-            CreatedBy = HttpAccessor.SystemId,
-            CreatedByIp = accessor.GetRemoteIpAddress(),
-        };
-
-        int duration = int.Parse(configuration["VerificationCode:DurationInMinute"] ?? "1");
-        UserVerificationCode userVerificationCode = new()
-        {
-            CreatedByIp = user.CreatedByIp,
-            Code = VerificationHelper.GenerateVerificationCode(),
-            StartTime = DateTimeOffset.UtcNow,
-            ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(duration),
-            UserId = user.Id,
-            Type = VerificationCodeType.None,
-            CreatedBy = HttpAccessor.SystemId
-        };
+        UserVerificationCode verificationCode = CreateVerificationCode(user.Id, user.CreatedByIp);
 
         try
         {
             await dbContext.Users.AddAsync(user, token);
             await dbContext.UserRoles.AddAsync(userRole, token);
-            await dbContext.UserVerificationCodes.AddAsync(userVerificationCode, token);
+            await dbContext.UserVerificationCodes.AddAsync(verificationCode, token);
 
-            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            BaseResult radixRes = await CreateRadixAccountAsync(user.Id, token);
+            if (!radixRes.IsSuccess) return Result<RegisterResponse>.Failure(radixRes.Error);
+
+            BaseResult solanaRes = await CreateSolanaAccountAsync(user.Id, token);
+            if (!solanaRes.IsSuccess) return Result<RegisterResponse>.Failure(solanaRes.Error);
+
+            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - start);
+
             return await dbContext.SaveChangesAsync(token) != 0
                 ? Result<RegisterResponse>.Success(new(user.Id))
-                : Result<RegisterResponse>.Failure(
-                    ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
+                : Result<RegisterResponse>.Failure(ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
         }
         catch (Exception ex)
         {
             logger.OperationException(nameof(RegisterAsync), ex.Message);
-            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            logger.OperationCompleted(nameof(RegisterAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - start);
             return Result<RegisterResponse>.Failure(
                 ResultPatternError.InternalServerError(Messages.RegisterUserFailed));
         }
     }
+
+    private async Task<BaseResult> CreateRadixAccountAsync(Guid userId, CancellationToken token)
+    {
+        const decimal minAmount = 0.1m;
+
+        try
+        {
+            Result<(PublicKey PublicKey, PrivateKey PrivateKey, string SeedPhrase)> createRes =
+                radixBridge.CreateAccountAsync();
+            if (!createRes.IsSuccess) return BaseResult.Failure(createRes.Error);
+
+            var account = createRes.Value;
+
+            Result<string> addressRes =
+                radixBridge.GetAddressAsync(account.PublicKey, AddressType.Account, NetworkType.Test, token);
+            if (!addressRes.IsSuccess) return BaseResult.Failure(addressRes.Error);
+
+
+            Result<TransactionResponse> depositRes =
+                await radixBridge.DepositAsync(minAmount, addressRes.Value!);
+            if (!depositRes.IsSuccess) return BaseResult.Failure(depositRes.Error);
+
+
+            VirtualAccount radixAccount = new()
+            {
+                UserId = userId,
+                PrivateKey = account.PrivateKey.RawHex(),
+                PublicKey = account.PublicKey.ToString(),
+                SeedPhrase = account.SeedPhrase,
+                Address = addressRes.Value!,
+                NetworkId = await GetNetworkIdAsync(Networks.Radix, token),
+                NetworkType = Domain.Enums.NetworkType.Radix,
+            };
+
+            await dbContext.VirtualAccounts.AddAsync(radixAccount, token);
+        }
+        catch (Exception ex)
+        {
+            BaseResult.Failure(ResultPatternError.InternalServerError(ex.Message));
+        }
+
+        return BaseResult.Success();
+    }
+
+    private async Task<BaseResult> CreateSolanaAccountAsync(Guid userId, CancellationToken token)
+    {
+        const decimal minAmount = 0.1m;
+
+        Result<(string PublicKey, string PrivateKey, string SeedPhrase)> createRes =
+            await solanaBridge.CreateAccountAsync(token);
+        if (!createRes.IsSuccess) return BaseResult.Failure(createRes.Error);
+
+        var account = createRes.Value;
+
+        Result<TransactionResponse> depositRes = await solanaBridge.DepositAsync(minAmount, account.PublicKey);
+        if (!depositRes.IsSuccess) return BaseResult.Failure(depositRes.Error);
+
+        VirtualAccount solanaAccount = new()
+        {
+            UserId = userId,
+            PrivateKey = account.PrivateKey,
+            PublicKey = account.PublicKey,
+            SeedPhrase = account.SeedPhrase,
+            Address = account.PublicKey,
+            NetworkId = await GetNetworkIdAsync(Networks.Solana, token),
+            NetworkType = Domain.Enums.NetworkType.Solana,
+        };
+
+        await dbContext.VirtualAccounts.AddAsync(solanaAccount, token);
+        return BaseResult.Success();
+    }
+
+    private UserRole CreateUserRole(Guid userId, Guid roleId) => new()
+    {
+        UserId = userId,
+        RoleId = roleId,
+        CreatedBy = HttpAccessor.SystemId,
+        CreatedByIp = accessor.GetRemoteIpAddress(),
+    };
+
+    private UserVerificationCode CreateVerificationCode(Guid userId, string? ip)
+    {
+        int duration = int.Parse(configuration["VerificationCode:DurationInMinute"] ?? "1");
+        return new()
+        {
+            UserId = userId,
+            CreatedBy = HttpAccessor.SystemId,
+            CreatedByIp = ip,
+            Code = VerificationHelper.GenerateVerificationCode(),
+            StartTime = DateTimeOffset.UtcNow,
+            ExpiryTime = DateTimeOffset.UtcNow.AddMinutes(duration),
+            Type = VerificationCodeType.None,
+        };
+    }
+
+    private async Task<Guid> GetNetworkIdAsync(string networkName, CancellationToken token) =>
+        await dbContext.Networks.Where(x => x.Name == networkName)
+            .Select(x => x.Id).FirstAsync(token);
+
 
     /// <summary>
     /// Authenticates a user by verifying their credentials.
