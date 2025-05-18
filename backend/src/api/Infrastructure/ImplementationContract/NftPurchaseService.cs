@@ -31,7 +31,7 @@ public sealed class NftPurchaseService(
 
             VirtualAccount? existingVa = await dbContext.VirtualAccounts
                 .AsNoTracking()
-                .Include(x=>x.Network)
+                .Include(x => x.Network)
                 .FirstOrDefaultAsync(x => x.Id == existingRwa.VirtualAccountId);
             if (existingVa is null)
                 return Result<string>.Failure(ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
@@ -45,7 +45,7 @@ public sealed class NftPurchaseService(
 
             string base58SecretKey = existingVa.PrivateKey;
 
-            if (existingVa.Network.Name==Networks.Solana)
+            if (existingVa.Network.Name == Networks.Solana)
             {
                 Mnemonic mnemonic = new(existingVa.SeedPhrase);
                 Wallet wallet = new(mnemonic);
