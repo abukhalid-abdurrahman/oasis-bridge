@@ -66,6 +66,7 @@ public static class Messages
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
     public static string RwaTokenNotFound => _resources.Get().AsString();
+    public static string NftAlreadyTransferred  => _resources.Get().AsString();
     public static string AccountNotFound => _resources.Get().AsString();
     public static string OrderInsufficientFunds => _resources.Get().AsString();
     public static string VirtualAccountNotFound => _resources.Get().AsString();

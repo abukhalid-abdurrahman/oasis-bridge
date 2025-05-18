@@ -9,8 +9,10 @@ public static class RwaTokenPriceHistoryMapper
             priceHistory.OldPrice,
             priceHistory.NewPrice,
             priceHistory.ChangedAt,
-            priceHistory.RwaToken.VirtualAccountId,
-            priceHistory.RwaToken.VirtualAccount.PublicKey,
-            priceHistory.RwaToken.VirtualAccount.UserId,
-            priceHistory.RwaToken.VirtualAccount.User.Email);
+            priceHistory.RwaToken.VirtualAccountId
+            ?? priceHistory.RwaToken.WalletLinkedAccountId,
+            priceHistory.RwaToken.VirtualAccount?.PublicKey
+            ?? priceHistory.RwaToken.WalletLinkedAccount?.PublicKey,
+            priceHistory.RwaToken.VirtualAccount?.UserId ??
+            priceHistory.RwaToken.WalletLinkedAccount?.UserId);
 }

@@ -22,8 +22,12 @@ public sealed class RwaToken : BaseEntity
     public string TransactionHash { get; set; } = string.Empty;
     public string Metadata { get; set; } = string.Empty;
 
-    public Guid VirtualAccountId { get; set; }
-    public VirtualAccount VirtualAccount { get; set; } = default!;
+    public Guid? VirtualAccountId { get; set; }
+    public VirtualAccount? VirtualAccount { get; set; }
+
+    public Guid? WalletLinkedAccountId { get; set; }
+    public WalletLinkedAccount? WalletLinkedAccount { get; set; }
+
     public ICollection<RwaTokenPriceHistory> RwaTokenPriceHistories { get; set; } = [];
     public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransfers { get; set; } = [];
 }

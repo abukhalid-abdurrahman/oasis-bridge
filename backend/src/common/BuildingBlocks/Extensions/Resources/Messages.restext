@@ -93,6 +93,8 @@ UserEmailAlreadyExist=Email already exists.
 UserPhoneAlreadyExist=PhoneNumber already exists.
 UserUserNameAlreadyExist=UserName already exists.
 
+NftAlreadyTransferred=This NFT has already been transferred and is no longer available for sale.
+
 
 RestoreAccountIncorrectFormat=SeedPhrase format is invalid.
 RadixGetAddressInvalidType=Invalid address type.
