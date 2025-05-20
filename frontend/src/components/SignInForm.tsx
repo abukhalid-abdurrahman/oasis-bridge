@@ -58,7 +58,7 @@ export default function SignInForm() {
           expires: expiresDate,
         });
         
-        router.push(callbackUrl)
+        window.location.href = callbackUrl;
       },
       onError: (error: any) => {
         setErrorMessage(error.response?.data?.error?.message || "An error occurred");
