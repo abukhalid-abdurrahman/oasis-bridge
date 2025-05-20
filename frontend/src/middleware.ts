@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("oasisToken")?.value;
   const { pathname, search } = req.nextUrl;
-
   const isAuthPage = pathname === "/signin" || pathname === "/signup";
 
   if (token && isAuthPage) {
