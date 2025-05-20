@@ -9,6 +9,7 @@ import MobileHeader from "./MobileHeader";
 import WalletConnect from "./WalletConnect";
 import CreateRwaLink from "./CreateRwaLink";
 import MyRwaLink from "./MyRwaLink";
+import RwaLink from "./RwaLink";
 
 export default async function Header({
   searchParams,
@@ -29,7 +30,7 @@ export default async function Header({
               <Link href="/">Swap</Link>
             </li>
             <li className="">
-              <Link href="/rwa">RWA Market</Link>
+              <RwaLink />
             </li>
             <li className="">
               <CreateRwaLink />
