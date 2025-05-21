@@ -23,7 +23,7 @@ export default function AccountAddresses() {
     );
   }
 
-  if (data.data.length <= 0) {
+  if (data?.data?.length <= 0) {
     return (
       <div>
         <h2 className="h2 text-white mb-4">Account Addresses</h2>
@@ -41,7 +41,7 @@ export default function AccountAddresses() {
         </div>
       </div>
     );
-  } else if (data.data.length > 0) {
+  } else if (data?.data?.length > 0) {
     return (
       <div>
         <h2 className="h2 text-white mb-6">Account Addresses</h2>
