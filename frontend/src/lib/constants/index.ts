@@ -9,7 +9,7 @@ export const ACCEPTED_DOCUMENT_TYPES = [
 ];
 export const ASSET_TYPES = [
   "Real Estate",
-  "Automobiles",
+  // "Automobiles",
   // "Industrial Equipment",
   // "Jewelry and Precious Metals",
   // "Collectibles",
