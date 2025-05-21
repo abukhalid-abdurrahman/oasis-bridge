@@ -52,7 +52,7 @@ export default function InputAssetField({
                 className="cursor-pointer"
               />
             ) : (
-              <Input placeholder={item.placeholder} {...field} />
+              <Input type={item.type} placeholder={item.placeholder} {...field} />
             )}
           </FormControl>
           <FormMessage />
