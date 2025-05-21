@@ -317,11 +317,16 @@ export default function CreateRwa() {
                               try {
                                 setIsUploading(true);
                                 const uploadedUrl = await uploadFile(file);
+                                if (uploadedUrl.includes("http")) {
+                                  field.onChange(uploadedUrl);
+                                } else {
+                                  throw new Error("File must be smaller than 10MB");
+                                }
                                 field.onChange(uploadedUrl);
-                              } catch (error) {
+                              } catch (error: any) {
                                 form.setError("proofOfOwnershipDocument", {
                                   type: "manual",
-                                  message: "Upload failed. Try again.",
+                                  message: error.message || "Upload failed",
                                 });
                               } finally {
                                 setIsUploading(false);
