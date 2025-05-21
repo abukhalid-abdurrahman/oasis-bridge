@@ -29,7 +29,7 @@ services:
       - internal_network
 
   db-migrator:
-    image: nazarovqurbonali/quantum-db-migrator:v5
+    image: nazarovqurbonali/quantum-db-migrator:v8
     container_name: quantum-db-migrator
     platform: linux/arm64
     depends_on:
@@ -41,7 +41,7 @@ services:
     restart: "no"
 
   quantum-exchange:
-    image: nazarovqurbonali/quantum-exchange:v25
+    image: nazarovqurbonali/quantum-exchange:v28
     container_name: quantum-exchange
     restart: always
     platform: linux/arm64
@@ -84,7 +84,7 @@ services:
       - internal_network
 
   quantum-exchange-frontend:
-    image: nazarovqurbonali/quantum-exchange-frontend:v17
+    image: nazarovqurbonali/quantum-exchange-frontend:v21
     container_name: quantum-exchange-frontend
     restart: always
     platform: linux/arm64
@@ -92,13 +92,14 @@ services:
       - "80:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1
+      - NEXT_PUBLIC_SOLANA_NET=https://api.devnet.solana.com
     depends_on:
       - quantum-exchange
     networks:
       - internal_network
 
   sol-shift:
-    image: nazarovqurbonali/sol-shift:v1
+    image: nazarovqurbonali/sol-shift:v4
     container_name: sol-shift
     restart: always
     environment:
