@@ -77,7 +77,6 @@ export const tokenizationFieldsBase: TokenizationField[] = [
       .string()
       .min(5, { message: "Owner contact must be at least 5 characters" })
       .max(100, { message: "Owner contact must be under 100 characters" })
-      .email({ message: "Must be a valid email" }),
   },
   {
     name: "assetType",
