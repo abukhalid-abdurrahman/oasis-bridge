@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { uploadFile } from "@/lib/scripts/script";
 import { useFormContext } from "react-hook-form";
+import { MAX_FILE_SIZE } from "@/lib/constants";
 
 interface DragAndDropProps {
   control: any;
@@ -64,7 +65,7 @@ export function DragAndDropUpload({ control, name }: DragAndDropProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     onDropRejected,
-    maxSize: 10 * 1024 * 1024,
+    maxSize: MAX_FILE_SIZE,
     accept: { "image/*": [] },
     multiple: false,
   });

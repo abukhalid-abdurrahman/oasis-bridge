@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import PageTitle from "@/components/PageTitle";
 import { useEffect, useState } from "react";
-import { ASSET_TYPES } from "@/lib/constants";
+import { ASSET_TYPES, MAX_FILE_SIZE } from "@/lib/constants";
 import { TokenizationField } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { uploadFile } from "@/lib/scripts/script";
@@ -305,7 +305,7 @@ export default function CreateRwa() {
                                 return;
                               }
 
-                              const maxSizeInBytes = 10 * 1024 * 1024;
+                              const maxSizeInBytes = MAX_FILE_SIZE;
                               if (file.size > maxSizeInBytes) {
                                 form.setError("proofOfOwnershipDocument", {
                                   type: "manual",
