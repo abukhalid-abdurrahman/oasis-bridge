@@ -31,6 +31,7 @@ public sealed class UserService(
             .ApplyFilter(filter.FirstName, x => x.FirstName)
             .ApplyFilter(filter.LastName, x => x.LastName)
             .ApplyFilter(filter.UserName, x => x.UserName)
+            .OrderBy(x=>x.Id)
             .Select(x => x.ToRead());
 
         int totalCount = await users.CountAsync(token);

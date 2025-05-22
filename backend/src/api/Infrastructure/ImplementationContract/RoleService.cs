@@ -27,6 +27,7 @@ public sealed class RoleService(
             .ApplyFilter(filter.Name, x => x.Name)
             .ApplyFilter(filter.Keyword, x => x.RoleKey)
             .ApplyFilter(filter.Description, x => x.Description)
+            .OrderBy(x=>x.Id)
             .Select(x => x.ToRead());
 
         int totalCount = await rolesQuery.CountAsync(token);
