@@ -1,6 +1,12 @@
-import { optional, z, ZodObject, ZodTypeAny } from "zod";
-import { ASSET_TYPES, INSURANSE_STATUSES, PROPERTY_TYPES } from "../constants";
+import { z, ZodObject, ZodTypeAny } from "zod";
+import {
+  ASSET_TYPES,
+  INSURANSE_STATUSES,
+  MIN_NUMBER,
+  PROPERTY_TYPES,
+} from "../constants";
 import { TokenizationField } from "../types";
+import { maxBytes } from "../scripts/script";
 
 export const tokenizationFieldsBase: TokenizationField[] = [
   {
@@ -15,8 +21,10 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     type: "string",
     validation: z
       .string()
-      .min(2, { message: "Title must be at least 2 characters" })
-      .max(100, { message: "Title must be less than 100 characters" }),
+      .min(1, { message: "Title is required" })
+      .refine(maxBytes(32), {
+        message: "Title must be less than 32 bytes",
+      }),
   },
   {
     name: "assetDescription",
@@ -24,8 +32,8 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     type: "string",
     validation: z
       .string()
-      .min(10, { message: "Description must be at least 10 characters" })
-      .max(1000, { message: "Description must be under 1000 characters" }),
+      .min(1, { message: "Asset Description is required" })
+      .max(1000, { message: "Description must be less than 1000 characters" }),
   },
   {
     name: "proofOfOwnershipDocument",
@@ -39,10 +47,16 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     name: "uniqueIdentifier",
     placeholder: "Unique identifier",
     type: "string",
-    validation: z.string().regex(/^[a-zA-Z0-9-_]+$/, {
-      message:
-        "Identifier must contain only letters, numbers, dashes or underscores",
-    }),
+    validation: z
+      .string()
+      .min(1, { message: "Unique identifier is required" })
+      .regex(/^[a-zA-Z0-9-_]+$/, {
+        message:
+          "Identifier must contain only letters, numbers, dashes or underscores",
+      })
+      .refine(maxBytes(10), {
+        message: "Identifier must be less than 10 bytes",
+      }),
   },
   {
     name: "network",
@@ -57,8 +71,10 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     placeholder: "Royalty",
     type: "number",
     validation: z.coerce
-      .number({ invalid_type_error: "Royalty must be a number" })
-      .min(1, { message: "Royalty must be at least 1%" })
+      .number({
+        invalid_type_error: "Royalty must be a number",
+      })
+      .min(MIN_NUMBER, { message: "Royalty must be more than 0%" })
       .max(100, { message: "Royalty must be no more than 100%" }),
   },
   {
@@ -66,21 +82,18 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     placeholder: "Price",
     type: "number",
     validation: z.coerce
-      .number({ invalid_type_error: "Price must be a number" })
+      .number()
       .min(0.0001, { message: "The price must be greater than 0.0001" }),
   },
   {
     name: "ownerContact",
     placeholder: "Owner contact",
     type: "string",
-    validation: z
-      .string()
-      .min(5, { message: "Owner contact must be at least 5 characters" })
-      .max(100, { message: "Owner contact must be under 100 characters" })
+    validation: z.string().min(1, { message: "Owner contact is required" }),
   },
   {
     name: "assetType",
-    placeholder: "AssetType",
+    placeholder: "Asset Type",
     type: "string",
     validation: z.enum(
       ASSET_TYPES.map((asset) => asset.replace(/\s/g, "")) as [
@@ -89,6 +102,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
       ],
       { message: "Asset type is required" }
     ),
+    defaultValue: "",
   },
 ];
 
@@ -97,25 +111,43 @@ export const tokenizationFieldsAutomobiles: TokenizationField[] = [
     name: "serialNumber",
     placeholder: "VIN/Serial Number",
     type: "string",
-    validation: z.string().regex(/^[A-HJ-NPR-Z0-9]{11,17}$/, {
-      message: "VIN must be 11–17 characters (A-Z, 0–9), no I, O, Q",
-    }),
+    validation: z
+      .string()
+      .min(1, { message: "VIN/Serial Number is required" })
+      .regex(/^[A-HJ-NPR-Z0-9]{11,17}$/, {
+        message: "VIN must be 11–17 characters (A-Z, 0–9), no I, O, Q",
+      }),
     defaultValue: "",
   },
   {
     name: "geolocation",
     placeholder: "Geolocation (Latitude, Longitude)",
     type: "string",
-    validation: z.string().min(1, { message: "Geolocation is requred" }),
-    defaultValue: "",
+    validation: z.object({
+      latitude: z
+        .number({ invalid_type_error: "Latitude must be a number" })
+        .min(-90, { message: "Latitude must be between -90 and 90" })
+        .max(90, { message: "Latitude must be between -90 and 90" }),
+      longitude: z
+        .number({ invalid_type_error: "Longitude must be a number" })
+        .min(-180, { message: "Longitude must be between -180 and 180" })
+        .max(180, { message: "Longitude must be between -180 and 180" }),
+    }),
+    defaultValue: {
+      latitude: 100,
+      longitude: 200,
+    },
   },
   {
     name: "manufactureYear",
     placeholder: "Manufacture Year",
     type: "number",
-    validation: z.string().refine((val) => /^\d{4}$/.test(val), {
-      message: "Manufacture Year must be a 4-digit year",
-    }),
+    validation: z
+      .string()
+      .min(MIN_NUMBER, { message: "Manufacture Year is required" })
+      .refine((val) => /^\d{4}$/.test(val), {
+        message: "Manufacture Year must be a 4-digit year",
+      }),
     defaultValue: "",
   },
   {
@@ -158,19 +190,10 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     HTMLType: "date",
     validation: z
       .string()
+      .min(1, { message: "Valuation Date is required" })
       .regex(/^\d{4}-\d{2}-\d{2}$/, {
         message: "Valuation Date must be in YYYY-MM-DD format",
-      })
-      .refine(
-        (date) => {
-          const inputDate = new Date(date);
-          const today = new Date();
-          return inputDate <= today;
-        },
-        {
-          message: "Valuation Date cannot be in the future",
-        }
-      ),
+      }),
     defaultValue: "",
   },
   {
@@ -178,8 +201,8 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     placeholder: "Area (in square meters)",
     type: "number",
     validation: z.coerce
-      .number()
-      .min(0.1, { message: "Area must be greater than 0" }),
+      .number({ required_error: "Area is required" })
+      .min(MIN_NUMBER, { message: "Area must be greater than 0" }),
     defaultValue: "",
   },
   {
@@ -197,9 +220,12 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     name: "constructionYear",
     placeholder: "Construction Year",
     type: "number",
-    validation: z.string().refine((val) => /^\d{4}$/.test(val), {
-      message: "Construction Year must be a 4-digit year",
-    }),
+    validation: z
+      .string()
+      .min(1, { message: "Construction Year is required" })
+      .refine((val) => /^\d{4}$/.test(val), {
+        message: "Construction Year must be a 4-digit year",
+      }),
     defaultValue: "",
   },
   {
