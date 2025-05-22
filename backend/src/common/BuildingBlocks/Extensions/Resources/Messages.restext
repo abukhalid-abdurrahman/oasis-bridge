@@ -93,6 +93,8 @@ UserEmailAlreadyExist=Email already exists.
 UserPhoneAlreadyExist=PhoneNumber already exists.
 UserUserNameAlreadyExist=UserName already exists.
 
+NftAlreadyTransferred=This NFT has already been transferred and is no longer available for sale.
+
 
 RestoreAccountIncorrectFormat=SeedPhrase format is invalid.
 RadixGetAddressInvalidType=Invalid address type.
@@ -111,12 +113,20 @@ IpfsFileNotFound=File not found.
 IpfsInvalidFormatCid=Ipfs invalid-format cid
 
 
-TitleInvalid=Title is required and must be at most 32 characters.
-AssetDescriptionInvalid=AssetDescription is required and must be at most 500 characters.
-ImageInvalid=Image must be a valid absolute URL.
-UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 64 characters.
+TitleInvalid=Title is required and must be at most 32 byte.
+AssetDescriptionInvalid=AssetDescription is required and must be at most 1000 characters.
+ImageInvalid=Image must be a valid absolute URL and must be at most 200 characters.
+UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 10 characters.
+ProofOfOwnershipInvalid=ProofOfOwnership must be a valid absolute URL and must be at most 200 characters.
+
 
 ConfigurationValueRequired=Configuration value for '{0}' is required and was not found or empty.
 ConfigurationValueMustBeInteger=Configuration value for '{0}' must be a valid integer. Found: '{1}'.
 ConfigurationValueMustBeBoolean=Configuration value for '{0}' must be a valid boolean. Found: '{1}'.
 ConnectionStringNotFound=Connection string '{0}' was not found in the configuration.
+
+
+TokenValidationContextNull=Invalid token data: HttpContext.User.Identity or token HttpContext.User.Claims are null or empty.
+TokenValidationInvalidTokenData=Invalid token data.
+TokenValidationInvalidTokenVersion=Invalid token version.
+

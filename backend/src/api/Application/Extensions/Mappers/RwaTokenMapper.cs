@@ -52,7 +52,8 @@ public static class RwaTokenMapper
             entity.UniqueIdentifier,
             entity.Royalty,
             entity.Price,
-            entity.VirtualAccount.Network.Name,
+            entity.VirtualAccount?.Network.Name
+            ?? entity.WalletLinkedAccount?.Network.Name,
             entity.Image,
             entity.OwnerContact,
             entity.AssetType,
@@ -67,9 +68,12 @@ public static class RwaTokenMapper
             entity.TransactionHash,
             entity.Version,
             entity.CreatedAt,
-             entity.UpdatedAt,
-            entity.VirtualAccount.User.Email,
-            entity.VirtualAccount.User.UserName);
+            entity.UpdatedAt,
+            entity.VirtualAccount?.User.Email
+            ?? entity.WalletLinkedAccount?.User.Email,
+            entity.VirtualAccount?.User.UserName
+            ?? entity.WalletLinkedAccount?.User.UserName
+        );
 
     public static RwaToken ToEntity(this CreateRwaTokenRequest request, IHttpContextAccessor accessor,
         NftMintingResponse minting, Guid vaId)

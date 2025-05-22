@@ -23,6 +23,7 @@ global using Application.Validations;
 global using System.Linq.Expressions;
 global using Infrastructure.DataAccess;
 global using Microsoft.AspNetCore.Http;
+global using BuildingBlocks.Extensions;
 global using Infrastructure.Extensions;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;

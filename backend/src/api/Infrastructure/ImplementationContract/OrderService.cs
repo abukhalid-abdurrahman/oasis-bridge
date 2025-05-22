@@ -1,7 +1,3 @@
-using NetworkType = RadixBridge.Enums.NetworkType;
-using System.Transactions;
-using Infrastructure.Extensions;
-
 namespace Infrastructure.ImplementationContract;
 
 /// <summary>
@@ -19,7 +15,6 @@ public sealed class OrderService(
     IHttpContextAccessor accessor,
     ISolanaBridge solanaBridge,
     IRadixBridge radixBridge,
-    RadixTechnicalAccountBridgeOptions radixOp,
     ILogger<OrderService> logger) : IOrderService
 {
     private const string Sol = "SOL";
@@ -54,7 +49,7 @@ public sealed class OrderService(
         IBridge withdrawBridge = request.FromToken == Xrd ? radixBridge : solanaBridge;
         IBridge depositBridge = request.FromToken == Xrd ? solanaBridge : radixBridge;
 
-        ExchangeRate exchangeRate = await dbContext.ExchangeRates.AsNoTracking()
+        ExchangeRate exchangeRate = await dbContext.ExchangeRates.AsNoTrackingWithIdentityResolution()
             .Include(x => x.FromToken)
             .Include(x => x.ToToken)
             .Where(x => x.FromToken.Symbol == request.FromToken && x.ToToken.Symbol == request.ToToken)
@@ -64,98 +59,14 @@ public sealed class OrderService(
         decimal convertedAmount = exchangeRate.Rate * request.Amount;
 
         VirtualAccount? virtualAccount = await dbContext.VirtualAccounts
-            .AsNoTracking()
+            .AsNoTrackingWithIdentityResolution()
             .Include(x => x.Network)
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Network.Name == request.FromNetwork, token);
 
-        if (virtualAccount is null)
-        {
-            using var transactionScope = TransactionExtensions.CreateTransactionScope();
-            Result<(string publicKey, string privateKey, string seedPhrase)> resultCreateAccount =
-                await withdrawBridge.CreateAccountAsync(token);
-            if (!resultCreateAccount.IsSuccess)
-            {
-                logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
-                    DateTimeOffset.UtcNow - date);
-                return Result<CreateOrderResponse>.Failure(resultCreateAccount.Error);
-            }
-
-            string address = resultCreateAccount.Value.publicKey;
-            if (request.FromToken == Xrd)
-            {
-                Result<string> resultGetAddress = radixBridge.GetAddressAsync(
-                    new PrivateKey(Encoders.Hex.DecodeData(resultCreateAccount.Value.privateKey), Curve.ED25519)
-                        .PublicKey(),
-                    AddressType.Account,
-                    radixOp.NetworkId == 0x01 ? NetworkType.Main : NetworkType.Test);
-                if (!resultGetAddress.IsSuccess)
-                {
-                    logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
-                        DateTimeOffset.UtcNow - date);
-                    return Result<CreateOrderResponse>.Failure(resultGetAddress.Error);
-                }
-
-                address = resultGetAddress.Value!;
-            }
-
-            VirtualAccount newVirtualAccount = new()
-            {
-                PublicKey = resultCreateAccount.Value.publicKey,
-                PrivateKey = resultCreateAccount.Value.privateKey,
-                SeedPhrase = resultCreateAccount.Value.seedPhrase,
-                Address = address,
-                CreatedBy = accessor.GetId(),
-                CreatedByIp = accessor.GetRemoteIpAddress(),
-                UserId = userId,
-                NetworkId = await dbContext.Networks.Where(x => x.Name == request.FromNetwork).Select(x => x.Id)
-                    .FirstOrDefaultAsync(token),
-                NetworkType = request.FromToken == Xrd
-                    ? Domain.Enums.NetworkType.Radix
-                    : Domain.Enums.NetworkType.Solana
-            };
-
-            await dbContext.VirtualAccounts.AddAsync(newVirtualAccount, token);
-            int createResult = await dbContext.SaveChangesAsync(token);
-            if (createResult == 0)
-            {
-                logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
-                    DateTimeOffset.UtcNow - date);
-                return Result<CreateOrderResponse>.Failure(
-                    ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
-            }
-
-            Order newOrder = new()
-            {
-                Amount = request.Amount,
-                OrderStatus = OrderStatus.InsufficientFunds,
-                UserId = userId,
-                ExchangeRateId = exchangeRate.Id,
-                CreatedByIp = accessor.GetRemoteIpAddress(),
-                CreatedBy = accessor.GetId(),
-                FromToken = request.FromToken,
-                ToToken = request.ToToken,
-                FromNetwork = request.FromNetwork,
-                ToNetwork = request.ToNetwork,
-                DestinationAddress = request.DestinationAddress,
-            };
-
-            await dbContext.Orders.AddAsync(newOrder, token);
-
-            logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
-                DateTimeOffset.UtcNow - date);
-            int orderSaveResult = await dbContext.SaveChangesAsync(token);
-            if (orderSaveResult != 0)
-            {
-                transactionScope.Complete();
-                return Result<CreateOrderResponse>.Success(new(newOrder.Id, Messages.CreateOrderSuccess));
-            }
-            return Result<CreateOrderResponse>.Failure(
-                ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
-        }
 
         if (request is { FromToken: Xrd, ToToken: Sol } or { FromToken: Sol, ToToken: Xrd })
         {
-            Result<decimal> balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount.Address, token);
+            Result<decimal> balance = await withdrawBridge.GetAccountBalanceAsync(virtualAccount!.Address, token);
             if (!balance.IsSuccess)
             {
                 logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
@@ -187,9 +98,8 @@ public sealed class OrderService(
                 Result<TransactionResponse> abortTrRs;
                 try
                 {
-
                     withdrawTrRs = await withdrawBridge.WithdrawAsync(request.Amount, virtualAccount.Address,
-                            virtualAccount.PrivateKey);
+                        virtualAccount.PrivateKey);
                     if (!withdrawTrRs.IsSuccess)
                     {
                         logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
@@ -256,6 +166,7 @@ public sealed class OrderService(
                     return Result<CreateOrderResponse>.Failure(ResultPatternError.InternalServerError(e.Message));
                 }
             }
+
             using var transactionScope = TransactionExtensions.CreateTransactionScope();
             await dbContext.Orders.AddAsync(newOrder, token);
             logger.OperationCompleted(nameof(CreateOrderAsync), DateTimeOffset.UtcNow,
@@ -266,6 +177,7 @@ public sealed class OrderService(
                 transactionScope.Complete();
                 return Result<CreateOrderResponse>.Success(new CreateOrderResponse(newOrder.Id, "Order created"));
             }
+
             return Result<CreateOrderResponse>.Failure(
                 ResultPatternError.InternalServerError(Messages.CreateOrderFailed));
         }
@@ -632,5 +544,4 @@ public sealed class OrderService(
     /// <returns>Returns true if the address starts with "account_tdx_", otherwise false.</returns>
     private bool IsValidRadixAddress(string address)
         => address.StartsWith("account_tdx_");
-
 }

@@ -5,87 +5,99 @@ namespace API.Infrastructure.Middlewares.TokenValidation;
 /// If the request is to an ignored URL, it bypasses token validation.
 /// Otherwise, it validates the user's authentication status and token version.
 /// </summary>
-public class TokenValidationMiddleware
+public sealed class TokenValidationMiddleware(
+    RequestDelegate next,
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<TokenValidationMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-
-    /// <summary>
-    /// Constructor for TokenValidationMiddleware.
-    /// </summary>
-    /// <param name="next">The next middleware in the pipeline.</param>
-    /// <param name="serviceScopeFactory">Factory to create service scopes for database access.</param>
-    public TokenValidationMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
-    {
-        _next = next;
-        _serviceScopeFactory = serviceScopeFactory;
-    }
-
     /// <summary>
     /// Invokes the token validation logic for each HTTP request.
     /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
-        string requestPath = context.Request.Path.ToString().ToLower().TrimEnd('/');
-
-        if (IgnoreUrl.IgnoreUrls.Contains(requestPath))
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(InvokeAsync), date);
+        try
         {
-            await _next(context);
-            return;
-        }
+            string requestPath = context.Request.Path.ToString().ToLower().TrimEnd('/');
 
-        if (context.User.Identity is { IsAuthenticated: true })
-        {
-            await using AsyncServiceScope scope = _serviceScopeFactory.CreateAsyncScope();
-            DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-            string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
-            string? tokenVersionClaim = context.User.FindFirst(x => x.Type == CustomClaimTypes.TokenVersion)?.Value;
-
-            if (userId is null || tokenVersionClaim is null)
+            if ((context.User.Identity is null || context.User.Claims.IsNullOrEmpty()) && context.User.Identity?.IsAuthenticated == true)
             {
-                await WriteErrorResponse(context, "Invalid token data");
+                logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                await WriteErrorResponse(context, Messages.TokenValidationContextNull);
                 return;
             }
 
-            User? user = await dbContext.Users.AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
 
-            if (user is null || user.TokenVersion.ToString() != tokenVersionClaim)
+            if (IgnoreUrl.IgnoreUrls.Contains(requestPath))
             {
-                await WriteErrorResponse(context, "Invalid token version");
+                logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                await next(context);
                 return;
             }
-        }
 
-        await _next(context);
+            if (context.User.Identity is { IsAuthenticated: true })
+            {
+                await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
+                DataContext dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+                string? userId = context.User.FindFirst(x => x.Type == CustomClaimTypes.Id)?.Value;
+                string? tokenVersionClaim = context.User.FindFirst(x => x.Type == CustomClaimTypes.TokenVersion)?.Value;
+
+                if (userId is null || tokenVersionClaim is null)
+                {
+                    logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                    await WriteErrorResponse(context, Messages.TokenValidationInvalidTokenData);
+                    return;
+                }
+
+                User? user = await dbContext.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
+
+                if (user is null || user.TokenVersion.ToString() != tokenVersionClaim)
+                {
+                    logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                    await WriteErrorResponse(context, Messages.TokenValidationInvalidTokenVersion);
+                    return;
+                }
+            }
+
+            logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+            await next(context);
+        }
+        catch (Exception e)
+        {
+            logger.OperationException(nameof(InvokeAsync), e.Message);
+            logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+        }
     }
 
     /// <summary>
     /// Writes an error response when token validation fails.
     /// </summary>
-    private static async Task WriteErrorResponse(HttpContext context, string message)
+    private async Task WriteErrorResponse(HttpContext context, string message)
     {
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+        logger.OperationStarted(nameof(WriteErrorResponse), date);
+
         try
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
+            context.Response.ContentType = MediaTypeNames.Application.Json;
 
             object response = new { error = message };
             string jsonResponse = JsonConvert.SerializeObject(response);
 
-            ILogger<TokenValidationMiddleware> logger =
-                context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
-            logger.LogWarning("Token validation failed for path {RequestPath}: {Message}", context.Request.Path,
-                message);
+            logger.LogWarning($"{context.Request.Path}: {message}");
 
+            logger.OperationCompleted(nameof(WriteErrorResponse), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
             await context.Response.WriteAsync(jsonResponse);
         }
         catch (Exception ex)
         {
-            ILogger<TokenValidationMiddleware> logger =
-                context.RequestServices.GetRequiredService<ILogger<TokenValidationMiddleware>>();
-            logger.LogError(ex, "Failed to write error response");
+            logger.OperationException(nameof(WriteErrorResponse), ex.Message);
+            logger.OperationCompleted(nameof(WriteErrorResponse), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
         }
     }
 }

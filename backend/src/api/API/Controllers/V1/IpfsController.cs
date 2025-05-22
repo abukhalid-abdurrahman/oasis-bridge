@@ -1,3 +1,4 @@
+
 namespace API.Controllers.V1;
 
 /// <summary>
@@ -30,14 +31,12 @@ public sealed class IpfsController(IIpfsService service, IConfiguration config) 
     [HttpGet("full/{cid:required}")]
     public async Task<IActionResult> GetAsync(string cid, CancellationToken token)
     {
-        const string contentType = "application/octet-stream";
-
         Result<byte[]> result = await service.GetFileAsync(cid, token);
 
         if (!result.IsSuccess)
             return result.ToActionResult();
 
-        return File(result.Value!, contentType, cid);
+        return File(result.Value!, MediaTypeNames.Application.Octet, cid);
     }
 
     /// <summary>
@@ -57,7 +56,6 @@ public sealed class IpfsController(IIpfsService service, IConfiguration config) 
         if (!result.IsSuccess)
             return result.ToActionResult();
 
-        const string contentType = "image/webp";
         const string quality = "imageOptimizer:quality";
 
         try
@@ -65,7 +63,7 @@ public sealed class IpfsController(IIpfsService service, IConfiguration config) 
             byte[] optimizedImage =
                 await ImageOptimizer.OptimizeImageAsync(result.Value!, config.GetRequiredInt(quality));
 
-            return File(optimizedImage, contentType);
+            return File(optimizedImage, MediaTypeNames.Image.Webp);
         }
         catch (Exception ex)
         {

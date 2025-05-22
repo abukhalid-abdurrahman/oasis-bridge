@@ -24,9 +24,11 @@ public sealed class RwaTokenPriceHistoryService(
                 .WhereIf(filter.VirtualAccountOwnerId is not null,
                     x => x.RwaToken.VirtualAccountId == filter.VirtualAccountOwnerId)
                 .WhereIf(!string.IsNullOrWhiteSpace(filter.PublicKey),
-                    x => x.RwaToken.VirtualAccount.PublicKey == filter.PublicKey)
+                    x
+                        => x.RwaToken.VirtualAccount != null && x.RwaToken.VirtualAccount.PublicKey == filter.PublicKey)
                 .WhereIf(filter.OwnerUserId is not null, x =>
-                    x.RwaToken.VirtualAccount.User.Id == filter.OwnerUserId)
+                    x.RwaToken.VirtualAccount != null && x.RwaToken.VirtualAccount.User.Id == filter.OwnerUserId)
+                .OrderBy(x => x.Id)
                 .Select(x => x.ToRead());
 
             int totalCount = await query.CountAsync(token);

@@ -32,6 +32,7 @@ public sealed class UserRoleService(
             .ApplyFilter(filter.UserName, x => x.User.UserName)
             .ApplyFilter(filter.PhoneNumber, x => x.User.PhoneNumber)
             .ApplyFilter(filter.Email, x => x.User.Email)
+            .OrderBy(x => x.Id)
             .Select(x => x.ToRead());
 
         int totalCount = await userRolesQuery.CountAsync(token);

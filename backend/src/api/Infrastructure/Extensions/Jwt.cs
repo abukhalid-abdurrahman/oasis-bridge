@@ -18,21 +18,20 @@ public static class Jwt
         User user,
         IConfiguration config)
     {
-        // Retrieve JWT configuration values from the settings
-        string? key = config["Jwt:key"];
-        string? issuer = config["Jwt:issuer"];
-        string? audience = config["Jwt:audience"];
+        const string jwtKey = "Jwt:key";
+        const string jwtIssuer = "Jwt:issuer";
+        const string jwtAudience = "Jwt:audience";
+        const string jwtExpires = "Jwt:expires";
 
-        // Validate that JWT configuration is complete
-        if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
-            throw new InvalidOperationException("JWT key, issuer, or audience is missing in configuration.");
+        string key = config.GetRequiredString(jwtKey);
+        string issuer = config.GetRequiredString(jwtIssuer);
+        string audience = config.GetRequiredString(jwtAudience);
+        int expires = config.GetRequiredInt(jwtExpires);
 
-        // Define the signing credentials using the symmetric key and HMAC SHA-256 algorithm
         SigningCredentials credentials = new(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
             SecurityAlgorithms.HmacSha256);
 
-        // Create a list of claims associated with the user
         List<Claim> claims =
         [
             new(CustomClaimTypes.Id, user.Id.ToString()),
@@ -44,28 +43,25 @@ public static class Jwt
             new(CustomClaimTypes.TokenVersion, user.TokenVersion.ToString()),
         ];
 
-        // Add user roles as claims
         claims.AddRange(await dbContext.UserRoles
             .Where(ur => ur.UserId == user.Id)
             .Select(ur => new Claim(CustomClaimTypes.Role, ur.Role.Name))
             .AsNoTracking()
             .ToListAsync());
 
-        // Define the expiration time for the token (30 minutes from the current UTC time)
         DateTime current = DateTime.UtcNow;
 
-        // Create the JWT token
+
         JwtSecurityToken jwt = new(
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: current.AddMinutes(30),
+            expires: current.AddMinutes(expires),
             signingCredentials: credentials);
 
-        // Return the result with the token and expiration info
         return Result<LoginResponse>.Success(new(
             new JwtSecurityTokenHandler().WriteToken(jwt),
             current,
-            current.AddMinutes(30)));
+            current.AddMinutes(expires)));
     }
 }

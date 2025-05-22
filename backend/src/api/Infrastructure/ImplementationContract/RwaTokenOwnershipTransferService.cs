@@ -10,5 +10,6 @@ public sealed class RwaTokenOwnershipTransferService(
             .Include(x => x.BuyerWallet)
             .Include(x => x.SellerWallet)
             .Where(x => x.RwaTokenId == id)
+            .OrderBy(x => x.Id)
             .Select(x => x.ToRead()).ToListAsync(token));
 }
