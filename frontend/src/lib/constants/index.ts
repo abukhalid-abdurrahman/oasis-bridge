@@ -1,6 +1,6 @@
 export const API = process.env.NEXT_PUBLIC_API_URL;
 export const SOLANA_NET = process.env.NEXT_PUBLIC_SOLANA_NET;
-export const MAX_FILE_SIZE = 50000000;
+export const MAX_FILE_SIZE = 100 * 1024 * 1024;
 export const MIN_NUMBER = 0.0000000001;
 export const ACCEPTED_DOCUMENT_TYPES = [
   "image/jpeg",
