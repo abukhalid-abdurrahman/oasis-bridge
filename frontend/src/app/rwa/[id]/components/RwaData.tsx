@@ -4,7 +4,11 @@ import AllRwaData from "@/components/AllRwaData";
 import Chart from "@/components/Chart";
 import Loading from "@/components/Loading";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { shortDescription } from "@/lib/scripts/script";
+import {
+  handleCopy,
+  shortAddress,
+  shortDescription,
+} from "@/lib/scripts/script";
 import { useRwa, useRwaChanges } from "@/requests/getRequests";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,6 +24,7 @@ interface RwaDataProps {
 export default function RwaData({ params }: RwaDataProps) {
   const tokenId = JSON.parse(params.value)?.id;
   const { data, isFetching } = useRwa(tokenId);
+  const [isCopied, setIsCopied] = useState(false);
   const { data: sellBuyData, isFetching: isFetchingSellBuy } =
     useRwaChanges(tokenId);
   const [isAlldataOpen, setIsAlldataOpen] = useState(false);
@@ -99,9 +104,24 @@ export default function RwaData({ params }: RwaDataProps) {
               })} !px-5 !w-full flex justify-between flex-wrap`}
             >
               <span className="text-gray-500">IPFS CID:</span>{" "}
-              <Link href={data.data.image}>
-                {shortDescription(data.data.image, 15)}
-              </Link>
+              <span
+                className="cursor-pointer relative"
+                onClick={() => {
+                  handleCopy(
+                    data.data.image.replace("https://ipfs.io/ipfs/"),
+                    setIsCopied
+                  );
+                }}
+              >
+                {shortAddress(
+                  data.data.image.replace("https://ipfs.io/ipfs/", "")
+                )}
+                {isCopied && (
+                  <span className="absolute right-0 -top-6 bg-white text-black text-xs px-2 py-1 rounded-md opacity-90 transition">
+                    Copied
+                  </span>
+                )}
+              </span>
             </div>
             <Button
               variant="gray"
@@ -115,7 +135,7 @@ export default function RwaData({ params }: RwaDataProps) {
               className={`${buttonVariants({ variant: "empty", size: "lg" })}`}
               href={`https://explorer.solana.com/address/${
                 data.data.mintAccount
-              }${SOLANA_ENVIRONMENT === 'devnet' ? "?cluster=devnet" : ""}`}
+              }${SOLANA_ENVIRONMENT === "devnet" ? "?cluster=devnet" : ""}`}
               target="_blank"
             >
               Check in Solana Explorer

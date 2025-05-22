@@ -32,7 +32,12 @@ import { ASSET_TYPES } from "@/lib/constants";
 import { useRwa } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import Image from "next/image";
-import { shortDescription, uploadFile } from "@/lib/scripts/script";
+import {
+  handleCopy,
+  shortAddress,
+  shortDescription,
+  uploadFile,
+} from "@/lib/scripts/script";
 import { Loader2 } from "lucide-react";
 import UpdatingModal from "./UpdatingModal";
 import Link from "next/link";
@@ -51,6 +56,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
   const [isUpdated, setIsUpdated] = useState(false);
   const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
   const [isAlldataOpen, setIsAlldataOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const { user } = useUserStore();
 
   const { data, isFetching, isFetched } = useRwa(tokenId);
@@ -386,9 +392,24 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
                 <span className="text-gray-500">IPFS CID:</span>{" "}
-                <Link href={data.data.image}>
-                  {shortDescription(data.data.image)}
-                </Link>
+                <span
+                  className="cursor-pointer relative"
+                  onClick={() => {
+                    handleCopy(
+                      data.data.image.replace("https://ipfs.io/ipfs/"),
+                      setIsCopied
+                    );
+                  }}
+                >
+                  {shortAddress(
+                    data.data.image.replace("https://ipfs.io/ipfs/", "")
+                  )}
+                  {isCopied && (
+                    <span className="absolute right-0 -top-6 bg-white text-black text-xs px-2 py-1 rounded-md opacity-90 transition">
+                      Copied
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex gap-2 md:flex-wrap">
                 <div
