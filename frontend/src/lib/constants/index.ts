@@ -1,6 +1,6 @@
 export const API = process.env.NEXT_PUBLIC_API_URL;
 export const SOLANA_NET = process.env.NEXT_PUBLIC_SOLANA_NET;
-export const MAX_FILE_SIZE = 50000000;
+export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export const ACCEPTED_DOCUMENT_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -9,12 +9,24 @@ export const ACCEPTED_DOCUMENT_TYPES = [
 ];
 export const ASSET_TYPES = [
   "Real Estate",
-  "Automobiles",
+  // "Automobiles",
   // "Industrial Equipment",
   // "Jewelry and Precious Metals",
   // "Collectibles",
   // "Other",
 ] as const;
 
-export const PROPERTY_TYPES: string[] = ["Residential", "Commercial", "Land"];
-export const INSURANSE_STATUSES: string[] = ['Active', 'Expired', 'Pending', 'Cancelled']
+export const PROPERTY_TYPES: string[] = [
+  "Residential",
+  "Commercial",
+  "Industrial",
+  "Agricultural",
+  "MixedUse",
+  "Other",
+];
+export const INSURANSE_STATUSES: string[] = [
+  "Active",
+  "Expired",
+  "Pending",
+  "Cancelled",
+];

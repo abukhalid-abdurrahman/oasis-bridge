@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint"
   },
@@ -31,7 +31,7 @@
     "lightweight-charts": "^5.0.5",
     "lodash": "^4.17.21",
     "lucide-react": "^0.487.0",
-    "next": "15.1.4",
+    "next": "^15.3.2",
     "ol": "^10.5.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",

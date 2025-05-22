@@ -21,7 +21,7 @@ export interface TokenizationField {
   type: string;
   validation: ZodType;
   group?: number;
-  defaultValue?: string;
+  defaultValue?: string | { latitude: number | string; longitude: number | string };
   HTMLType?: string;
   selectItems?: string[];
 }
