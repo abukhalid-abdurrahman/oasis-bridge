@@ -9,9 +9,8 @@ import {
 } from "@/requests/postRequests";
 import Image from "next/image";
 import { useState } from "react";
-import { Connection, Transaction } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import { useWalletStore } from "@/store/useWalletStore";
-import { SOLANA_NET } from "@/lib/constants";
 
 interface PurchaseButtonProps {
   tokenId: string;
@@ -62,7 +61,6 @@ export default function PurchaseButton({
         {
           onSuccess: async (res) => {
             try {
-              const connection = new Connection(SOLANA_NET!, "confirmed");
               const txBase64 = res.data;
               const transaction = Transaction.from(
                 Buffer.from(txBase64, "base64")

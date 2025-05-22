@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useState } from "react";
 import PurchaseButton from "@/components/PurchaseButton";
 import SellBuyData from "./SellBuyData";
-import { SOLANA_NET } from "@/lib/constants";
+import { SOLANA_ENVIRONMENT } from "@/lib/constants";
 
 interface RwaDataProps {
   params: any;
@@ -115,7 +115,7 @@ export default function RwaData({ params }: RwaDataProps) {
               className={`${buttonVariants({ variant: "empty", size: "lg" })}`}
               href={`https://explorer.solana.com/address/${
                 data.data.mintAccount
-              }${SOLANA_NET?.includes("devnet") ? "?cluster=devnet" : ""}`}
+              }${SOLANA_ENVIRONMENT === 'devnet' ? "?cluster=devnet" : ""}`}
               target="_blank"
             >
               Check in Solana Explorer
