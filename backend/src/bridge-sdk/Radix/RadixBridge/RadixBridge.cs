@@ -211,13 +211,13 @@ public sealed class RadixBridge : IRadixBridge
                         BridgeTransactionStatus.InsufficientFunds));
             }
 
-            decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.ToZero);
 
             using TransactionManifest manifest = new ManifestBuilder()
-                .AccountLockFeeAndWithdraw(sender, new("100"), _xrdAddress, new($"{roundedAmount}"))
-                .TakeFromWorktop(_xrdAddress, new($"{roundedAmount}"), new("xrdBucket"))
+                .AccountLockFeeAndWithdraw(sender, new("10"), _xrdAddress, new($"{amount}"))
+                .TakeFromWorktop(_xrdAddress, new($"{amount}"), new("xrdBucket"))
                 .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
                 .Build(_options.NetworkId);
+
             manifest.StaticallyValidate();
 
             ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
