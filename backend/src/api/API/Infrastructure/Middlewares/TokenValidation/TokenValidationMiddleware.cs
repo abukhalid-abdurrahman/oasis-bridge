@@ -21,14 +21,14 @@ public sealed class TokenValidationMiddleware(
         {
             string requestPath = context.Request.Path.ToString().ToLower().TrimEnd('/');
 
-          
-                if ( (context.User.Identity is null || context.User.Claims.IsNullOrEmpty()) && context.User.Identity?.IsAuthenticated==true )
-                {
-                    logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-                    await WriteErrorResponse(context, Messages.TokenValidationContextNull);
-                    return;
-                }
-            
+
+            if ((context.User.Identity is null || context.User.Claims.IsNullOrEmpty()) && context.User.Identity?.IsAuthenticated == true)
+            {
+                logger.OperationCompleted(nameof(InvokeAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
+                await WriteErrorResponse(context, Messages.TokenValidationContextNull);
+                return;
+            }
+
 
             if (IgnoreUrl.IgnoreUrls.Contains(requestPath))
             {

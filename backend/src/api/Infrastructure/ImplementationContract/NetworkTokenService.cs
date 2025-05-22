@@ -25,7 +25,7 @@ public sealed class NetworkTokenService(
             .AsNoTracking()
             .ApplyFilter(filter.Symbol, x => x.Symbol)
             .ApplyFilter(filter.Description, x => x.Description)
-            .OrderBy(x=>x.Id)
+            .OrderBy(x => x.Id)
             .Select(x => x.ToRead());
 
         int totalCount = await query.CountAsync(token);

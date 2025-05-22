@@ -50,7 +50,7 @@ public sealed class RwaTokenService(
                     filter.PageNumber,
                     totalCount,
                     query
-                        .OrderBy(x=>x.Id)
+                        .OrderBy(x => x.Id)
                         .Page(filter.PageNumber, filter.PageSize)
                         .Select(x => x.ToRead()).ToList());
 

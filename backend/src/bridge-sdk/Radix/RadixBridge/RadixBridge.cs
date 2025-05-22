@@ -218,8 +218,8 @@ public sealed class RadixBridge : IRadixBridge
                 .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
                 .Build(_options.NetworkId);
 
-            manifest.StaticallyValidate(); 
-            
+            manifest.StaticallyValidate();
+
             ulong currentEpoch = (await _httpClient.GetConstructionMetadata(_options))?.CurrentEpoch ?? 0;
 
             using NotarizedTransaction transaction = new TransactionBuilder()
@@ -232,8 +232,8 @@ public sealed class RadixBridge : IRadixBridge
                     notaryIsSignatory: true,
                     tipPercentage: 0
                 ))
-                .Manifest(manifest) 
-                .Message(new Message.None()) 
+                .Manifest(manifest)
+                .Message(new Message.None())
                 .NotarizeWithPrivateKey(senderPrivateKey);
 
             var data = new

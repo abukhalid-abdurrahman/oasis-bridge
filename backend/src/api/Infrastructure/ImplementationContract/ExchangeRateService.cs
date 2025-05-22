@@ -29,7 +29,7 @@ public sealed class ExchangeRateService(
             .AsNoTracking()
             .ApplyFilter(filter.FromTokenId.ToString(), x => x.FromTokenId.ToString())
             .ApplyFilter(filter.ToTokenId.ToString(), x => x.ToTokenId.ToString())
-            .OrderBy(x=>x.Id)
+            .OrderBy(x => x.Id)
             .Select(x => new GetExchangeRateResponse(
                 x.Id,
                 x.FromTokenId,
