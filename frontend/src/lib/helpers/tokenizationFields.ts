@@ -102,7 +102,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
       ],
       { message: "Asset type is required" }
     ),
-    defaultValue: "",
+    defaultValue: ''
   },
 ];
 
@@ -189,7 +189,7 @@ export const tokenizationFieldsRealEstate: TokenizationField[] = [
     type: "string",
     HTMLType: "date",
     validation: z
-      .string()
+      .string({ required_error: "Valuation Date is required" })
       .min(1, { message: "Valuation Date is required" })
       .regex(/^\d{4}-\d{2}-\d{2}$/, {
         message: "Valuation Date must be in YYYY-MM-DD format",
