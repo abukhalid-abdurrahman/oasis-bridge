@@ -38,6 +38,7 @@ public sealed class NetworkService(
             .ApplyFilter(filter.Name, x => x.Name)
             .ApplyFilter(filter.Description, x => x.Description)
             .Include(n => n.NetworkTokens)
+            .OrderBy(x=>x.Id)
             .Select(n => new GetNetworkResponse(
                 n.Id,
                 n.Name,

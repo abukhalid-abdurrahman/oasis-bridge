@@ -49,7 +49,9 @@ public sealed class RwaTokenService(
                     filter.PageSize,
                     filter.PageNumber,
                     totalCount,
-                    query.Page(filter.PageNumber, filter.PageSize)
+                    query
+                        .OrderBy(x=>x.Id)
+                        .Page(filter.PageNumber, filter.PageSize)
                         .Select(x => x.ToRead()).ToList());
 
             logger.OperationCompleted(nameof(GetAllAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
