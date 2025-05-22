@@ -48,11 +48,9 @@ export default function RwaData({ params }: RwaDataProps) {
         />
         <div className="flex flex-col gap-5 text-white items-start col-span-1 lg:flex-row lg:order-3 sm:!flex-col">
           <div className="flex gap-5 shrink-0 lg:flex-col lg:gap-3 sm:w-full">
-            <Image
+            <img
               src={data.data.image}
               alt="RWA"
-              width={500}
-              height={500}
               className="w-[100px] rounded-2xl lg:w-[200px] sm:!w-full sm:!aspect-square sm:!h-auto"
             />
             <div className="sm:flex sm:justify-between sm:mt-3 sm:mb-1">

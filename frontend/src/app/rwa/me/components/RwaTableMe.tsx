@@ -70,14 +70,12 @@ export default function RwaTableMe() {
                             className="flex gap-3 items-center"
                             href={`/rwa/${rwa.tokenId}`}
                           >
-                            <Image
+                            <img
                               src={
                                 rwa.image !== "string" ? rwa.image : "/nft.avif"
                               }
                               alt={rwa.title}
-                              width={50}
-                              height={50}
-                              className="rounded-md"
+                              className="rounded-md w-[50px] h-[50px]"
                             />
                             <div className="flex flex-col">
                               <p className="p">{rwa.title}</p>

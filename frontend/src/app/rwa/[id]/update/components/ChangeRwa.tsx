@@ -367,11 +367,9 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
           </div>
           <div className="w-1/2 aspect-[3/2] rounded-2xl md:w-full md:aspect-auto">
             <div className="relative aspect-[3/2] w-full max-w-full bg-neutral-700/50 rounded-2xl p-5 flex items-center justify-center overflow-hidden">
-              <Image
+              <img
                 src={data.data.image}
                 alt={data.data.title}
-                width={350}
-                height={350}
                 className="object-contain !max-h-full !w-auto rounded-2xl"
               />
             </div>
