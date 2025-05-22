@@ -431,6 +431,7 @@ export default function CreateRwa() {
                     "ownerContact",
                     "image",
                     "proofOfOwnershipDocument",
+                    "assetType"
                   ]);
                   if (isValid) {
                     setIsSecondStep(true);

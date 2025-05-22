@@ -121,3 +121,7 @@ export const handleCopyAlt = (
     setCopiedMap((prev) => ({ ...prev, [key]: false }));
   }, 2000);
 };
+
+// Max Bites
+export const maxBytes = (limit: number) => (val: string) =>
+  new TextEncoder().encode(val).length <= limit;

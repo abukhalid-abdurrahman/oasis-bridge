@@ -43,4 +43,5 @@ public sealed class WalletLinkedAccount : BaseEntity
     public DateTimeOffset LinkedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ICollection<RwaTokenOwnershipTransfer> RwaTokenOwnershipTransferBuyers { get; set; } = [];
+    public ICollection<RwaToken> RwaTokens { get; set; } = [];
 }

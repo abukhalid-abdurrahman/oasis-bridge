@@ -35,6 +35,9 @@ public static class Messages
     public static string CreateRoleFailed => _resources.Get().AsString();
     public static string CreateUserRoleFailed => _resources.Get().AsString();
     public static string UpdateUserRoleFailed => _resources.Get().AsString();
+    public static string TokenValidationContextNull => _resources.Get().AsString();
+    public static string TokenValidationInvalidTokenData => _resources.Get().AsString();
+    public static string TokenValidationInvalidTokenVersion => _resources.Get().AsString();
     public static string DeleteUserRoleFailed => _resources.Get().AsString();
     public static string UpdateRoleFailed => _resources.Get().AsString();
     public static string DeleteRoleFailed => _resources.Get().AsString();
@@ -66,11 +69,13 @@ public static class Messages
     public static string WalletNotFound => _resources.Get().AsString();
     public static string OrderNotFound => _resources.Get().AsString();
     public static string RwaTokenNotFound => _resources.Get().AsString();
+    public static string NftAlreadyTransferred => _resources.Get().AsString();
     public static string AccountNotFound => _resources.Get().AsString();
     public static string OrderInsufficientFunds => _resources.Get().AsString();
     public static string VirtualAccountNotFound => _resources.Get().AsString();
     public static string CreateNftPurchaseBuyerAccountNotFound => _resources.Get().AsString();
     public static string OrderAlreadyCompleted => _resources.Get().AsString();
+    public static string ProofOfOwnershipInvalid => _resources.Get().AsString();
     public static string OrderCanceled => _resources.Get().AsString();
     public static string NetworkTokenNotFound => _resources.Get().AsString();
     public static string ExchangeRateNotFound => _resources.Get().AsString();

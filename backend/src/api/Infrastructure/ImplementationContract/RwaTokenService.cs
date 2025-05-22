@@ -49,7 +49,9 @@ public sealed class RwaTokenService(
                     filter.PageSize,
                     filter.PageNumber,
                     totalCount,
-                    query.Page(filter.PageNumber, filter.PageSize)
+                    query
+                        .OrderBy(x => x.Id)
+                        .Page(filter.PageNumber, filter.PageSize)
                         .Select(x => x.ToRead()).ToList());
 
             logger.OperationCompleted(nameof(GetAllAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
@@ -72,21 +74,33 @@ public sealed class RwaTokenService(
 
         try
         {
+            // This query will be optimized later. For now, it retrieves RWA tokens along with related virtual accounts, users, and networks.
             GetRwaTokenDetailResponse? rwaToken = await dbContext.RwaTokens
                 .AsNoTracking()
                 .Include(x => x.VirtualAccount)
-                .ThenInclude(x => x.User)
+                .ThenInclude(x => x.Network)
                 .Include(x => x.VirtualAccount)
+                .ThenInclude(x => x!.User)
+                .Include(x => x.WalletLinkedAccount)
+                .ThenInclude(x => x.User)
+                .Include(x => x.WalletLinkedAccount)
                 .ThenInclude(x => x.Network)
                 .Where(x => x.Id == id)
                 .Select(x => x.ToReadDetail()).FirstOrDefaultAsync(token);
 
+            if (rwaToken is null)
+            {
+                logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow,
+                    DateTimeOffset.UtcNow - date);
+                return Result<GetRwaTokenDetailResponse>.Failure(
+                    ResultPatternError.NotFound(Messages.RwaTokenNotFound));
+            }
+
+
+
             logger.OperationCompleted(nameof(GetDetailAsync), DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow - date);
-
-            return rwaToken is not null
-                ? Result<GetRwaTokenDetailResponse>.Success(rwaToken)
-                : Result<GetRwaTokenDetailResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
+            return Result<GetRwaTokenDetailResponse>.Success(rwaToken);
         }
         catch (Exception ex)
         {
@@ -210,6 +224,7 @@ public sealed class RwaTokenService(
             if (rwaToken is null)
                 return Result<UpdateRwaTokenResponse>.Failure(ResultPatternError.NotFound(Messages.RwaTokenNotFound));
 
+            Guid rwaOwnerId = (Guid)(rwaToken.VirtualAccountId ?? rwaToken.WalletLinkedAccountId)!;
             if (rwaToken.AreRwaTokensEqual(request))
                 return Result<UpdateRwaTokenResponse>.Success();
 
@@ -253,7 +268,7 @@ public sealed class RwaTokenService(
                     OldPrice = rwaToken.Price,
                     NewPrice = request.Price,
                     RwaTokenId = rwaToken.Id,
-                    OwnerId = rwaToken.VirtualAccountId,
+                    OwnerId = rwaOwnerId,
                 }, token);
             }
 

@@ -14,6 +14,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { isObject } from "lodash"
 
 const Form = FormProvider
 
@@ -146,12 +147,16 @@ const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
-  const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : children
+  const { name, formMessageId } = useFormField()
+  const { formState } = useFormContext()
 
-  if (!body) {
-    return null
-  }
+  // Получаем ошибку по пути, например: geolocation.latitude
+  const error = getErrorByPath(formState.errors, name)
+  const messages = extractMessages(error)
+
+  const body = messages.length > 0 ? messages.join(" ") : children
+
+  if (!body) return null
 
   return (
     <p
@@ -165,6 +170,19 @@ const FormMessage = React.forwardRef<
   )
 })
 FormMessage.displayName = "FormMessage"
+
+const getErrorByPath = (errors: any, path: string): any => {
+  return path.split(".").reduce((acc, key) => acc?.[key], errors)
+}
+
+const extractMessages = (error: any): string[] => {
+  if (!error) return []
+  if (typeof error.message === "string") return [error.message]
+  if (isObject(error)) {
+    return Object.values(error).flatMap(extractMessages)
+  }
+  return []
+}
 
 export {
   useFormField,
