@@ -5,7 +5,6 @@ namespace API.Controllers.V1;
 /// and account recovery. All actions are routed under the "auth" base path for authentication and authorization tasks.
 /// </summary>
 [Route($"{ApiAddresses.Base}/auth")]
-[AllowAnonymous]
 public sealed class IdentityController(IIdentityService identityService) : V1BaseController
 {
     /// <summary>
@@ -15,6 +14,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating whether registration was successful or not.</returns>
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
         => (await identityService.RegisterAsync(request, cancellationToken)).ToActionResult();
@@ -26,6 +26,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the login attempt.</returns>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
         => (await identityService.LoginAsync(request, cancellationToken)).ToActionResult();
 
@@ -35,7 +36,6 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the logout operation.</returns>
     [HttpPost("logout")]
-    [Authorize]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
         => (await identityService.LogoutAsync(cancellationToken)).ToActionResult();
 
@@ -46,7 +46,6 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the password change.</returns>
     [HttpPost("change-password")]
-    [Authorize]
     public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest request,
         CancellationToken cancellationToken)
         => (await identityService.ChangePasswordAsync(request, cancellationToken)).ToActionResult();
@@ -58,7 +57,6 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of sending the email confirmation code.</returns>
     [HttpPost("email/confirm/code")]
-    [Authorize]
     public async Task<IActionResult> SendEmailConfirmCodeAsync([FromBody] SendEmailConfirmationCodeRequest request,
         CancellationToken cancellationToken)
         => (await identityService.SendEmailConfirmationCodeAsync(request, cancellationToken)).ToActionResult();
@@ -70,7 +68,6 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the email confirmation process.</returns>
     [HttpPost("email/confirm")]
-    [Authorize]
     public async Task<IActionResult> EmailConfirmAsync([FromBody] ConfirmEmailCodeRequest request,
         CancellationToken cancellationToken)
         => (await identityService.ConfirmEmailAsync(request, cancellationToken)).ToActionResult();
@@ -82,6 +79,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the forgot password request.</returns>
     [HttpPost("forgot-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request,
         CancellationToken cancellationToken)
         => (await identityService.ForgotPasswordAsync(request, cancellationToken)).ToActionResult();
@@ -93,6 +91,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the password reset.</returns>
     [HttpPost("reset-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
         => (await identityService.ResetPasswordAsync(request, cancellationToken)).ToActionResult();
@@ -104,6 +103,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the account restoration process.</returns>
     [HttpPost("restore")]
+    [AllowAnonymous]
     public async Task<IActionResult> RestoreAccountAsync([FromBody] RestoreAccountRequest request,
         CancellationToken cancellationToken)
         => (await identityService.RestoreAccountAsync(request, cancellationToken)).ToActionResult();
@@ -115,6 +115,7 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of confirming account restoration.</returns>
     [HttpPost("restore/confirm")]
+    [AllowAnonymous]
     public async Task<IActionResult> ConfirmRestoreAccountAsync([FromBody] ConfirmRestoreAccountRequest request,
         CancellationToken cancellationToken)
         => (await identityService.ConfirmRestoreAccountAsync(request, cancellationToken)).ToActionResult();
@@ -125,7 +126,6 @@ public sealed class IdentityController(IIdentityService identityService) : V1Bas
     /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
     /// <returns>A response indicating the result of the account deletion.</returns>
     [HttpDelete]
-    [Authorize]
     public async Task<IActionResult> DeleteAccountAsync(CancellationToken cancellationToken)
         => (await identityService.DeleteAccountAsync(cancellationToken)).ToActionResult();
 }
