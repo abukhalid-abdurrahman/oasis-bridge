@@ -394,8 +394,8 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   className="cursor-pointer relative"
                   onClick={() => {
                     handleCopy(
-                      data.data.image.replace("https://ipfs.io/ipfs/"),
-                      setIsCopied
+                      data.data.image.replace("https://ipfs.io/ipfs/", ""),
+                      { setIsCopied }
                     );
                   }}
                 >
