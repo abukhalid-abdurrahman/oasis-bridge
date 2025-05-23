@@ -1,3 +1,4 @@
+using System.Globalization;
 using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
 
 namespace RadixBridge;
@@ -149,7 +150,9 @@ public sealed class RadixBridge : IRadixBridge
         }
 
         _logger.OperationCompleted(nameof(WithdrawAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-        return await ExecuteTransactionAsync(amount, senderAccountAddress, senderPrivateKey, true);
+        return await ExecuteTransactionAsync(
+            new(Encoders.Hex.DecodeData(senderPrivateKey), Curve.ED25519),
+            _options.AccountAddress, amount);
     }
 
     /// <summary>
@@ -167,29 +170,28 @@ public sealed class RadixBridge : IRadixBridge
         }
 
         _logger.OperationCompleted(nameof(DepositAsync), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow - date);
-        return await ExecuteTransactionAsync(amount, receiverAccountAddress, _options.PrivateKey, false);
+        return await ExecuteTransactionAsync(new(Encoders.Hex.DecodeData(_options.PrivateKey), Curve.ED25519),
+            receiverAccountAddress, amount);
     }
 
     /// <summary>
     /// Executes a transaction (withdrawal or deposit) by building and submitting the transaction manifest.
     /// Detailed logging is provided at each step.
     /// </summary>
-    private async Task<Result<TransactionResponse>> ExecuteTransactionAsync(decimal amount, string accountAddress,
-        string privateKey, bool isWithdraw)
+    private async Task<Result<TransactionResponse>> ExecuteTransactionAsync(PrivateKey sender, string receiver,
+        decimal amount)
     {
         DateTimeOffset date = DateTimeOffset.UtcNow;
         _logger.OperationStarted(nameof(ExecuteTransactionAsync), date);
+        const int fee = 10;
         try
         {
-            using PrivateKey senderPrivateKey = new PrivateKey(Encoders.Hex.DecodeData(privateKey), Curve.ED25519);
-            using Address sender =
-                Address.VirtualAccountAddressFromPublicKey(senderPrivateKey.PublicKey(), _options.NetworkId);
+            Address senderAddress = Address.VirtualAccountAddressFromPublicKey(sender.PublicKey(),
+                _options.NetworkId);
+            Address receiverAddress = new(receiver);
 
-            Address receiver = new Address(accountAddress);
-            if (isWithdraw)
-                receiver = new Address(_options.AccountAddress);
-
-            Result<decimal> balanceResult = await GetAccountBalanceAsync(sender.AddressString());
+            Result<decimal> balanceResult = await GetAccountBalanceAsync(
+                Address.VirtualAccountAddressFromPublicKey(sender.PublicKey(), _options.NetworkId).AddressString());
             if (!balanceResult.IsSuccess)
             {
                 _logger.OperationCompleted(nameof(ExecuteTransactionAsync), DateTimeOffset.UtcNow,
@@ -197,7 +199,7 @@ public sealed class RadixBridge : IRadixBridge
                 return Result<TransactionResponse>.Failure(balanceResult.Error);
             }
 
-            if (amount >= balanceResult.Value)
+            if (amount+fee >= balanceResult.Value)
             {
                 _logger.OperationCompleted(nameof(ExecuteTransactionAsync), DateTimeOffset.UtcNow,
                     DateTimeOffset.UtcNow - date);
@@ -212,10 +214,13 @@ public sealed class RadixBridge : IRadixBridge
             }
 
 
+            decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.AwayFromZero);
+            string formattedAmount = roundedAmount.ToString("F18", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+
             using TransactionManifest manifest = new ManifestBuilder()
-                .AccountLockFeeAndWithdraw(sender, new("10"), _xrdAddress, new($"{amount}"))
-                .TakeFromWorktop(_xrdAddress, new($"{amount}"), new("xrdBucket"))
-                .AccountTryDepositOrAbort(receiver, new("xrdBucket"), null)
+                .AccountLockFeeAndWithdraw(senderAddress, new($"{fee}"), _xrdAddress, new(formattedAmount))
+                .TakeFromWorktop(_xrdAddress, new(formattedAmount), new("xrdBucket"))
+                .AccountTryDepositOrAbort(receiverAddress, new("xrdBucket"), null)
                 .Build(_options.NetworkId);
 
             manifest.StaticallyValidate();
@@ -228,13 +233,13 @@ public sealed class RadixBridge : IRadixBridge
                     startEpochInclusive: currentEpoch,
                     endEpochExclusive: currentEpoch + 50,
                     nonce: RadixBridgeHelper.RandomNonce(),
-                    notaryPublicKey: senderPrivateKey.PublicKey(),
+                    notaryPublicKey: sender.PublicKey(),
                     notaryIsSignatory: true,
                     tipPercentage: 0
                 ))
                 .Manifest(manifest)
                 .Message(new Message.None())
-                .NotarizeWithPrivateKey(senderPrivateKey);
+                .NotarizeWithPrivateKey(sender);
 
             var data = new
             {
@@ -284,12 +289,13 @@ public sealed class RadixBridge : IRadixBridge
             intent_hash = transactionHash
         };
 
-        Result<TransactionStatusResponse?> response = await HttpClientHelper.PostAsync<object, TransactionStatusResponse>(
-            _httpClient,
-            $"{_options.HostUri}/core/transaction/status",
-            data,
-            token
-        );
+        Result<TransactionStatusResponse?> response =
+            await HttpClientHelper.PostAsync<object, TransactionStatusResponse>(
+                _httpClient,
+                $"{_options.HostUri}/core/transaction/status",
+                data,
+                token
+            );
 
         if (response.Value is null)
         {

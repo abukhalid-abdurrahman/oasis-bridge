@@ -206,7 +206,7 @@ public sealed class SolanaBridge(
             }
 
             decimal balanceSol = balanceResult.Value;
-            if ((lamports / Lamports) >= balanceSol)
+            if (lamports / Lamports >= balanceSol)
             {
                 return Result<TransactionResponse>.Failure(
                     ResultPatternError.BadRequest(Messages.InsufficientFundsInTechAccount),
