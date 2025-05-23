@@ -6,7 +6,6 @@ import {
   PROPERTY_TYPES,
 } from "../constants";
 import { TokenizationField } from "../types";
-import { maxBytes } from "../scripts/script";
 
 export const tokenizationFieldsBase: TokenizationField[] = [
   {
@@ -22,8 +21,8 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     validation: z
       .string()
       .min(1, { message: "Title is required" })
-      .refine(maxBytes(32), {
-        message: "Title must be less than 32 bytes",
+      .max(32, {
+        message: "Title must be less than 32 characters",
       }),
   },
   {
@@ -50,12 +49,8 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     validation: z
       .string()
       .min(1, { message: "Unique identifier is required" })
-      .regex(/^[a-zA-Z0-9-_]+$/, {
-        message:
-          "Identifier must contain only letters, numbers, dashes or underscores",
-      })
-      .refine(maxBytes(10), {
-        message: "Identifier must be less than 10 bytes",
+      .max(10, {
+        message: "Identifier must be less than 10 characters",
       }),
   },
   {
@@ -63,7 +58,7 @@ export const tokenizationFieldsBase: TokenizationField[] = [
     placeholder: "Network",
     type: "string",
     validation: z.enum(["Solana"], {
-      message: "Only 'Solana' is supported for now",
+      message: "Network is required",
     }),
   },
   {
