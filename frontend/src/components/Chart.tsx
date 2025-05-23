@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { AreaSeries, createChart, LineStyle } from "lightweight-charts";
 import { useEffect, useMemo, useRef } from "react";
 
@@ -14,7 +13,7 @@ export default function Chart({ className, data, firstData }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const firstChangedData = useMemo(() => {
     return {
-      time: format(new Date(firstData.createdAt), "yyyy-MM-dd"),
+      time: new Date(firstData.createdAt).getTime() / 1000,
       value: data?.[0]?.oldPrice,
     };
   }, [data, firstData]);
@@ -26,7 +25,7 @@ export default function Chart({ className, data, firstData }: ChartProps) {
 
       return [
         {
-          time: format(new Date(date), "yyyy-MM-dd"),
+          time: new Date(date).getTime() / 1000,
           value: price,
         },
       ];
@@ -36,7 +35,7 @@ export default function Chart({ className, data, firstData }: ChartProps) {
         const date = item?.createdAt || item?.changedAt;
         const price = item?.price || item?.newPrice;
         return {
-          time: format(new Date(date), "yyyy-MM-dd"),
+          time: new Date(date).getTime() / 1000,
           value: price,
         };
       });
@@ -77,7 +76,7 @@ export default function Chart({ className, data, firstData }: ChartProps) {
     candleSeries.setData(convertedData as any);
 
     chart.timeScale().fitContent();
-
+    console.log(convertedData)
     return () => chart.remove();
   }, []);
 
