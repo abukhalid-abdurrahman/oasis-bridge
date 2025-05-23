@@ -44,22 +44,26 @@ import Link from "next/link";
 import { useUserStore } from "@/store/useUserStore";
 import { redirect } from "next/navigation";
 import AllRwaData from "@/components/AllRwaData";
+import { mutateRwaUpdate } from "@/requests/putRequests";
 
 interface ChangeRwaProps {
   params: any;
 }
 
 export default function ChangeRwa({ params }: ChangeRwaProps) {
-  const tokenId = JSON.parse(params.value).id;
+  const tokenId = JSON.parse(params.value)?.id;
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
   const [isUpdated, setIsUpdated] = useState(false);
-  const [formData, setFormData] = useState<z.infer<typeof FormSchema>>();
+  const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [isAlldataOpen, setIsAlldataOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { user } = useUserStore();
 
   const { data, isFetching, isFetched } = useRwa(tokenId);
+  const submit = mutateRwaUpdate(tokenId);
 
   const FormSchema = z.object(
     Object.fromEntries(
@@ -79,9 +83,22 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
   const price = form.watch("price");
   const royalty = form.watch("royalty");
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    setFormData(data);
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
     setIsUpdated(true);
+    setIsError(false);
+    setErrorMessage("");
+    submit.mutate(data, {
+      onSuccess: () => {
+        setIsSuccessfullyDone(true);
+      },
+      onError: (error: any) => {
+        setIsError(true);
+        setErrorMessage(
+          error.response?.data?.error?.message ||
+            "Something went wrong. Please try again later."
+        );
+      },
+    });
   };
 
   useEffect(() => {
@@ -459,9 +476,12 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
           </div>
         </form>
       </Form>
-      {isUpdated && formData && (
+      {isUpdated && (
         <UpdatingModal
-          formData={formData}
+          errorMessage={errorMessage}
+          isError={isError}
+          isSuccessfullyDone={isSuccessfullyDone}
+          setIsSuccessfullyDone={setIsSuccessfullyDone}
           setIsUpdated={setIsUpdated}
           form={form}
           tokenId={data.data.tokenId}

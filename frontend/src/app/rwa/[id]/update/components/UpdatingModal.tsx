@@ -8,7 +8,6 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 interface UpdatingModalProps {
-  formData: any;
   setIsUpdated: Dispatch<SetStateAction<boolean>>;
   form: UseFormReturn<
     {
@@ -19,30 +18,22 @@ interface UpdatingModalProps {
       [x: string]: any;
     }
   >;
-  tokenId: string
+  tokenId: string;
+  isError: boolean;
+  errorMessage: string;
+  isSuccessfullyDone: boolean;
+  setIsSuccessfullyDone: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function UpdatingModal({
-  formData,
   setIsUpdated,
   form,
-  tokenId
+  tokenId,
+  isError,
+  errorMessage,
+  isSuccessfullyDone,
+  setIsSuccessfullyDone
 }: UpdatingModalProps) {
-  const [isSuccessfullyDone, setIsSuccessfullyDone] = useState(false);
-  const [isError, setIsError] = useState(false);
-
-  const submit = mutateRwaUpdate(tokenId);
-  useEffect(() => {
-    submit.mutate(formData, {
-      onSuccess: (res) => {
-        setIsSuccessfullyDone(true);
-      },
-      onError: () => {
-        setIsError(true)
-      }
-    });
-  }, []);
-
   return (
     <Modal
       isNonClosable={!isError}
@@ -97,11 +88,7 @@ export default function UpdatingModal({
             </Button>
           </>
         )}
-        {!isSuccessfullyDone && isError && (
-          <p className="p">
-            Something went wrong. Please try again later.
-          </p>
-        )}
+        {!isSuccessfullyDone && isError && <p className="p">{errorMessage}</p>}
       </div>
     </Modal>
   );
