@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import {
-  handleCopyAlt,
+  handleCopy,
   shortAddress,
   shortDescription,
 } from "@/lib/scripts/script";
@@ -103,7 +103,7 @@ export default function AllRwaData({ data, setIsOpen }: AllRwaDataProps) {
                               key === "transactionHash" ? (
                                 <TableCell
                                   onClick={() =>
-                                    handleCopyAlt(key, value, setCopiedMap)
+                                    handleCopy(value, { setCopiedMap, key })
                                   }
                                   className="px-0 text-right cursor-pointer block"
                                 >
