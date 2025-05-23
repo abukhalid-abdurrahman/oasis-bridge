@@ -31,7 +31,7 @@ export default function RwaTableMe() {
     pageNumber: 1,
   });
 
-  const { data: rwas, isFetching: rwasFetching } = useRwasMe(reqParams, user!.token);
+  const { data: rwas, isFetching: rwasFetching } = useRwasMe(reqParams, user!?.token || '');
 
   return (
     <div>
@@ -42,7 +42,7 @@ export default function RwaTableMe() {
         />
       ) : (
         <>
-          {rwas.data.data.length > 0 ? (
+          {rwas?.data?.data.length > 0 ? (
             <Table className="min-w-[965px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-primary">
@@ -58,7 +58,7 @@ export default function RwaTableMe() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rwas.data.data.map((rwa: any) => {
+                {rwas?.data?.data.map((rwa: any) => {
                   return (
                     <TableRow
                       key={rwa.tokenId}
