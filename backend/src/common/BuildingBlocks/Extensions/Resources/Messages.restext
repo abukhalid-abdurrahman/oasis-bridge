@@ -118,7 +118,7 @@ AssetDescriptionInvalid=AssetDescription is required and must be at most 1000 ch
 ImageInvalid=Image must be a valid absolute URL and must be at most 200 characters.
 UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 10 characters.
 ProofOfOwnershipInvalid=ProofOfOwnership must be a valid absolute URL and must be at most 200 characters.
-
+CannotPurchaseOwnNft=You cannot purchase your own NFT.
 
 ConfigurationValueRequired=Configuration value for '{0}' is required and was not found or empty.
 ConfigurationValueMustBeInteger=Configuration value for '{0}' must be a valid integer. Found: '{1}'.

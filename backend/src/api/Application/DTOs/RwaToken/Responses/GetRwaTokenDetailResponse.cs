@@ -1,6 +1,6 @@
 namespace Application.DTOs.RwaToken.Responses;
 
-public record GetRwaTokenDetailResponse(
+public sealed record GetRwaTokenDetailResponse(
     Guid TokenId,
     string Title,
     string AssetDescription,

@@ -29,11 +29,11 @@ public sealed class NftPurchaseService(
             if (existingRwa.VirtualAccountId is null)
                 return Result<string>.Failure(ResultPatternError.BadRequest(Messages.NftAlreadyTransferred));
 
-            VirtualAccount? existingVa = await dbContext.VirtualAccounts
-                .AsNoTracking()
+            VirtualAccount? seller = await dbContext.VirtualAccounts
+                .AsNoTrackingWithIdentityResolution()
                 .Include(x => x.Network)
                 .FirstOrDefaultAsync(x => x.Id == existingRwa.VirtualAccountId);
-            if (existingVa is null)
+            if (seller is null)
                 return Result<string>.Failure(ResultPatternError.NotFound(Messages.VirtualAccountNotFound));
 
             WalletLinkedAccount? buyer = await dbContext.WalletLinkedAccounts
@@ -43,11 +43,15 @@ public sealed class NftPurchaseService(
                 return Result<string>.Failure(
                     ResultPatternError.NotFound(Messages.CreateNftPurchaseBuyerAccountNotFound));
 
-            string base58SecretKey = existingVa.PrivateKey;
+            if (seller.UserId == buyer.UserId)
+                return Result<string>.Failure(
+                    ResultPatternError.BadRequest(Messages.CannotPurchaseOwnNft));
 
-            if (existingVa.Network.Name == Networks.Solana)
+            string base58SecretKey = seller.PrivateKey;
+
+            if (seller.Network.Name == Networks.Solana)
             {
-                Mnemonic mnemonic = new(existingVa.SeedPhrase);
+                Mnemonic mnemonic = new(seller.SeedPhrase);
                 Wallet wallet = new(mnemonic);
                 base58SecretKey = Base58.Encode(wallet.Account.PrivateKey);
             }
@@ -56,7 +60,7 @@ public sealed class NftPurchaseService(
             Result<CreateTransactionResponse> resultOfTransaction =
                 await solShiftService.CreateTransactionAsync(new(
                     buyer.PublicKey,
-                    existingVa.PublicKey,
+                    seller.PublicKey,
                     base58SecretKey,
                     existingRwa.MintAccount,
                     existingRwa.Price,
@@ -72,7 +76,7 @@ public sealed class NftPurchaseService(
                 CreatedBy = accessor.GetId(),
                 CreatedByIp = accessor.GetRemoteIpAddress(),
                 BuyerWalletId = buyer.Id,
-                SellerWalletId = existingVa.Id,
+                SellerWalletId = seller.Id,
                 TransactionDate = DateTimeOffset.UtcNow,
                 TransactionHash = transactionHash,
                 RwaTokenId = existingRwa.Id,
