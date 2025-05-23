@@ -5,8 +5,5 @@ public record RwaTokenPriceHistoryFilter(
     Guid? RwaTokenId,
     decimal? OldPrice,
     decimal? NewPrice,
-    DateTime? ChangedAt,
-    Guid? VirtualAccountOwnerId,
-    string? PublicKey,
-    Guid? OwnerUserId
+    DateTime? ChangedAt
 ) : BaseFilter;

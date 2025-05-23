@@ -12,22 +12,13 @@ public sealed class RwaTokenPriceHistoryService(
 
         try
         {
-            IQueryable<GetRwaTokenPriceHistoryResponse> query = dbContext.RwaTokenPriceHistories.AsNoTracking()
-                .Include(x => x.RwaToken)
-                .ThenInclude(x => x.VirtualAccount)
-                .ThenInclude(x => x.User)
+            IQueryable<GetRwaTokenPriceHistoryResponse> query = dbContext.RwaTokenPriceHistories
+                .AsNoTracking()
                 .WhereIf(filter.Id is not null, x => x.Id == filter.Id)
                 .WhereIf(filter.ChangedAt is not null, x => x.ChangedAt == filter.ChangedAt)
                 .WhereIf(filter.NewPrice is not null, x => x.NewPrice == filter.NewPrice)
                 .WhereIf(filter.OldPrice is not null, x => x.OldPrice == filter.OldPrice)
                 .WhereIf(filter.RwaTokenId is not null, x => x.RwaTokenId == filter.RwaTokenId)
-                .WhereIf(filter.VirtualAccountOwnerId is not null,
-                    x => x.RwaToken.VirtualAccountId == filter.VirtualAccountOwnerId)
-                .WhereIf(!string.IsNullOrWhiteSpace(filter.PublicKey),
-                    x
-                        => x.RwaToken.VirtualAccount != null && x.RwaToken.VirtualAccount.PublicKey == filter.PublicKey)
-                .WhereIf(filter.OwnerUserId is not null, x =>
-                    x.RwaToken.VirtualAccount != null && x.RwaToken.VirtualAccount.User.Id == filter.OwnerUserId)
                 .OrderBy(x => x.Id)
                 .Select(x => x.ToRead());
 
@@ -61,10 +52,6 @@ public sealed class RwaTokenPriceHistoryService(
         try
         {
             return Result<IEnumerable<GetRwaTokenPriceHistoryResponse>>.Success(await dbContext.RwaTokenPriceHistories
-                .AsNoTracking()
-                .Include(x => x.RwaToken)
-                .ThenInclude(x => x.VirtualAccount)
-                .ThenInclude(x => x.User)
                 .Where(x => x.RwaTokenId == id)
                 .Select(x => x.ToRead())
                 .ToListAsync(token));
