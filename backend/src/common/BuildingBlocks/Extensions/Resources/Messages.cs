@@ -113,6 +113,7 @@ public static class Messages
     public static string RadixGetAddressInvalidType => _resources.Get().AsString();
     public static string SelfTransaction => _resources.Get().AsString();
     public static string InsufficientFundsInTechAccount => _resources.Get().AsString();
+    public static string InsufficientFunds  => _resources.Get().AsString();
     public static string InvalidAmount => _resources.Get().AsString();
     public static string TransactionFailed => _resources.Get().AsString();
     public static string RadixGetTransactionStatusFailed => _resources.Get().AsString();

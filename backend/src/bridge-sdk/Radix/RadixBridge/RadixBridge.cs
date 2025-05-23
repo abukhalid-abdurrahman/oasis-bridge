@@ -190,8 +190,7 @@ public sealed class RadixBridge : IRadixBridge
                 _options.NetworkId);
             Address receiverAddress = new(receiver);
 
-            Result<decimal> balanceResult = await GetAccountBalanceAsync(
-                Address.VirtualAccountAddressFromPublicKey(sender.PublicKey(), _options.NetworkId).AddressString());
+            Result<decimal> balanceResult = await GetAccountBalanceAsync(senderAddress.AddressString());
             if (!balanceResult.IsSuccess)
             {
                 _logger.OperationCompleted(nameof(ExecuteTransactionAsync), DateTimeOffset.UtcNow,
@@ -199,12 +198,12 @@ public sealed class RadixBridge : IRadixBridge
                 return Result<TransactionResponse>.Failure(balanceResult.Error);
             }
 
-            if (amount+fee >= balanceResult.Value)
+            if (amount + fee >= balanceResult.Value)
             {
                 _logger.OperationCompleted(nameof(ExecuteTransactionAsync), DateTimeOffset.UtcNow,
                     DateTimeOffset.UtcNow - date);
                 return Result<TransactionResponse>.Failure(
-                    ResultPatternError.BadRequest(Messages.InsufficientFundsInTechAccount),
+                    ResultPatternError.BadRequest(Messages.InsufficientFunds),
                     new(
                         string.Empty,
                         null,
@@ -215,7 +214,8 @@ public sealed class RadixBridge : IRadixBridge
 
 
             decimal roundedAmount = Math.Round(amount, 18, MidpointRounding.AwayFromZero);
-            string formattedAmount = roundedAmount.ToString("F18", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+            string formattedAmount =
+                roundedAmount.ToString("F18", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
 
             using TransactionManifest manifest = new ManifestBuilder()
                 .AccountLockFeeAndWithdraw(senderAddress, new($"{fee}"), _xrdAddress, new(formattedAmount))
