@@ -27,11 +27,11 @@ docker build -t app-name .
 In root directury run. For devnet
 
 ```bash
-docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1 -e NEXT_PUBLIC_SOLANA_NET=https://api.devnet.solana.com app-name
+docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=https://api.qstreetrwa.com/api/v1 -e NEXT_PUBLIC_SOLANA_ENVIRONMENT=devnet app-name
 ```
 
 or for mainnet
 
 ```bash
-docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1 -e NEXT_PUBLIC_SOLANA_NET=https://api.mainnet-beta.solana.com app-name
+docker run -d -p 3000:3000 -e NEXT_PUBLIC_API_URL=https://api.qstreetrwa.com/api/v1 app-name
 ```
