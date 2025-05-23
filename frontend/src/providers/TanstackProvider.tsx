@@ -1,5 +1,6 @@
 "use client";
 
+import Modal from "@/components/Modal";
 import { removeUser } from "@/lib/scripts/script";
 import { useUserStore } from "@/store/useUserStore";
 import {
@@ -9,6 +10,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function TanstackProvider({
   children,
@@ -17,6 +19,7 @@ export default function TanstackProvider({
 }>) {
   const setUser = useUserStore((state) => state.setUser);
   const router = useRouter();
+  const [isServerError, setIsServerError] = useState(false);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -28,8 +31,12 @@ export default function TanstackProvider({
     },
     queryCache: new QueryCache({
       onError: (err: any) => {
+        setIsServerError(false);
         if (err?.response.status === 401) {
           removeUser(setUser, router);
+        } else if (err?.response.status >= 500) {
+          router.push("/");
+          setIsServerError(true);
         }
       },
     }),
@@ -42,6 +49,19 @@ export default function TanstackProvider({
     }),
   });
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {isServerError && (
+        <Modal
+          onCloseFunc={() => setIsServerError(false)}
+          isNonUrlModal
+          className="min-h-64 flex justify-center items-center"
+        >
+          <p className="p text-center">
+            Something went wrong on the server. <br /> Please try again later
+          </p>
+        </Modal>
+      )}
+    </QueryClientProvider>
   );
 }

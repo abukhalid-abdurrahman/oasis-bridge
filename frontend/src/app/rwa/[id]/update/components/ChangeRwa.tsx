@@ -385,8 +385,8 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
           <div className="w-1/2 aspect-[3/2] rounded-2xl md:w-full md:aspect-auto">
             <div className="relative aspect-[3/2] w-full max-w-full bg-neutral-700/50 rounded-2xl p-5 flex items-center justify-center overflow-hidden">
               <img
-                src={data.data.image}
-                alt={data.data.title}
+                src={data?.data.image}
+                alt={data?.data.title}
                 className="object-contain !max-h-full !w-auto rounded-2xl"
               />
             </div>
@@ -398,7 +398,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                 })} !px-5 !w-full flex justify-between flex-wrap`}
               >
                 <span className="text-gray-500">Version:</span>
-                {data.data.version}
+                {data?.data.version}
               </div>
               <div
                 className={`${buttonVariants({
@@ -411,13 +411,13 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   className="cursor-pointer relative"
                   onClick={() => {
                     handleCopy(
-                      data.data.image.replace("https://ipfs.io/ipfs/", ""),
+                      data?.data.image.replace("https://ipfs.io/ipfs/", ""),
                       { setIsCopied }
                     );
                   }}
                 >
                   {shortAddress(
-                    data.data.image.replace("https://ipfs.io/ipfs/", "")
+                    data?.data.image.replace("https://ipfs.io/ipfs/", "")
                   )}
                   {isCopied && (
                     <span className="absolute right-0 -top-6 bg-white text-black text-xs px-2 py-1 rounded-md opacity-90 transition">
@@ -434,7 +434,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
                   <span className="text-gray-500">Price:</span>
-                  {data.data.price} zBTC
+                  {data?.data.price} zBTC
                 </div>
                 <div
                   className={`${buttonVariants({
@@ -443,7 +443,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                   })} !px-5 !w-full flex justify-between flex-wrap`}
                 >
                   <span className="text-gray-500">Royalty:</span>
-                  {data.data.royalty}%
+                  {data?.data.royalty}%
                 </div>
               </div>
               <div
@@ -484,11 +484,11 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
           setIsSuccessfullyDone={setIsSuccessfullyDone}
           setIsUpdated={setIsUpdated}
           form={form}
-          tokenId={data.data.tokenId}
+          tokenId={data?.data.tokenId}
         />
       )}
       {isAlldataOpen && (
-        <AllRwaData data={data.data} setIsOpen={setIsAlldataOpen} />
+        <AllRwaData data={data?.data} setIsOpen={setIsAlldataOpen} />
       )}
     </>
   );

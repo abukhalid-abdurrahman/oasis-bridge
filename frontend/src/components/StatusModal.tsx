@@ -50,7 +50,7 @@ export default function StatusModal({
   }, [orderId, address]);
 
   useEffect(() => {
-    if (!isOpen || (data && data.data.status === "Completed")) return;
+    if (!isOpen || (data && data?.data.status === "Completed")) return;
 
     const messageInterval = setInterval(() => {
       setMessageIndex((prevIndex) => (prevIndex + 1) % statusMessages.length);
