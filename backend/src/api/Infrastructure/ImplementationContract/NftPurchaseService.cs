@@ -46,7 +46,7 @@ public sealed class NftPurchaseService(
             if (seller.UserId == buyer.UserId)
                 return Result<string>.Failure(
                     ResultPatternError.BadRequest(Messages.CannotPurchaseOwnNft));
-            
+
             string base58SecretKey = seller.PrivateKey;
 
             if (seller.Network.Name == Networks.Solana)
