@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button, buttonVariants } from "./ui/button";
 import { useWalletStore } from "@/store/useWalletStore";
-import Cookies from 'js-cookie'
+import Cookies from "js-cookie";
 
 export default function HeaderBtns() {
   const router = useRouter();
@@ -22,11 +22,12 @@ export default function HeaderBtns() {
     }
     setLoading(false);
   }, [setUser]);
+
   useEffect(() => {
-    if (!Cookies.get('oasisToken')) {
-      setUser(null)
+    if (!Cookies.get("oasisToken")) {
+      setUser(null);
     }
-  }, [Cookies.get('oasisToken')])
+  }, [Cookies.get("oasisToken")]);
 
   if (loading) return null;
 

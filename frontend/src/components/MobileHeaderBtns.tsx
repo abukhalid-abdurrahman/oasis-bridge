@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buttonVariants } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Cookies from "js-cookie";
 
 export default function MobileHeaderBtns() {
   const router = useRouter();
@@ -19,6 +20,12 @@ export default function MobileHeaderBtns() {
     }
     setLoading(false);
   }, [setUser]);
+
+  useEffect(() => {
+    if (!Cookies.get("oasisToken")) {
+      setUser(null);
+    }
+  }, [Cookies.get("oasisToken")]);
 
   if (loading) return null;
 
@@ -36,7 +43,7 @@ export default function MobileHeaderBtns() {
         </Link>
       ) : (
         <>
-          <Link href='/profile'>
+          <Link href="/profile">
             <div className="flex items-center gap-4 mb-5">
               <Avatar className="w-12 h-12">
                 <AvatarImage src="/profile.svg" className="invert" />
