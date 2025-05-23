@@ -31,7 +31,7 @@ export default function RwaTableMe() {
     pageNumber: 1,
   });
 
-  const { data: rwas, isFetching: rwasFetching } = useRwasMe(reqParams);
+  const { data: rwas, isFetching: rwasFetching } = useRwasMe(reqParams, user!.token);
 
   return (
     <div>
