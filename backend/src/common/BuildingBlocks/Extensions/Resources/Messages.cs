@@ -74,6 +74,7 @@ public static class Messages
     public static string OrderInsufficientFunds => _resources.Get().AsString();
     public static string VirtualAccountNotFound => _resources.Get().AsString();
     public static string CreateNftPurchaseBuyerAccountNotFound => _resources.Get().AsString();
+    public static string CannotPurchaseOwnNft => _resources.Get().AsString();
     public static string OrderAlreadyCompleted => _resources.Get().AsString();
     public static string ProofOfOwnershipInvalid => _resources.Get().AsString();
     public static string OrderCanceled => _resources.Get().AsString();
@@ -126,7 +127,12 @@ public static class Messages
     public static string ImageInvalid => _resources.Get().AsString();
     public static string UniqueIdentifierInvalid => _resources.Get().AsString();
     public static string ConfigurationValueRequired(string key) => _resources.Get().Format(key);
-    public static string ConfigurationValueMustBeInteger(string key, string? value) => _resources.Get().Format(key, value);
-    public static string ConfigurationValueMustBeBoolean(string key, string? value) => _resources.Get().Format(key, value);
+
+    public static string ConfigurationValueMustBeInteger(string key, string? value) =>
+        _resources.Get().Format(key, value);
+
+    public static string ConfigurationValueMustBeBoolean(string key, string? value) =>
+        _resources.Get().Format(key, value);
+
     public static string ConnectionStringNotFound(string name) => _resources.Get().Format(name);
 }
