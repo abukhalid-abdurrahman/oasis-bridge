@@ -9,7 +9,7 @@ public sealed class RwaTokenOwnershipTransferService(
             .AsNoTracking()
             .Include(x => x.BuyerWallet)
             .Include(x => x.SellerWallet)
-            .Where(x => x.RwaTokenId == id && x.TransferStatus==RwaTokenOwnershipTransferStatus.Completed)
+            .Where(x => x.RwaTokenId == id && x.TransferStatus == RwaTokenOwnershipTransferStatus.Completed)
             .OrderBy(x => x.Id)
             .Select(x => x.ToRead()).ToListAsync(token));
 }
