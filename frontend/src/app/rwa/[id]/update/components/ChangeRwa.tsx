@@ -52,6 +52,8 @@ interface ChangeRwaProps {
 
 export default function ChangeRwa({ params }: ChangeRwaProps) {
   const tokenId = JSON.parse(params.value)?.id;
+  const [initialData, setInitialData] = useState<any | null>(null);
+  const [isDataChanged, setIsDataChanged] = useState(false)
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
   const [isUpdated, setIsUpdated] = useState(false);
@@ -84,9 +86,23 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
   const royalty = form.watch("royalty");
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    setIsUpdated(true);
     setIsError(false);
     setErrorMessage("");
+    setIsDataChanged(false)
+
+    if (!initialData) return;
+
+    const isChanged = Object.entries(data).some(
+      ([key, value]) => initialData[key] !== value
+    );
+
+    if (!isChanged) {
+      setIsDataChanged(true)
+      return
+    }
+
+    setIsUpdated(true);
+
     submit.mutate(data, {
       onSuccess: () => {
         setIsSuccessfullyDone(true);
@@ -100,6 +116,18 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
       },
     });
   };
+
+  useEffect(() => {
+    if (data) {
+      const values = data.data;
+      Object.entries(values).forEach(
+        ([key, value]: [key: string, value: any]) => {
+          form.setValue(key, value);
+        }
+      );
+      setInitialData(values);
+    }
+  }, [data]);
 
   useEffect(() => {
     if (price && royalty) {
@@ -199,6 +227,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value || data?.data.network}
                     >
                       <FormControl>
                         <SelectTrigger className="w-[180px]">
@@ -282,48 +311,85 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            disabled={isUploading}
-                            className={
-                              isUploading ? "cursor-not-allowed opacity-50" : ""
-                            }
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-
-                              if (!file.type.startsWith("image/")) {
-                                form.setError("proofOfOwnershipDocument", {
-                                  type: "manual",
-                                  message: "File must be an image",
-                                });
-                                return;
+                          {field.value ? (
+                            <div
+                              className={`${buttonVariants({
+                                variant: "empty",
+                                size: "xl",
+                              })} min-h-[50px] h-auto py-2
+                            w-full justify-between px-5 gap-2 flex-wrap`}
+                            >
+                              <p className="p-sm text-black">
+                                You already have a file uploaded.
+                              </p>
+                              <div className="flex gap-2">
+                                <Link
+                                  href={field.value}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={buttonVariants({
+                                    variant: "gray",
+                                    size: "sm",
+                                  })}
+                                >
+                                  View
+                                </Link>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  type="button"
+                                  onClick={() => field.onChange("")}
+                                >
+                                  Change
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              disabled={isUploading}
+                              className={
+                                isUploading
+                                  ? "cursor-not-allowed opacity-50"
+                                  : ""
                               }
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
 
-                              const maxSizeInBytes = 10 * 1024 * 1024;
-                              if (file.size > maxSizeInBytes) {
-                                form.setError("proofOfOwnershipDocument", {
-                                  type: "manual",
-                                  message: "File must be smaller than 10MB",
-                                });
-                                return;
-                              }
+                                if (!file.type.startsWith("image/")) {
+                                  form.setError("proofOfOwnershipDocument", {
+                                    type: "manual",
+                                    message: "File must be an image",
+                                  });
+                                  return;
+                                }
 
-                              try {
-                                setIsUploading(true);
-                                const uploadedUrl = await uploadFile(file);
-                                field.onChange(uploadedUrl);
-                              } catch (error) {
-                                form.setError("proofOfOwnershipDocument", {
-                                  type: "manual",
-                                  message: "Upload failed. Try again.",
-                                });
-                              } finally {
-                                setIsUploading(false);
-                              }
-                            }}
-                          />
+                                const maxSizeInBytes = 10 * 1024 * 1024;
+                                if (file.size > maxSizeInBytes) {
+                                  form.setError("proofOfOwnershipDocument", {
+                                    type: "manual",
+                                    message: "File must be smaller than 10MB",
+                                  });
+                                  return;
+                                }
+
+                                try {
+                                  setIsUploading(true);
+                                  const uploadedUrl = await uploadFile(file);
+                                  field.onChange(uploadedUrl);
+                                } catch (error) {
+                                  form.setError("proofOfOwnershipDocument", {
+                                    type: "manual",
+                                    message: "Upload failed. Try again.",
+                                  });
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }}
+                            />
+                          )}
                           {isUploading && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
                               <Loader2
@@ -348,6 +414,7 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value || data?.data.assetType}
                     >
                       <FormControl>
                         <SelectTrigger className="w-[180px]">
@@ -373,6 +440,9 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                 )}
               />
             </div>
+            {isDataChanged && (
+              <p className="p-sm text-destructive mt-2">You haven't changed anything.</p>
+            )}
             <Button
               variant="gray"
               type="submit"
