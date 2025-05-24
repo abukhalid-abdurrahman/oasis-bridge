@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,24 +14,34 @@ import { shortDescription } from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
-import {
-  useRwasMe,
-} from "@/requests/getRequests";
+import { useRwasMe } from "@/requests/getRequests";
 import Loading from "@/components/Loading";
 import { RwasReq } from "@/lib/types";
 import _ from "lodash";
 import Link from "next/link";
 import { useUserStore } from "@/store/useUserStore";
-import PurchaseButton from "@/components/PurchaseButton";
+import { useSearchParams } from "next/navigation";
 
 export default function RwaTableMe() {
+  const searchParams = useSearchParams();
+  const initialPage = parseInt(searchParams.get("page") || "1");
   const { user } = useUserStore();
   const [reqParams, setReqParams] = useState<RwasReq>({
     pageSize: 10,
-    pageNumber: 1,
+    pageNumber: initialPage,
   });
 
-  const { data: rwas, isFetching: rwasFetching } = useRwasMe(reqParams, user!?.token || '');
+  const { data: rwas, isFetching: rwasFetching } = useRwasMe(
+    reqParams,
+    user!?.token || ""
+  );
+
+  useEffect(() => {
+    setReqParams((prev) => ({
+      ...prev,
+      pageNumber: initialPage,
+    }));
+  }, [initialPage]);
 
   return (
     <div>
@@ -171,7 +181,7 @@ export default function RwaTableMe() {
           className="mt-10"
           pages={rwas.data.totalPages}
           currentPage={reqParams.pageNumber}
-          setCurrentPage={setReqParams}
+          searchParams={searchParams}
         />
       )}
     </div>
