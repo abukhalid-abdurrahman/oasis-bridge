@@ -10,84 +10,55 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getVisiblePages } from "@/lib/scripts/script";
-import { Dispatch, SetStateAction } from "react";
+import { ReadonlyURLSearchParams } from "next/navigation";
 
 interface PaginationButtonsProps {
   className?: string;
   pages: number;
   currentPage: number;
-  setCurrentPage: Dispatch<SetStateAction<any>>;
+  searchParams: ReadonlyURLSearchParams;
 }
 
 export function PaginationButtons({
   className,
   pages,
   currentPage,
-  setCurrentPage,
+  searchParams,
 }: PaginationButtonsProps) {
   const visiblePages = getVisiblePages(currentPage, pages);
 
-  const setPage = (i: number) => {
-    setCurrentPage((prevState: any) => {
-      return {
-        ...prevState,
-        pageNumber: i
-      }
-    });
-  };
-
-  const previuosPage = () => {
-    setCurrentPage((prevState: any) => {
-      if (prevState.pageNumber <= 1) {
-        return prevState
-      } else {
-        return {
-          ...prevState,
-          pageNumber: prevState.pageNumber -= 1
-        }
-      }
-    });
-  };
-
-  const nextPage = () => {
-    setCurrentPage((prevState: any) => {
-      if (prevState.pageNumber >= pages) {
-        return prevState
-      } else {
-        return {
-          ...prevState,
-          pageNumber: prevState.pageNumber += 1
-        }
-      }
-    });
+  const buildHref = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    return `?${params.toString()}`;
   };
 
   return (
     <Pagination className={className}>
       <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious onClick={previuosPage} href="#" />
-        </PaginationItem>
+        {currentPage > 1 && (
+          <PaginationItem>
+            <PaginationPrevious href={buildHref(currentPage - 1)} />
+          </PaginationItem>
+        )}
 
         {visiblePages.map((p, i) => (
           <PaginationItem key={i}>
             {p === "..." ? (
               <PaginationEllipsis />
             ) : (
-              <PaginationLink
-                onClick={() => setPage(p)}
-                href="#"
-                isActive={p === currentPage}
-              >
+              <PaginationLink href={buildHref(p)} isActive={p === currentPage}>
                 {p}
               </PaginationLink>
             )}
           </PaginationItem>
         ))}
 
-        <PaginationItem>
-          <PaginationNext onClick={nextPage} href="#" />
-        </PaginationItem>
+        {currentPage < pages && (
+          <PaginationItem>
+            <PaginationNext href={buildHref(currentPage + 1)} />
+          </PaginationItem>
+        )}
       </PaginationContent>
     </Pagination>
   );

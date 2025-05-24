@@ -10,9 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import {
-  shortDescription,
-} from "@/lib/scripts/script";
+import { shortDescription } from "@/lib/scripts/script";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { PaginationButtons } from "@/components/PaginationButtons";
@@ -28,8 +26,11 @@ import Link from "next/link";
 import Filters from "./Filters";
 import { useUserStore } from "@/store/useUserStore";
 import PurchaseButton from "@/components/PurchaseButton";
+import { useSearchParams } from "next/navigation";
 
 export default function RWATable() {
+  const searchParams = useSearchParams();
+  const initialPage = parseInt(searchParams.get("page") || "1");
   const { user } = useUserStore();
   const [tokenIds, setTokenIds] = useState<string[]>([]);
   const [reqParams, setReqParams] = useState<RwasReq>({
@@ -39,7 +40,7 @@ export default function RWATable() {
     sortBy: null,
     sortOrder: null,
     pageSize: 10,
-    pageNumber: 1,
+    pageNumber: initialPage,
   });
 
   const { data: rwas, isFetching: rwasFetching } = useRwas(reqParams);
@@ -89,6 +90,13 @@ export default function RWATable() {
 
     return Array.from(combinedMap.values());
   }, [rwas, rwaMultiple, rwaChangesMultiple]);
+
+  useEffect(() => {
+    setReqParams((prev) => ({
+      ...prev,
+      pageNumber: initialPage,
+    }));
+  }, [initialPage]);
 
   return (
     <div>
@@ -222,7 +230,10 @@ export default function RWATable() {
                         >
                           Details
                         </Link>
-                        <PurchaseButton usageInMarketPage={true} tokenId={rwa.tokenId} />
+                        <PurchaseButton
+                          usageInMarketPage={true}
+                          tokenId={rwa.tokenId}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -243,7 +254,7 @@ export default function RWATable() {
           className="mt-10"
           pages={rwas.data.totalPages}
           currentPage={reqParams.pageNumber}
-          setCurrentPage={setReqParams}
+          searchParams={searchParams}
         />
       )}
     </div>
