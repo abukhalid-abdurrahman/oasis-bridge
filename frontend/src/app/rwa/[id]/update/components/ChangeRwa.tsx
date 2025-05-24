@@ -52,6 +52,8 @@ interface ChangeRwaProps {
 
 export default function ChangeRwa({ params }: ChangeRwaProps) {
   const tokenId = JSON.parse(params.value)?.id;
+  const [initialData, setInitialData] = useState<any | null>(null);
+  const [isDataChanged, setIsDataChanged] = useState(false)
   const [netAmount, setNetAmount] = useState<number | string>("");
   const [existedNetAmount, setExistedNetAmount] = useState<number | string>("");
   const [isUpdated, setIsUpdated] = useState(false);
@@ -84,9 +86,23 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
   const royalty = form.watch("royalty");
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    setIsUpdated(true);
     setIsError(false);
     setErrorMessage("");
+    setIsDataChanged(false)
+
+    if (!initialData) return;
+
+    const isChanged = Object.entries(data).some(
+      ([key, value]) => initialData[key] !== value
+    );
+
+    if (!isChanged) {
+      setIsDataChanged(true)
+      return
+    }
+
+    setIsUpdated(true);
+
     submit.mutate(data, {
       onSuccess: () => {
         setIsSuccessfullyDone(true);
@@ -103,11 +119,13 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
 
   useEffect(() => {
     if (data) {
-      Object.entries(data?.data).forEach(
+      const values = data.data;
+      Object.entries(values).forEach(
         ([key, value]: [key: string, value: any]) => {
           form.setValue(key, value);
         }
       );
+      setInitialData(values);
     }
   }, [data]);
 
@@ -422,6 +440,9 @@ export default function ChangeRwa({ params }: ChangeRwaProps) {
                 )}
               />
             </div>
+            {isDataChanged && (
+              <p className="p-sm text-destructive mt-2">You haven't changed anything.</p>
+            )}
             <Button
               variant="gray"
               type="submit"
