@@ -95,8 +95,8 @@ export default function RWATable() {
       <div className="w-full mb-5 flex justify-end text-sm">
         <Filters reqParams={reqParams} setReqParams={setReqParams} />
       </div>
-      {rwaMultipleFetching.some((item) => item === true) ||
-      rwaChangesMultipleFetching.some((item) => item === true) ||
+      {rwaMultipleFetching?.some((item) => item === true) ||
+      rwaChangesMultipleFetching?.some((item) => item === true) ||
       rwasFetching ? (
         <Loading
           className="flex justify-center mt-14"

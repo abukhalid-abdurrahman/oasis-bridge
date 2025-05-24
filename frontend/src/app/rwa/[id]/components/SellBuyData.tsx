@@ -51,7 +51,7 @@ export default function SellBuyData({ tokenId }: SellBuyDataProps) {
               </TableCell>
             </TableRow>
           ) : (
-            data.data.map((row: any, i: number) => (
+            data?.data.map((row: any, i: number) => (
               <TableRow key={i} className="hover:bg-transparent">
                 <TableCell
                   className={`px-0 ${

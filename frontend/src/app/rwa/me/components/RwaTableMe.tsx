@@ -169,7 +169,7 @@ export default function RwaTableMe() {
       {rwas?.data?.totalPages > 1 && (
         <PaginationButtons
           className="mt-10"
-          pages={rwas.data.totalPages}
+          pages={rwas?.data.totalPages}
           currentPage={reqParams.pageNumber}
           setCurrentPage={setReqParams}
         />
